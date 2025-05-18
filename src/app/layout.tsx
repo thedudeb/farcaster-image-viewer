@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { FrameInit } from "./components/FrameInit";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,23 +15,23 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "0ffline Viewer",
-    description: "Universe and Everything",
-    other: {
-      "fc:frame": JSON.stringify({
-        version: "next",
-        imageUrl: "",
-        button: {
-          title: "Universe and Everything",
-          action: {
-            type: "launch_frame",
-            url: "https://farcaster-image-viewer-git-main-thedude-da236722.vercel.app/",
-            name: "0ffline Viewer",
-            splashImageUrl: "",
-            splashBackgroundColor: "#eeccff ",
-          },
+  description: "Universe and Everything",
+  other: {
+    "fc:frame": JSON.stringify({
+      version: "next",
+      imageUrl: "",
+      button: {
+        title: "Universe and Everything",
+        action: {
+          type: "launch_frame",
+          url: "https://farcaster-image-viewer-git-main-thedude-da236722.vercel.app/",
+          name: "0ffline Viewer",
+          splashImageUrl: "",
+          splashBackgroundColor: "#eeccff ",
         },
-      }),
-    }
+      },
+    }),
+  }
 
 
 };
@@ -46,6 +47,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <FrameInit />
       </body>
     </html>
   );
