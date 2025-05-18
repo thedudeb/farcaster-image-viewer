@@ -11,7 +11,7 @@
     "homeUrl": "https://farcaster-image-viewer.vercel.app",
     "imageUrl": "https://farcaster-image-viewer.vercel.app/image.png",
     "buttonTitle": "Check this out",
-    "splashImageUrl": "https://farcaster-image-viewer.vercel.app/splash.png",
+    "splashImageUrl": "https://github.com/thedudeb/farcaster-image-viewer/blob/main/public/0fflinelogo.png",
     "splashBackgroundColor": "#eeccff",
     "webhookUrl": "https://farcaster-image-viewer.vercel.app/api/webhook"
   },
