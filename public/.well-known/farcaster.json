@@ -9,7 +9,7 @@
     "name": "Example Frame",
     "iconUrl": "https://farcaster-image-viewer.vercel.app/icon.png",
     "homeUrl": "https://farcaster-image-viewer.vercel.app",
-    "imageUrl": "https://farcaster-image-viewer.vercel.app/image.png",
+    "imageUrl": "https://github.com/thedudeb/farcaster-image-viewer/blob/main/public/0fflinelogo.png",
     "buttonTitle": "Check this out",
     "splashImageUrl": "https://github.com/thedudeb/farcaster-image-viewer/blob/main/public/0fflinelogo.png",
     "splashBackgroundColor": "#eeccff",
