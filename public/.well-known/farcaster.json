@@ -9,9 +9,9 @@
     "name": "Example Frame",
     "iconUrl": "https://farcaster-image-viewer.vercel.app/icon.png",
     "homeUrl": "https://farcaster-image-viewer.vercel.app",
-    "imageUrl": "https://github.com/thedudeb/farcaster-image-viewer/blob/main/public/0fflinelogo.png",
+    "imageUrl": "https://github.com/thedudeb/farcaster-image-viewer/blob/main/public/offlinelogo.png",
     "buttonTitle": "Check this out",
-    "splashImageUrl": "https://github.com/thedudeb/farcaster-image-viewer/blob/main/public/0fflinelogo.png",
+    "splashImageUrl": "https://github.com/thedudeb/farcaster-image-viewer/blob/main/public/offlinelogo.png",
     "splashBackgroundColor": "#eeccff",
     "webhookUrl": "https://farcaster-image-viewer.vercel.app/api/webhook"
   },
