@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   other: {
     "fc:frame": JSON.stringify({
       version: "next",
-      imageUrl: "https://github.com/thedudeb/farcaster-image-viewer/blob/main/public/0fflinelogo.png",
+      imageUrl: "https://imgur.com/a/tg1AwkM.png",
       button: {
         title: "Universe and Everything",
         action: {
