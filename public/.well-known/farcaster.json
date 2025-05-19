@@ -6,7 +6,7 @@
   },
   "frame": {
     "version": "1",
-    "name": "Example Frame",
+    "name": "0ffline Viewer",
     "iconUrl": "https://farcaster-image-viewer.vercel.app/icon.png",
     "homeUrl": "https://farcaster-image-viewer.vercel.app",
     "imageUrl": "https://imgur.com/a/tg1AwkM.png",
