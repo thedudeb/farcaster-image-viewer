@@ -19,14 +19,14 @@ export const metadata: Metadata = {
   other: {
     "fc:frame": JSON.stringify({
       version: "next",
-      imageUrl: "https://imgur.com/cgu3wgB",
+      imageUrl: "https://imgur.com/cgu3wgB.png",
       button: {
         title: "Universe and Everything",
         action: {
           type: "launch_frame",
           url: "https://farcaster-image-viewer.vercel.app/",
           name: "0ffline Viewer",
-          splashImageUrl: "https://imgur.com/cgu3wgB",
+          splashImageUrl: "https://imgur.com/cgu3wgB.png",
           splashBackgroundColor: "#eeccff ",
         },
       },
