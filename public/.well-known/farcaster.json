@@ -9,9 +9,9 @@
     "name": "0ffline Viewer",
     "iconUrl": "https://farcaster-image-viewer.vercel.app/icon.png",
     "homeUrl": "https://farcaster-image-viewer.vercel.app",
-    "imageUrl": "https://imgur.com/cgu3wgB",
+    "imageUrl": "https://imgur.com/cgu3wgB.png",
     "buttonTitle": "Check this out",
-    "splashImageUrl": "https://imgur.com/cgu3wgB",
+    "splashImageUrl": "https://imgur.com/cgu3wgB.png",
     "splashBackgroundColor": "#eeccff",
     "webhookUrl": "https://farcaster-image-viewer.vercel.app/api/webhook"
   },
