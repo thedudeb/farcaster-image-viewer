@@ -19,14 +19,14 @@ export const metadata: Metadata = {
   other: {
     "fc:frame": JSON.stringify({
       version: "next",
-      imageUrl: "",
+      imageUrl: "https://github.com/thedudeb/farcaster-image-viewer/blob/main/public/0fflinelogo.png",
       button: {
         title: "Universe and Everything",
         action: {
           type: "launch_frame",
           url: "https://farcaster-image-viewer-git-main-thedude-da236722.vercel.app/",
           name: "0ffline Viewer",
-          splashImageUrl: "",
+          splashImageUrl: "https://github.com/thedudeb/farcaster-image-viewer/blob/main/public/0fflinelogo.png",
           splashBackgroundColor: "#eeccff ",
         },
       },
