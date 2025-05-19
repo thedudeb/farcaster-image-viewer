@@ -26,7 +26,7 @@ export const metadata: Metadata = {
           type: "launch_frame",
           url: "https://farcaster-image-viewer.vercel.app/",
           name: "0ffline Viewer",
-          splashImageUrl: "https://github.com/thedudeb/farcaster-image-viewer/blob/main/public/0fflinelogo.png",
+          splashImageUrl: "https://imgur.com/a/tg1AwkM",
           splashBackgroundColor: "#eeccff ",
         },
       },
