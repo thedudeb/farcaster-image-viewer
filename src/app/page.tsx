@@ -8,21 +8,28 @@ const TOTAL_IMAGES = 77
 export default function Home() {
   const [index, setIndex] = useState<number | null>(1)
   const [showIndicator, setShowIndicator] = useState(true)
+  const [fadeOut, setFadeOut] = useState(false)
   const touchStartX = useRef<number | null>(null)
 
-  // Hide indicator after 3 seconds
   useEffect(() => {
-    const timer = setTimeout(() => setShowIndicator(false), 3000)
-    return () => clearTimeout(timer)
+    const fadeTimer = setTimeout(() => setFadeOut(true), 2500) // Start fading
+    const hideTimer = setTimeout(() => setShowIndicator(false), 3000) // Remove after fade
+    return () => {
+      clearTimeout(fadeTimer)
+      clearTimeout(hideTimer)
+    }
   }, [])
 
-  // Handle click/tap to navigate images and hide indicator
+  const dismissIndicator = () => {
+    setFadeOut(true)
+    setTimeout(() => setShowIndicator(false), 500)
+  }
+
   const handleTap = (e: React.MouseEvent<HTMLDivElement>) => {
     const { clientX, currentTarget } = e
     const isLeft = clientX < currentTarget.clientWidth / 2
 
-    // Hide the indicator on first interaction
-    if (showIndicator) setShowIndicator(false)
+    if (showIndicator) dismissIndicator()
 
     setIndex((prev) => {
       if (!prev) return 1
@@ -31,17 +38,15 @@ export default function Home() {
     })
   }
 
-  // Handle swipe start
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     touchStartX.current = e.touches[0].clientX
   }
 
-  // Handle swipe end, check if swipe happened, and hide indicator
   const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
     if (touchStartX.current === null) return
     const touchEndX = e.changedTouches[0].clientX
-    if (Math.abs(touchEndX - touchStartX.current) > 30) {
-      if (showIndicator) setShowIndicator(false)
+    if (Math.abs(touchEndX - touchStartX.current) > 30 && showIndicator) {
+      dismissIndicator()
     }
     touchStartX.current = null
   }
@@ -69,30 +74,13 @@ export default function Home() {
         />
       )}
 
-      {/* Indicator overlay */}
       {showIndicator && (
         <div
-          style={{
-            position: 'absolute',
-            bottom: '10%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            color: 'white',
-            padding: '0.5rem 1rem',
-            borderRadius: '20px',
-            fontSize: '1rem',
-            userSelect: 'none',
-            pointerEvents: 'none',
-            zIndex: 1000,
-          }}
+          className={`absolute bottom-[10%] left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm select-none pointer-events-none transition-opacity duration-500 ${
+            fadeOut ? 'opacity-0' : 'opacity-100'
+          }`}
         >
-          <span style={{ fontSize: '1.5rem' }}>⬅️</span>
-          <span>Click or Tap</span>
-          <span style={{ fontSize: '1.5rem' }}>➡️</span>
+          tap right
         </div>
       )}
     </div>
