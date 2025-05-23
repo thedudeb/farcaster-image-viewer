@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 
-const TOTAL_IMAGES = 79
+const TOTAL_IMAGES = 77
 
 export default function Home() {
   const [index, setIndex] = useState<number | null>(1)
