@@ -15,7 +15,7 @@ export default function Home() {
   const [showIndicator, setShowIndicator] = useState(true)
   const [fadeOut, setFadeOut] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [showMenuButton, setShowMenuButton] = useState(false)
+  const [showMenuButton, setShowMenuButton] = useState(true)
   const touchStartX = useRef<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [nextImage, setNextImage] = useState<string | null>(null)
@@ -66,18 +66,12 @@ export default function Home() {
     const currentEpochData = EPOCHS.find(e => e.id === currentEpoch)
     const totalImages = currentEpochData?.totalImages || 0
 
-    // Show menu button when clicking in the top-left area
-    if (clientX < 100 && e.clientY < 100) {
-      setShowMenuButton(true)
-      return
-    }
-
-    // Hide menu button when clicking anywhere else
-    setShowMenuButton(false)
-
-    // Only dismiss the indicator if it's currently visible and not already fading out
-    if (showIndicator && !fadeOut) {
-      dismissIndicator();
+    // Hide menu button and indicator on first tap
+    if (showMenuButton) {
+      setShowMenuButton(false)
+      if (showIndicator && !fadeOut) {
+        dismissIndicator()
+      }
     }
 
     setIndex((prev) => {
