@@ -27,12 +27,14 @@ export default function Home() {
   useEffect(() => {
     setShowIndicator(true)
     setFadeOut(false)
-    // Set indicator to fade out after 3 seconds and hide after 3.5 seconds
-    const fadeTimer = setTimeout(() => setFadeOut(true), 3000)
-    const hideTimer = setTimeout(() => setShowIndicator(false), 3500)
+    // Set indicator and menu button to fade out after 3 seconds and hide after 3 seconds
+    const fadeAndHideTimer = setTimeout(() => {
+      setFadeOut(true);
+      setShowIndicator(false);
+      setShowMenuButton(false);
+    }, 3000)
     return () => {
-      clearTimeout(fadeTimer)
-      clearTimeout(hideTimer)
+      clearTimeout(fadeAndHideTimer)
     }
   }, [currentEpoch])
 
@@ -60,53 +62,41 @@ export default function Home() {
   }
 
   const handleTap = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (menuOpen) return
-
     const { clientX, clientY, currentTarget } = e
     const isLeft = clientX < currentTarget.clientWidth / 2
     const isTopLeft = clientX < currentTarget.clientWidth / 2 && clientY < currentTarget.clientHeight * 0.2;
     const currentEpochData = EPOCHS.find(e => e.id === currentEpoch)
     const totalImages = currentEpochData?.totalImages || 0
 
-    // Hide menu button and indicator on first tap, perform navigation
-    if (!hasTapped) {
-      setHasTapped(true);
-      setShowMenuButton(false);
-      if (showIndicator && !fadeOut) {
-        dismissIndicator();
+    if (menuOpen) return
+
+    if (isTopLeft) {
+      if (!showMenuButton) {
+        // First tap in top-left shows the menu button
+        setShowMenuButton(true)
       }
-       // Perform navigation on first tap
+      return // Don't navigate when tapping top-left
+    }
+
+    // Handle navigation for non-top-left taps
+    if (isLeft) {
       setIndex((prev) => {
         if (!prev) return 1;
-
-        if (isLeft) {
-          return prev === 1 ? totalImages : prev - 1; // Navigate previous on first left tap
-        } else {
-          return prev === totalImages ? 1 : prev + 1; // Navigate next on first right tap
-        }
+        return prev === 1 ? totalImages : prev - 1;
       });
       setImageKey(prev => prev + 1)
-    } else { // Handle subsequent taps
-      if (isTopLeft) {
-        setShowMenuButton(true); // Show menu button on top-left tap
-        setMenuOpen(true); // Open menu
-        // No navigation on top-left tap
-      } else if (isLeft) {
-        // Navigate previous on subsequent left taps (not top-left)
-        setIndex((prev) => {
-          if (!prev) return 1;
-          return prev === 1 ? totalImages : prev - 1;
-        });
-        setImageKey(prev => prev + 1)
-      } else {
-        // Navigate next on subsequent right taps
-        setIndex((prev) => {
-          if (!prev) return 1;
-          return prev === totalImages ? 1 : prev + 1;
-        });
-        setImageKey(prev => prev + 1)
-      }
+    } else {
+      setIndex((prev) => {
+        if (!prev) return 1;
+        return prev === totalImages ? 1 : prev + 1;
+      });
+      setImageKey(prev => prev + 1)
     }
+  }
+
+  const handleMenuButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent the tap from triggering navigation
+    setMenuOpen(true)
   }
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -143,7 +133,7 @@ export default function Home() {
     >
       {/* Menu Button */}
       <button
-        onClick={() => setMenuOpen(true)}
+        onClick={handleMenuButtonClick}
         className={`absolute top-4 left-4 z-10 bg-black/30 text-white p-2 rounded-lg hover:bg-black/50 transition-all duration-300 ${
           showMenuButton ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
