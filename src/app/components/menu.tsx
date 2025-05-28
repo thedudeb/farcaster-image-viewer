@@ -3,18 +3,16 @@ import { useState } from 'react';
 interface MenuProps {
   onClose: () => void;
   onEpochChange: (epochId: number) => void;
+  currentEpoch: number;
 }
 
 const EPOCHS = [
   { id: 1, name: 'Epoch 1', totalImages: 77 },
-  { id: 2, name: 'Epoch 2', totalImages: 107 },
+  { id: 2, name: 'Epoch 2', totalImages: 106 },
 ];
 
-export default function Menu({ onClose, onEpochChange }: MenuProps) {
-  const [selectedEpoch, setSelectedEpoch] = useState(2);
-
+export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps) {
   const handleEpochSelect = (epochId: number) => {
-    setSelectedEpoch(epochId);
     onEpochChange(epochId);
   };
 
@@ -37,7 +35,7 @@ export default function Menu({ onClose, onEpochChange }: MenuProps) {
               key={epoch.id}
               onClick={() => handleEpochSelect(epoch.id)}
               className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                selectedEpoch === epoch.id
+                currentEpoch === epoch.id
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-300 hover:bg-gray-800'
               }`}
