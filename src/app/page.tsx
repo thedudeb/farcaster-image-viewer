@@ -72,27 +72,31 @@ export default function Home() {
       if (showIndicator && !fadeOut) {
         dismissIndicator()
       }
-    }
-
-    setIndex((prev) => {
-      if (!prev) return 1
-      
-      // Handle navigation for both epochs
+    } else { // Handle subsequent taps
       if (isLeft) {
-        // When tapping left at first image, go to last image
-        if (prev === 1) {
-          return totalImages
-        }
-        return prev - 1
+        setMenuOpen(true); // Open menu on left tap
       } else {
-        // When tapping right at last image, go to first image
-        if (prev === totalImages) {
-          return 1
-        }
-        return prev + 1
+        setIndex((prev) => {
+          if (!prev) return 1
+
+          // Handle navigation for both epochs
+          if (isLeft) {
+            // When tapping left at first image, go to last image
+            if (prev === 1) {
+              return totalImages
+            }
+            return prev - 1
+          } else {
+            // When tapping right at last image, go to first image
+            if (prev === totalImages) {
+              return 1
+            }
+            return prev + 1
+          }
+        })
+        setImageKey(prev => prev + 1)
       }
-    })
-    setImageKey(prev => prev + 1)
+    }
   }
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
