@@ -85,28 +85,27 @@ export default function Home() {
           return prev === totalImages ? 1 : prev + 1; // Navigate next on first right tap
         }
       });
+      setImageKey(prev => prev + 1)
     } else { // Handle subsequent taps
       if (isTopLeft) {
-        setShowMenuButton(true); // Show menu button
+        setShowMenuButton(true); // Show menu button on top-left tap
         setMenuOpen(true); // Open menu
+        // No navigation on top-left tap
       } else if (isLeft) {
         // Navigate previous on subsequent left taps (not top-left)
         setIndex((prev) => {
           if (!prev) return 1;
           return prev === 1 ? totalImages : prev - 1;
         });
+        setImageKey(prev => prev + 1)
       } else {
         // Navigate next on subsequent right taps
         setIndex((prev) => {
           if (!prev) return 1;
           return prev === totalImages ? 1 : prev + 1;
         });
+        setImageKey(prev => prev + 1)
       }
-    }
-
-    // Only update image key if navigation happened (not when opening menu)
-    if (!isTopLeft || !hasTapped) {
-      setImageKey(prev => prev + 1)
     }
   }
 
@@ -130,6 +129,7 @@ export default function Home() {
     setShowIndicator(true);
     setFadeOut(false);
     setMenuOpen(false);
+    setShowMenuButton(false); // Hide menu button after selecting an epoch
   };
 
   const imageSrc = index ? `/images/epoch${currentEpoch}/${index}.jpg` : ''
