@@ -15,8 +15,8 @@ export default function Home() {
   const [showIndicator, setShowIndicator] = useState(true)
   const [fadeOut, setFadeOut] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [showMenuButton, setShowMenuButton] = useState(false)
   const touchStartX = useRef<number | null>(null)
-  const [imageExt, setImageExt] = useState<'jpg' | 'png'>('jpg')
   const [isLoading, setIsLoading] = useState(true)
   const [nextImage, setNextImage] = useState<string | null>(null)
   const [currentImage, setCurrentImage] = useState<string | null>(null)
@@ -26,8 +26,9 @@ export default function Home() {
   useEffect(() => {
     setShowIndicator(true)
     setFadeOut(false)
-    const fadeTimer = setTimeout(() => setFadeOut(true), 4500)
-    const hideTimer = setTimeout(() => setShowIndicator(false), 5000)
+    // Set indicator to fade out after 3 seconds and hide after 3.5 seconds
+    const fadeTimer = setTimeout(() => setFadeOut(true), 3000)
+    const hideTimer = setTimeout(() => setShowIndicator(false), 3500)
     return () => {
       clearTimeout(fadeTimer)
       clearTimeout(hideTimer)
@@ -41,17 +42,19 @@ export default function Home() {
     const currentEpochData = EPOCHS.find(e => e.id === currentEpoch)
     const totalImages = currentEpochData?.totalImages || 0
     const nextIndex = index === totalImages ? 1 : index + 1
-    const nextImageSrc = `/images/epoch${currentEpoch}/${nextIndex}.${imageExt}`
+    const nextImageSrc = `/images/epoch${currentEpoch}/${nextIndex}.jpg`
 
     const img = new window.Image()
     img.src = nextImageSrc
     img.onload = () => {
       setNextImage(nextImageSrc)
     }
-  }, [index, currentEpoch, imageExt])
+    setImageKey(prev => prev + 1)
+  }, [index, currentEpoch])
 
   const dismissIndicator = () => {
     setFadeOut(true)
+    // Keep the indicator element in the DOM briefly for the fade out transition
     setTimeout(() => setShowIndicator(false), 500)
   }
 
@@ -63,7 +66,19 @@ export default function Home() {
     const currentEpochData = EPOCHS.find(e => e.id === currentEpoch)
     const totalImages = currentEpochData?.totalImages || 0
 
-    if (showIndicator) dismissIndicator()
+    // Show menu button when clicking in the top-left area
+    if (clientX < 100 && e.clientY < 100) {
+      setShowMenuButton(true)
+      return
+    }
+
+    // Hide menu button when clicking anywhere else
+    setShowMenuButton(false)
+
+    // Only dismiss the indicator if it's currently visible and not already fading out
+    if (showIndicator && !fadeOut) {
+      dismissIndicator();
+    }
 
     setIndex((prev) => {
       if (!prev) return 1
@@ -83,7 +98,6 @@ export default function Home() {
         return prev + 1
       }
     })
-    setImageExt('jpg')
     setImageKey(prev => prev + 1)
   }
 
@@ -103,14 +117,13 @@ export default function Home() {
   const handleEpochChange = (epochId: number) => {
     setCurrentEpoch(epochId);
     setIndex(1);
-    setImageExt('jpg');
     setImageKey(prev => prev + 1);
     setShowIndicator(true);
     setFadeOut(false);
     setMenuOpen(false);
   };
 
-  const imageSrc = index ? `/images/epoch${currentEpoch}/${index}.${imageExt}` : ''
+  const imageSrc = index ? `/images/epoch${currentEpoch}/${index}.jpg` : ''
 
   return (
     <div
@@ -122,13 +135,15 @@ export default function Home() {
       {/* Menu Button */}
       <button
         onClick={() => setMenuOpen(true)}
-        className="absolute top-4 left-4 z-10 bg-black/50 text-white p-2 rounded-lg hover:bg-black/70 transition-colors"
+        className={`absolute top-4 left-4 z-10 bg-black/30 text-white p-2 rounded-lg hover:bg-black/50 transition-all duration-300 ${
+          showMenuButton ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
       >
         <Image
           src="/new-menu-icon.png"
           alt="Menu Icon"
-          width={96}
-          height={96}
+          width={72}
+          height={72}
         />
       </button>
 
@@ -141,23 +156,8 @@ export default function Home() {
             width={1920}
             height={1080}
             className="object-contain w-full h-full transition-opacity duration-300"
-            onLoadingComplete={() => setIsLoading(false)}
+            onLoad={() => setIsLoading(false)}
             onLoadStart={() => setIsLoading(true)}
-            onError={(e) => {
-              if (imageExt === 'jpg') {
-                setImageExt('png')
-                setImageKey(prev => prev + 1)
-              } else {
-                // If both jpg and png fail, try the next image
-                const currentEpochData = EPOCHS.find(e => e.id === currentEpoch)
-                const totalImages = currentEpochData?.totalImages || 0
-                const nextIndex = index === totalImages ? 1 : index + 1
-                setIndex(nextIndex)
-                setImageExt('jpg')
-                setImageKey(prev => prev + 1)
-                setIsLoading(true)
-              }
-            }}
             priority
           />
           {isLoading && (
@@ -182,6 +182,7 @@ export default function Home() {
         <Menu 
           onClose={() => setMenuOpen(false)} 
           onEpochChange={handleEpochChange}
+          currentEpoch={currentEpoch}
         />
       )}
     </div>
