@@ -16,6 +16,7 @@ export default function Home() {
   const [fadeOut, setFadeOut] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [showMenuButton, setShowMenuButton] = useState(true)
+  const [hasTapped, setHasTapped] = useState(false)
   const touchStartX = useRef<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [nextImage, setNextImage] = useState<string | null>(null)
@@ -61,41 +62,51 @@ export default function Home() {
   const handleTap = (e: React.MouseEvent<HTMLDivElement>) => {
     if (menuOpen) return
 
-    const { clientX, currentTarget } = e
+    const { clientX, clientY, currentTarget } = e
     const isLeft = clientX < currentTarget.clientWidth / 2
+    const isTopLeft = clientX < currentTarget.clientWidth / 2 && clientY < currentTarget.clientHeight * 0.2;
     const currentEpochData = EPOCHS.find(e => e.id === currentEpoch)
     const totalImages = currentEpochData?.totalImages || 0
 
-    // Hide menu button and indicator on first tap
-    if (showMenuButton) {
-      setShowMenuButton(false)
+    // Hide menu button and indicator on first tap, perform navigation
+    if (!hasTapped) {
+      setHasTapped(true);
+      setShowMenuButton(false);
       if (showIndicator && !fadeOut) {
-        dismissIndicator()
+        dismissIndicator();
       }
-    } else { // Handle subsequent taps
-      if (isLeft) {
-        setMenuOpen(true); // Open menu on left tap
-      } else {
-        setIndex((prev) => {
-          if (!prev) return 1
+       // Perform navigation on first tap
+      setIndex((prev) => {
+        if (!prev) return 1;
 
-          // Handle navigation for both epochs
-          if (isLeft) {
-            // When tapping left at first image, go to last image
-            if (prev === 1) {
-              return totalImages
-            }
-            return prev - 1
-          } else {
-            // When tapping right at last image, go to first image
-            if (prev === totalImages) {
-              return 1
-            }
-            return prev + 1
-          }
-        })
-        setImageKey(prev => prev + 1)
+        if (isLeft) {
+          return prev === 1 ? totalImages : prev - 1; // Navigate previous on first left tap
+        } else {
+          return prev === totalImages ? 1 : prev + 1; // Navigate next on first right tap
+        }
+      });
+    } else { // Handle subsequent taps
+      if (isTopLeft) {
+        setShowMenuButton(true); // Show menu button
+        setMenuOpen(true); // Open menu
+      } else if (isLeft) {
+        // Navigate previous on subsequent left taps (not top-left)
+        setIndex((prev) => {
+          if (!prev) return 1;
+          return prev === 1 ? totalImages : prev - 1;
+        });
+      } else {
+        // Navigate next on subsequent right taps
+        setIndex((prev) => {
+          if (!prev) return 1;
+          return prev === totalImages ? 1 : prev + 1;
+        });
       }
+    }
+
+    // Only update image key if navigation happened (not when opening menu)
+    if (!isTopLeft || !hasTapped) {
+      setImageKey(prev => prev + 1)
     }
   }
 
