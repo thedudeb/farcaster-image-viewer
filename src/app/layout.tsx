@@ -13,28 +13,36 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "0ffline Viewer",
-  description: "Universe and Everything",
-  other: {
-    "fc:frame": JSON.stringify({
-      version: "next",
-      imageUrl: "https://imgur.com/cgu3wgB.png",
-      button: {
-        title: "Universe and Everything",
-        action: {
-          type: "launch_frame",
-          url: "https://farcaster-image-viewer.vercel.app/",
-          name: "0ffline Viewer",
-          splashImageUrl: "https://imgur.com/cgu3wgB.png",
-          splashBackgroundColor: "#eeccff ",
-        },
-      },
-    }),
-  }
+export const revalidate = 300;
 
-
+const frame = {
+  version: "next",
+  imageUrl: "https://imgur.com/cgu3wgB.png",
+  button: {
+    title: "Universe and Everything",
+    action: {
+      type: "launch_frame",
+      name: "0ffline Viewer",
+      url: "https://farcaster-image-viewer2.vercel.app",
+      splashImageUrl: "https://imgur.com/cgu3wgB.png",
+      splashBackgroundColor: "#eeccff",
+    },
+  },
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "0ffline Viewer",
+    description: "Universe and Everything",
+    openGraph: {
+      title: "0ffline Viewer",
+      description: "Universe and Everything",
+    },
+    other: {
+      "fc:frame": JSON.stringify(frame),
+    }
+  };
+}
 
 export default function RootLayout({
   children,

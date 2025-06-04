@@ -12,6 +12,26 @@ export async function initializeFrame() {
 
   window.userFid = user.fid;
 
+  // Track user in our analytics system
+  try {
+    const response = await fetch('/api/track-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fid: user.fid,
+        username: user.username,
+      }),
+    });
+    
+    if (response.ok) {
+      console.log('User tracked successfully:', user.fid, user.username);
+    } else {
+      console.error('Failed to track user:', response.status);
+    }
+  } catch (error) {
+    console.error('Error tracking user:', error);
+  }
+
   // You can now use the window.userFid in any of your React code, e.g. using a useEffect that listens for it to be set
   // or trigger a custom event or anything you want
 

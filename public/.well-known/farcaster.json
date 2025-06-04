@@ -1,19 +1,19 @@
 {
   "accountAssociation": {
-    "header": "eyJmaWQiOjEzODc0LCJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4MzVCNTMyRTNkOTFhNDMzMjU0MzNjNDQ1QzU4ODFlOTQ0RmYxMjIyMSJ9",
-    "payload": "eyJkb21haW4iOiJmYXJjYXN0ZXItaW1hZ2Utdmlld2VyLnZlcmNlbC5hcHAifQ",
-    "signature": "MHg2YmNlNDRiYjI4OGI4MjkxNTkyZDYwYTI3ZjNjM2NkNzVkNDIzNDZiZDBlZGE5ZTk1NDUxNjJhMGY5M2Y5MzBiMDc5YzRlY2IzZTM2MGNkNTQ0NzIzNzhkY2JlNDk0MThkMGU4MTcyOTVlYjk2ZWRhZTdjYWViMDY1YzA5YzQ4ZjFj"
+    "header": "eyJmaWQiOjM1MDkxMSwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDJGREVmM0Y0NzBlQ2QyQmM5YTk3NzU2OEM0M0FEMzg2MGMxNjExRDgifQ",
+    "payload": "eyJkb21haW4iOiJmYXJjYXN0ZXItaW1hZ2Utdmlld2VyMi52ZXJjZWwuYXBwIn0",
+    "signature": "MHgwMTI1ZWRjYmNhYmFkYmI5MGFmN2U3MWY4ODA4ZTViMzc1ODMyMTM2NTEzMzNjNjM4MzQ3MDIxZWQzZjZjNGRmNDJmNDMyODM4N2JhMjdhYWJkMDRlOTMxNWU4OGQzOTFhN2ZlZTc3MWNkZmU5MjhmZWIyMWQ3ZDVjNDNlMmVhZTFj"
   },
   "frame": {
     "version": "1",
     "name": "0ffline Viewer",
-    "iconUrl": "https://farcaster-image-viewer.vercel.app/icon.png",
-    "homeUrl": "https://farcaster-image-viewer.vercel.app",
+    "iconUrl": "https://farcaster-image-viewer2.vercel.app/icon.png",
+    "homeUrl": "https://farcaster-image-viewer2.vercel.app",
     "imageUrl": "https://imgur.com/cgu3wgB.png",
     "buttonTitle": "Check this out",
     "splashImageUrl": "https://imgur.com/cgu3wgB.png",
     "splashBackgroundColor": "#eeccff",
-    "webhookUrl": "https://farcaster-image-viewer.vercel.app/api/webhook"
+    "webhookUrl": "https://farcaster-image-viewer2.vercel.app/api/webhook"
   },
   "appMetadata": {
     "version": "vNext",
@@ -21,7 +21,7 @@
       "name": "0ffline Image Viewer",
       "description": "Tap left or right to view full-screen images.",
       "icon": "/icon.png",
-      "domains": ["farcaster-image-viewer.vercel.app"],
+      "domains": ["farcaster-image-viewer2.vercel.app"],
       "fc:tags": ["gallery", "art", "viewer"]
     },
     "navigation": {
