@@ -23,7 +23,7 @@ const frame = {
     action: {
       type: "launch_frame",
       name: "0ffline Viewer",
-      url: "https://farcaster-image-viewer2.vercel.app",
+      url: "https://farcaster-image-viewer.vercel.app",
       splashImageUrl: "https://imgur.com/cgu3wgB.png",
       splashBackgroundColor: "#eeccff",
     },
