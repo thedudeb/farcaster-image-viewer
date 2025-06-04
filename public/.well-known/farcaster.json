@@ -7,13 +7,13 @@
   "frame": {
     "version": "1",
     "name": "0ffline Viewer",
-    "iconUrl": "https://farcaster-image-viewer2.vercel.app/icon.png",
-    "homeUrl": "https://farcaster-image-viewer2.vercel.app",
+    "iconUrl": "https://farcaster-image-viewer.vercel.app/icon.png",
+    "homeUrl": "https://farcaster-image-viewer.vercel.app",
     "imageUrl": "https://imgur.com/cgu3wgB.png",
     "buttonTitle": "Check this out",
     "splashImageUrl": "https://imgur.com/cgu3wgB.png",
     "splashBackgroundColor": "#eeccff",
-    "webhookUrl": "https://farcaster-image-viewer2.vercel.app/api/webhook"
+    "webhookUrl": "https://farcaster-image-viewer.vercel.app/api/webhook"
   },
   "appMetadata": {
     "version": "vNext",
@@ -21,7 +21,7 @@
       "name": "0ffline Image Viewer",
       "description": "Tap left or right to view full-screen images.",
       "icon": "/icon.png",
-      "domains": ["farcaster-image-viewer2.vercel.app"],
+      "domains": ["farcaster-image-viewer.vercel.app"],
       "fc:tags": ["gallery", "art", "viewer"]
     },
     "navigation": {
