@@ -4,7 +4,7 @@ import {
 } from "@farcaster/frame-sdk";
 import { getUserNotificationDetails } from "./kv";
 
-const appUrl = process.env.NEXT_PUBLIC_URL || "";
+const appUrl = "https://farcaster-image-viewer.vercel.app";
 
 type SendFrameNotificationResult =
   | {
