@@ -3,10 +3,11 @@ import { removeUser } from "../../../../lib/kv";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { fid: string } }
+  { params }: { params: Promise<{ fid: string }> }
 ) {
   try {
-    const fid = parseInt(params.fid);
+    const { fid: fidString } = await params;
+    const fid = parseInt(fidString);
     
     if (isNaN(fid)) {
       return Response.json(
