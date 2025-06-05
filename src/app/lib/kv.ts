@@ -148,8 +148,21 @@ export async function updateUserInfo(fid: number, updates: Partial<UserInfo>): P
 }
 
 export async function removeUser(fid: number): Promise<void> {
-  await redis.del(getUserKey(fid));
-  await redis.srem(getUsersListKey(), fid);
+  try {
+    // Delete user info
+    await redis.del(getUserKey(fid));
+    
+    // Remove from users list
+    await redis.srem(getUsersListKey(), fid);
+    
+    // Delete notification details if they exist
+    await redis.del(getUserNotificationDetailsKey(fid));
+    
+    console.log(`User ${fid} completely removed from database`);
+  } catch (error) {
+    console.error(`Error removing user ${fid}:`, error);
+    throw error;
+  }
 }
 
 // Event logging

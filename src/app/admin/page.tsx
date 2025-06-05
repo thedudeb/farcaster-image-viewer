@@ -89,6 +89,27 @@ export default function AdminPage() {
     }
   };
 
+  const handleDeleteUser = async (fid: number) => {
+    if (!confirm(`Are you sure you want to delete user ${fid}? This action cannot be undone.`)) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/admin/users/${fid}`, {
+        method: "DELETE",
+      });
+      
+      if (response.ok) {
+        // Refresh data to see updated user list
+        fetchData();
+      } else {
+        alert('Failed to delete user');
+      }
+    } catch {
+      alert('Failed to delete user');
+    }
+  };
+
   useEffect(() => {
     fetchData();
     // Refresh every 30 seconds
@@ -225,6 +246,7 @@ export default function AdminPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">FID</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notifications</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -242,6 +264,27 @@ export default function AdminPage() {
                       }`}>
                         {user.hasNotifications ? 'Enabled' : 'Disabled'}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <button
+                        onClick={() => handleDeleteUser(user.fid)}
+                        className="text-red-600 hover:text-red-800 transition-colors"
+                        title="Delete user"
+                      >
+                        <svg 
+                          className="w-4 h-4" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" 
+                          />
+                        </svg>
+                      </button>
                     </td>
                   </tr>
                 ))}
