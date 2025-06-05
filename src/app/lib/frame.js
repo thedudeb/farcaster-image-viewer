@@ -9,6 +9,7 @@ export async function initializeFrame() {
   }
 
   const user = context.user
+  const client = context.client
 
   window.userFid = user.fid;
 
@@ -20,11 +21,15 @@ export async function initializeFrame() {
       body: JSON.stringify({
         fid: user.fid,
         username: user.username,
+        // Check if user already has notifications enabled in the client
+        notificationDetails: client.notificationDetails,
+        added: client.added,
       }),
     });
     
     if (response.ok) {
-      console.log('User tracked successfully:', user.fid, user.username);
+      console.log('User tracked successfully:', user.fid, user.username, 
+        client.notificationDetails ? 'with notifications' : 'no notifications');
     } else {
       console.error('Failed to track user:', response.status);
     }

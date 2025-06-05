@@ -98,26 +98,39 @@ export async function addUser(fid: number, username?: string): Promise<void> {
   await redis.sadd(getUsersListKey(), fid);
 }
 
-export async function trackUserFromSDK(fid: number, username?: string): Promise<void> {
+export async function trackUserFromSDK(
+  fid: number, 
+  username?: string, 
+  notificationDetails?: { url: string; token: string }, 
+  added?: boolean
+): Promise<void> {
   const existing = await redis.get<UserInfo>(getUserKey(fid));
   if (!existing) {
     // New user from SDK
     await addUser(fid, username);
-  } else if (username && !existing.username) {
-    // Update existing user with username
-    const updated = { 
-      ...existing, 
-      username,
-      lastActivity: new Date().toISOString(),
-    };
-    await redis.set(getUserKey(fid), updated);
+    
+    // If they already have notifications enabled in the client, store them
+    if (notificationDetails) {
+      await setUserNotificationDetails(fid, notificationDetails);
+    }
   } else {
-    // Just update last activity
+    // Update existing user
     const updated = { 
       ...existing, 
       lastActivity: new Date().toISOString(),
     };
+    
+    // Update username if we have it and don't already have one
+    if (username && !existing.username) {
+      updated.username = username;
+    }
+    
     await redis.set(getUserKey(fid), updated);
+    
+    // If they have notifications enabled but we don't have them stored, store them
+    if (notificationDetails && !existing.hasNotifications) {
+      await setUserNotificationDetails(fid, notificationDetails);
+    }
   }
 }
 
