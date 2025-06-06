@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import * as frame from '@farcaster/frame-sdk';
 
 interface NotificationProps {
   message: string;
@@ -26,25 +25,4 @@ export default function Notification({ message, duration = 3000, onClose }: Noti
       {message}
     </div>
   );
-}
-
-export async function showNotification(message: string, duration?: number) {
-  try {
-    const context = await frame.sdk.context;
-    if (context?.client?.notificationDetails) {
-      // If we're in a Farcaster frame, use the native notification system
-      await frame.sdk.actions.showNotification({
-        message,
-        duration: duration || 3000
-      });
-    } else {
-      // If we're not in a frame, create a custom event to show our notification component
-      const event = new CustomEvent('showNotification', {
-        detail: { message, duration }
-      });
-      window.dispatchEvent(event);
-    }
-  } catch (error) {
-    console.error('Error showing notification:', error);
-  }
 } 
