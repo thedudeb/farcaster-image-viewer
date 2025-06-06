@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Menu from './components/menu'
 import { sendFarcasterNotification } from './lib/notifications'
+import * as frame from '@farcaster/frame-sdk'
 
 const EPOCHS = [
   { id: 1, name: 'Epoch 1', totalImages: 77 },
@@ -135,18 +136,17 @@ export default function Home() {
   };
 
   const handleShare = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent the tap from triggering navigation
-    
+    e.stopPropagation();
     if (!index) return;
-    
     const imageUrl = `${window.location.origin}/images/epoch${currentEpoch}/${index}.jpg`;
     const appUrl = window.location.origin;
-    
-    // Create the compose URL with the image and app link
     const composeUrl = `https://warpcast.com/~/compose?text=Check out this dope image from Epoch ${currentEpoch} on @0ffline viewer&embeds[]=${encodeURIComponent(imageUrl)}&embeds[]=${encodeURIComponent(appUrl)}`;
-    
-    // Open the compose URL
-    window.open(composeUrl, '_blank');
+
+    try {
+      await frame.sdk.actions.openUrl(composeUrl);
+    } catch (err) {
+      window.open(composeUrl, '_blank');
+    }
   };
 
   const imageSrc = index ? `/images/epoch${currentEpoch}/${index}.jpg` : ''
