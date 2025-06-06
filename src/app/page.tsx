@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Menu from './components/menu'
+import { showNotification } from './components/Notification'
+import { sendFarcasterNotification } from './lib/notifications'
 
 const EPOCHS = [
   { id: 1, name: 'Epoch 1', totalImages: 77 },
@@ -72,23 +74,23 @@ export default function Home() {
 
     if (isTopLeft) {
       if (!showMenuButton) {
-        // First tap in top-left shows the menu button
         setShowMenuButton(true)
       }
-      return // Don't navigate when tapping top-left
+      return
     }
 
-    // Handle navigation for non-top-left taps
     if (isLeft) {
       setIndex((prev) => {
         if (!prev) return 1;
-        return prev === 1 ? totalImages : prev - 1;
+        const newIndex = prev === 1 ? totalImages : prev - 1;
+        return newIndex;
       });
       setImageKey(prev => prev + 1)
     } else {
       setIndex((prev) => {
         if (!prev) return 1;
-        return prev === totalImages ? 1 : prev + 1;
+        const newIndex = prev === totalImages ? 1 : prev + 1;
+        return newIndex;
       });
       setImageKey(prev => prev + 1)
     }
@@ -112,14 +114,40 @@ export default function Home() {
     touchStartX.current = null
   }
 
-  const handleEpochChange = (epochId: number) => {
+  const handleEpochChange = async (epochId: number) => {
     setCurrentEpoch(epochId);
     setIndex(1);
     setImageKey(prev => prev + 1);
     setShowIndicator(true);
     setFadeOut(false);
     setMenuOpen(false);
-    setShowMenuButton(false); // Hide menu button after selecting an epoch
+    setShowMenuButton(false);
+    
+    const epochName = EPOCHS.find(e => e.id === epochId)?.name;
+    showNotification(`Switched to ${epochName}`);
+    
+    try {
+      // TODO: Replace with actual Farcaster user ID
+      const userId = 'YOUR_FARCASTER_USER_ID'; // This should be the user's Farcaster ID
+      await sendFarcasterNotification(`New epoch available: ${epochName}! Check it out now.`, userId);
+    } catch (error) {
+      console.error('Failed to send Farcaster notification:', error);
+    }
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the tap from triggering navigation
+    
+    if (!index) return;
+    
+    const imageUrl = `${window.location.origin}/images/epoch${currentEpoch}/${index}.jpg`;
+    const appUrl = window.location.origin;
+    
+    // Create the compose URL with the image and app link
+    const composeUrl = `https://warpcast.com/~/compose?text=Check out this dope image from Epoch ${currentEpoch} on @0ffline viewer&embeds[]=${encodeURIComponent(imageUrl)}&embeds[]=${encodeURIComponent(appUrl)}`;
+    
+    // Open the compose URL
+    window.open(composeUrl, '_blank');
   };
 
   const imageSrc = index ? `/images/epoch${currentEpoch}/${index}.jpg` : ''
@@ -132,19 +160,43 @@ export default function Home() {
       onTouchEnd={handleTouchEnd}
     >
       {/* Menu Button */}
-      <button
-        onClick={handleMenuButtonClick}
-        className={`absolute top-4 left-4 z-10 bg-black/30 text-white p-2 rounded-lg hover:bg-black/50 transition-all duration-300 ${
-          showMenuButton ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-      >
-        <Image
-          src="/new-menu-icon.png"
-          alt="Menu Icon"
-          width={72}
-          height={72}
-        />
-      </button>
+      {showMenuButton && (
+        <button
+          onClick={handleMenuButtonClick}
+          className={`absolute top-4 left-4 z-10 bg-black/30 text-white p-2 rounded-lg hover:bg-black/50 transition-all duration-300`}
+        >
+          <Image
+            src="/new-menu-icon.png"
+            alt="Menu Icon"
+            width={72}
+            height={72}
+          />
+        </button>
+      )}
+
+      {/* Share Button */}
+      {showMenuButton && (
+        <button
+          onClick={handleShare}
+          className={`absolute top-4 right-4 z-10 bg-black/30 text-white p-2 rounded-lg hover:bg-black/50 transition-all duration-300`}
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          >
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+            <polyline points="16 6 12 2 8 6"/>
+            <line x1="12" y1="2" x2="12" y2="15"/>
+          </svg>
+        </button>
+      )}
 
       {index && (
         <div className="relative w-full h-full">
