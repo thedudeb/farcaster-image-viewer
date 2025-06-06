@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Menu from './components/menu'
-import { showNotification } from './components/Notification'
 import { sendFarcasterNotification } from './lib/notifications'
 
 const EPOCHS = [
@@ -124,7 +123,7 @@ export default function Home() {
     setShowMenuButton(false);
     
     const epochName = EPOCHS.find(e => e.id === epochId)?.name;
-    showNotification(`Switched to ${epochName}`);
+    window.dispatchEvent(new CustomEvent('showNotification', { detail: { message: `Switched to ${epochName}` } }));
     
     try {
       // TODO: Replace with actual Farcaster user ID
