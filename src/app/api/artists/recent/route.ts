@@ -3,6 +3,13 @@ import { NextResponse } from 'next/server';
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
 const TEST_FIDS = [879829, 18561, 290249];
 
+interface NeynarUser {
+  fid: number;
+  username: string;
+  display_name: string;
+  pfp_url: string;
+}
+
 export async function GET() {
   console.log('NEYNAR_API_KEY:', process.env.NEYNAR_API_KEY ? 'Loaded' : 'Undefined'); // Debug log
   if (!NEYNAR_API_KEY) {
@@ -25,7 +32,7 @@ export async function GET() {
 
     const data = await response.json();
     // Return only relevant info for the overlay
-    const artists = (data.users || []).map((user: any) => ({
+    const artists = (data.users || []).map((user: NeynarUser) => ({
       fid: user.fid,
       username: user.username,
       displayName: user.display_name,
