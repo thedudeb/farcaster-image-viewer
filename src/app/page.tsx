@@ -9,10 +9,11 @@ import * as frame from '@farcaster/frame-sdk'
 const EPOCHS = [
   { id: 1, name: 'Epoch 1', totalImages: 77 },
   { id: 2, name: 'Epoch 2', totalImages: 106 },
+  { id: 3, name: 'Epoch 3', totalImages: 111 },
 ];
 
 export default function Home() {
-  const [currentEpoch, setCurrentEpoch] = useState(2)
+  const [currentEpoch, setCurrentEpoch] = useState(3)
   const [index, setIndex] = useState<number | null>(1)
   const [showIndicator, setShowIndicator] = useState(true)
   const [fadeOut, setFadeOut] = useState(false)
@@ -24,6 +25,35 @@ export default function Home() {
   const [nextImage, setNextImage] = useState<string | null>(null)
   const [currentImage, setCurrentImage] = useState<string | null>(null)
   const [imageKey, setImageKey] = useState(0)
+
+  // Add keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (menuOpen) return; // Don't handle keyboard events when menu is open
+      
+      const currentEpochData = EPOCHS.find(e => e.id === currentEpoch)
+      const totalImages = currentEpochData?.totalImages || 0
+
+      if (e.key === 'ArrowLeft') {
+        setIndex((prev) => {
+          if (!prev) return 1;
+          const newIndex = prev === 1 ? totalImages : prev - 1;
+          return newIndex;
+        });
+        setImageKey(prev => prev + 1)
+      } else if (e.key === 'ArrowRight') {
+        setIndex((prev) => {
+          if (!prev) return 1;
+          const newIndex = prev === totalImages ? 1 : prev + 1;
+          return newIndex;
+        });
+        setImageKey(prev => prev + 1)
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentEpoch, menuOpen]);
 
   // Reset indicator when epoch changes
   useEffect(() => {

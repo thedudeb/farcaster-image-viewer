@@ -8,7 +8,7 @@ Create a `.env.local` file in the root directory with the following variables:
 
 ```bash
 # Farcaster API Key
-NEYNAR_API_KEY=FARCASTER_V2_FRAMES_DEMO
+NEYNAR_API_KEY=
 
 # App URL for notifications
 NEXT_PUBLIC_URL=https://your-app-domain.vercel.app
