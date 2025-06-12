@@ -10,6 +10,7 @@ const EPOCHS = [
   { id: 1, name: 'Epoch 1', totalImages: 77 },
   { id: 2, name: 'Epoch 2', totalImages: 106 },
   { id: 3, name: 'Epoch 3', totalImages: 111 },
+  { id: 4, name: 'Epoch 4', totalImages: 0, locked: true },
 ];
 
 export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps) {
@@ -34,9 +35,11 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
           {EPOCHS.map((epoch) => (
             <button
               key={epoch.id}
-              onClick={() => handleEpochSelect(epoch.id)}
+              onClick={() => !epoch.locked && handleEpochSelect(epoch.id)}
               className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                currentEpoch === epoch.id
+                epoch.locked
+                  ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                  : currentEpoch === epoch.id
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-300 hover:bg-gray-800'
               }`}
@@ -44,10 +47,17 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
               <div className="flex items-center justify-between">
                 <span>
                   {epoch.name}
-                  <span className="text-sm ml-2 opacity-75">
-                    ({epoch.totalImages} images)
-                  </span>
+                  {!epoch.locked && (
+                    <span className="text-sm ml-2 opacity-75">
+                      ({epoch.totalImages} images)
+                    </span>
+                  )}
                 </span>
+                {epoch.locked && (
+                  <span className="text-gray-500">
+                    🔒
+                  </span>
+                )}
               </div>
             </button>
           ))}
