@@ -119,6 +119,10 @@ export default function Home() {
       if ("vibrate" in navigator) {
         navigator.vibrate(50);
       }
+      // Use Farcaster SDK haptics for better support
+      if (typeof window !== 'undefined' && (window as any).sdk && (window as any).sdk.haptics) {
+        (window as any).sdk.haptics.impactOccurred('medium');
+      }
     } else {
       setIndex((prev) => {
         if (!prev) return 1;
@@ -128,6 +132,10 @@ export default function Home() {
       setImageKey(prev => prev + 1);
       if ("vibrate" in navigator) {
         navigator.vibrate(50);
+      }
+      // Use Farcaster SDK haptics for better support
+      if (typeof window !== 'undefined' && (window as any).sdk && (window as any).sdk.haptics) {
+        (window as any).sdk.haptics.impactOccurred('medium');
       }
     }
   }
