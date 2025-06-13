@@ -115,14 +115,20 @@ export default function Home() {
         const newIndex = prev === 1 ? totalImages : prev - 1;
         return newIndex;
       });
-      setImageKey(prev => prev + 1)
+      setImageKey(prev => prev + 1);
+      if ("vibrate" in navigator) {
+        navigator.vibrate(50);
+      }
     } else {
       setIndex((prev) => {
         if (!prev) return 1;
         const newIndex = prev === totalImages ? 1 : prev + 1;
         return newIndex;
       });
-      setImageKey(prev => prev + 1)
+      setImageKey(prev => prev + 1);
+      if ("vibrate" in navigator) {
+        navigator.vibrate(50);
+      }
     }
   }
 
