@@ -120,8 +120,8 @@ export default function Home() {
         navigator.vibrate(50);
       }
       // Use Farcaster SDK haptics for better support
-      if (typeof window !== 'undefined' && (window as any).sdk && (window as any).sdk.haptics) {
-        (window as any).sdk.haptics.impactOccurred('medium');
+      if (typeof window !== 'undefined' && (window as unknown as { sdk?: { haptics?: { impactOccurred: (type: string) => void } } }).sdk?.haptics) {
+        (window as unknown as { sdk: { haptics: { impactOccurred: (type: string) => void } } }).sdk.haptics.impactOccurred('medium');
       }
     } else {
       setIndex((prev) => {
@@ -134,8 +134,8 @@ export default function Home() {
         navigator.vibrate(50);
       }
       // Use Farcaster SDK haptics for better support
-      if (typeof window !== 'undefined' && (window as any).sdk && (window as any).sdk.haptics) {
-        (window as any).sdk.haptics.impactOccurred('medium');
+      if (typeof window !== 'undefined' && (window as unknown as { sdk?: { haptics?: { impactOccurred: (type: string) => void } } }).sdk?.haptics) {
+        (window as unknown as { sdk: { haptics: { impactOccurred: (type: string) => void } } }).sdk.haptics.impactOccurred('medium');
       }
     }
   }
