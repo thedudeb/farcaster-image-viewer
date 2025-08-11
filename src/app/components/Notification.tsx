@@ -34,8 +34,10 @@ export default function Notification({ message, duration = 3000, type, artistPro
             onClick={() => {
               try {
                 // Try to open in Farcaster app first
-                if (typeof window !== 'undefined' && (window as any).sdk?.actions?.openUrl) {
-                  (window as any).sdk.actions.openUrl(artistProfile);
+                if (typeof window !== 'undefined' && 
+                    'sdk' in window && 
+                    typeof (window as { sdk?: { actions?: { openUrl?: (url: string) => void } } }).sdk?.actions?.openUrl === 'function') {
+                  (window as { sdk: { actions: { openUrl: (url: string) => void } } }).sdk.actions.openUrl(artistProfile);
                 } else {
                   // Fallback to opening in new tab
                   window.open(artistProfile, '_blank');
