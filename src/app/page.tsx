@@ -10,6 +10,8 @@ const EPOCHS = [
   { id: 1, name: 'Epoch 1', totalImages: 77 },
   { id: 2, name: 'Epoch 2', totalImages: 106 },
   { id: 3, name: 'Epoch 3', totalImages: 111 },
+  { id: 4, name: 'Epoch 4', totalImages: 0, locked: true },
+  { id: 5, name: 'Epoch 5-Greywash', totalImages: 6, locked: false },
 ];
 
 export default function Home() {
@@ -77,7 +79,8 @@ export default function Home() {
     const currentEpochData = EPOCHS.find(e => e.id === currentEpoch)
     const totalImages = currentEpochData?.totalImages || 0
     const nextIndex = index === totalImages ? 1 : index + 1
-    const nextImageSrc = `/images/epoch${currentEpoch}/${nextIndex}.jpg`
+    const extension = currentEpoch === 5 ? 'jpeg' : 'jpg'
+    const nextImageSrc = `/images/epoch${currentEpoch}/${nextIndex}.${extension}`
 
     const img = new window.Image()
     img.src = nextImageSrc
@@ -123,6 +126,10 @@ export default function Home() {
       if (typeof window !== 'undefined' && (window as unknown as { sdk?: { haptics?: { impactOccurred: (type: string) => void } } }).sdk?.haptics) {
         (window as unknown as { sdk: { haptics: { impactOccurred: (type: string) => void } } }).sdk.haptics.impactOccurred('medium');
       }
+      // Fallback to basic vibration if Farcaster SDK is not available
+      else if ("vibrate" in navigator) {
+        navigator.vibrate(100);
+      }
     } else {
       setIndex((prev) => {
         if (!prev) return 1;
@@ -136,6 +143,10 @@ export default function Home() {
       // Use Farcaster SDK haptics for better support
       if (typeof window !== 'undefined' && (window as unknown as { sdk?: { haptics?: { impactOccurred: (type: string) => void } } }).sdk?.haptics) {
         (window as unknown as { sdk: { haptics: { impactOccurred: (type: string) => void } } }).sdk.haptics.impactOccurred('medium');
+      }
+      // Fallback to basic vibration if Farcaster SDK is not available
+      else if ("vibrate" in navigator) {
+        navigator.vibrate(100);
       }
     }
   }
@@ -170,6 +181,17 @@ export default function Home() {
     const epochName = EPOCHS.find(e => e.id === epochId)?.name;
     window.dispatchEvent(new CustomEvent('showNotification', { detail: { message: `Switched to ${epochName}` } }));
     
+    // Show special notification for Epoch 5-Greywash
+    if (epochId === 5) {
+      window.dispatchEvent(new CustomEvent('showNotification', { 
+        detail: { 
+          message: `This epoch was curated by a different artist`,
+          type: 'epoch5-notice',
+          artistProfile: 'https://warpcast.com/greywash' // Replace with actual Farcaster profile URL
+        } 
+      }));
+    }
+    
     try {
       // TODO: Replace with actual Farcaster user ID
       const userId = 'YOUR_FARCASTER_USER_ID'; // This should be the user's Farcaster ID
@@ -193,7 +215,9 @@ export default function Home() {
     }
   };
 
-  const imageSrc = index ? `/images/epoch${currentEpoch}/${index}.jpg` : ''
+  const imageSrc = index ? `/images/epoch${currentEpoch}/${index}.${currentEpoch === 5 ? 'jpeg' : 'jpg'}` : ''
+
+
 
   return (
     <div
