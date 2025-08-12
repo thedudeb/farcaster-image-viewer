@@ -79,7 +79,7 @@ export default function Home() {
       const timer = setTimeout(() => {
         window.dispatchEvent(new CustomEvent('showNotification', { 
           detail: { 
-            message: `This one was curated, and created by another amazing artist, @Greywash`,
+            message: `This one was created and curated by another amazing artist, @Greywash`,
             type: 'epoch5-notice',
             artistProfile: 'https://warpcast.com/greywash'
           } 
