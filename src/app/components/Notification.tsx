@@ -43,35 +43,26 @@ export default function Notification({ message, duration = 6000, type, artistPro
                 if (frame.sdk && frame.sdk.actions) {
                   console.log('Frame SDK actions available:', frame.sdk.actions);
                   
-                  // Extract username from URL
-                  const username = artistProfile.split('/').pop();
-                  console.log('Extracted username:', username);
-                  
                   try {
-                    // Try viewProfile method first (if available)
-                    if (frame.sdk.actions.viewProfile && username) {
-                      console.log('Attempting to use viewProfile...');
-                      await frame.sdk.actions.viewProfile({ username });
-                      console.log('Successfully opened with viewProfile');
-                    } else {
-                      throw new Error('viewProfile not available or username undefined');
-                    }
+                    // Try farcaster:// URL format first
+                    const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
+                    console.log('Trying mainClientUrl:', mainClientUrl);
+                    await frame.sdk.actions.openUrl(mainClientUrl);
+                    console.log('Successfully opened mainClientUrl');
                   } catch (err) {
-                    console.log('viewProfile failed, trying farcaster:// URL:', err);
+                    console.log('mainClientUrl failed, trying target client:', err);
                     try {
-                      // Try farcaster:// URL format
-                      const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
-                      console.log('Trying mainClientUrl:', mainClientUrl);
-                      await frame.sdk.actions.openUrl(mainClientUrl);
-                      console.log('Successfully opened mainClientUrl');
+                      // Try with target parameter
+                      await (frame.sdk.actions as { openUrl: (url: string, options?: { target?: string }) => Promise<void> }).openUrl(artistProfile, { target: 'client' });
+                      console.log('Successfully opened with target client');
                     } catch (err2) {
-                      console.log('mainClientUrl failed, trying target client:', err2);
+                      console.log('target client failed, trying target main:', err2);
                       try {
-                        // Try with target parameter
-                        await (frame.sdk.actions as { openUrl: (url: string, options?: { target?: string }) => Promise<void> }).openUrl(artistProfile, { target: 'client' });
-                        console.log('Successfully opened with target client');
+                        // Try with different target
+                        await (frame.sdk.actions as { openUrl: (url: string, options?: { target?: string }) => Promise<void> }).openUrl(artistProfile, { target: 'main' });
+                        console.log('Successfully opened with target main');
                       } catch (err3) {
-                        console.log('target client failed, trying regular openUrl:', err3);
+                        console.log('target main failed, trying regular openUrl:', err3);
                         // Fallback to regular openUrl
                         await frame.sdk.actions.openUrl(artistProfile);
                         console.log('Successfully opened with regular openUrl');
