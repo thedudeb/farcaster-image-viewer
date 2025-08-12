@@ -38,8 +38,26 @@ export default function Notification({ message, duration = 6000, type, artistPro
                 
                 // Try to open URL in main client (frame stays open)
                 if (frame.sdk && frame.sdk.actions) {
-                  // Open the profile URL in main client
-                  await frame.sdk.actions.openUrl(artistProfile);
+                  // Try to use a special URL format that might force main client
+                  const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
+                  
+                  try {
+                    // Try the special URL format first
+                    await frame.sdk.actions.openUrl(mainClientUrl);
+                  } catch (err) {
+                    try {
+                      // Try with target parameter
+                      await (frame.sdk.actions as any).openUrl(artistProfile, { target: 'client' });
+                    } catch (err2) {
+                      try {
+                        // Try with different target
+                        await (frame.sdk.actions as any).openUrl(artistProfile, { target: 'main' });
+                      } catch (err3) {
+                        // Fallback to regular openUrl
+                        await frame.sdk.actions.openUrl(artistProfile);
+                      }
+                    }
+                  }
                 } else {
                   // Fallback to opening in new tab
                   window.open(artistProfile, '_blank');
