@@ -36,10 +36,10 @@ export default function Notification({ message, duration = 6000, type, artistPro
                 // Import the frame SDK
                 const frame = await import('@farcaster/frame-sdk');
                 
-                // Try to close the frame and open URL in main client
+                // Try to minimize the frame and open URL in main client
                 if (frame.sdk && frame.sdk.actions) {
-                  // Close the frame first
-                  await frame.sdk.actions.close();
+                  // Minimize the frame first
+                  await frame.sdk.actions.minimize();
                   
                   // Then open the profile URL
                   await frame.sdk.actions.openUrl(artistProfile);
