@@ -31,44 +31,24 @@ export default function Notification({ message, duration = 6000, type, artistPro
         </div>
         {artistProfile && (
           <button
-            onClick={async () => {
+            onClick={() => {
               try {
                 console.log('Profile button clicked, artistProfile:', artistProfile);
                 
-                // Import the frame SDK
-                const frame = await import('@farcaster/frame-sdk');
-                console.log('Frame SDK loaded:', frame);
-                
-                // Try to open URL in main client (frame stays open)
-                if (frame.sdk && frame.sdk.actions) {
-                  console.log('Frame SDK actions available:', frame.sdk.actions);
+                // Try to open in main Farcaster client (frame stays open)
+                if (typeof window !== 'undefined' && 
+                    'sdk' in window && 
+                    typeof (window as { sdk?: { actions?: { openUrl?: (url: string) => void } } }).sdk?.actions?.openUrl === 'function') {
                   
-                  try {
-                    // Try farcaster:// URL format first
-                    const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
-                    console.log('Trying mainClientUrl:', mainClientUrl);
-                    await frame.sdk.actions.openUrl(mainClientUrl);
-                    console.log('Successfully opened mainClientUrl');
-                  } catch (err) {
-                    console.log('mainClientUrl failed, trying target client:', err);
-                    try {
-                      // Try with target parameter
-                      await (frame.sdk.actions as { openUrl: (url: string, options?: { target?: string }) => Promise<void> }).openUrl(artistProfile, { target: 'client' });
-                      console.log('Successfully opened with target client');
-                    } catch (err2) {
-                      console.log('target client failed, trying target main:', err2);
-                      try {
-                        // Try with different target
-                        await (frame.sdk.actions as { openUrl: (url: string, options?: { target?: string }) => Promise<void> }).openUrl(artistProfile, { target: 'main' });
-                        console.log('Successfully opened with target main');
-                      } catch (err3) {
-                        console.log('target main failed, trying regular openUrl:', err3);
-                        // Fallback to regular openUrl
-                        await frame.sdk.actions.openUrl(artistProfile);
-                        console.log('Successfully opened with regular openUrl');
-                      }
-                    }
-                  }
+                  console.log('Frame SDK actions available, trying farcaster:// URL');
+                  
+                  // Try farcaster:// URL format to force main client
+                  const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
+                  console.log('Trying mainClientUrl:', mainClientUrl);
+                  
+                  (window as { sdk: { actions: { openUrl: (url: string) => void } } }).sdk.actions.openUrl(mainClientUrl);
+                  console.log('Successfully opened mainClientUrl');
+                  
                 } else {
                   console.log('Frame SDK not available, falling back to window.open');
                   // Fallback to opening in new tab
