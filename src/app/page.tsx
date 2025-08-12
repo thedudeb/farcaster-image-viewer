@@ -72,6 +72,24 @@ export default function Home() {
     }
   }, [currentEpoch])
 
+  // Show Epoch 5 disclaimer on first load
+  useEffect(() => {
+    if (currentEpoch === 5) {
+      // Small delay to ensure the component is fully mounted
+      const timer = setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('showNotification', { 
+          detail: { 
+            message: `This one was curated, and created by another amazing artist, @Greywash`,
+            type: 'epoch5-notice',
+            artistProfile: 'https://warpcast.com/greywash'
+          } 
+        }));
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [currentEpoch]);
+
   // Preload next image
   useEffect(() => {
     if (!index) return
