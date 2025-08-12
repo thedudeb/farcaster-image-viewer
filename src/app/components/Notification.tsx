@@ -49,12 +49,12 @@ export default function Notification({ message, duration = 6000, type, artistPro
                   
                   try {
                     // Try viewProfile method first (if available)
-                    if (frame.sdk.actions.viewProfile) {
+                    if (frame.sdk.actions.viewProfile && username) {
                       console.log('Attempting to use viewProfile...');
-                      await frame.sdk.actions.viewProfile(username);
+                      await frame.sdk.actions.viewProfile({ username });
                       console.log('Successfully opened with viewProfile');
                     } else {
-                      throw new Error('viewProfile not available');
+                      throw new Error('viewProfile not available or username undefined');
                     }
                   } catch (err) {
                     console.log('viewProfile failed, trying farcaster:// URL:', err);
