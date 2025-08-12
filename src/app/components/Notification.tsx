@@ -31,26 +31,24 @@ export default function Notification({ message, duration = 6000, type, artistPro
         </div>
         {artistProfile && (
           <button
-            onClick={() => {
+            onClick={async () => {
               try {
-                // Try to minimize frame and open in main Farcaster client
-                if (typeof window !== 'undefined' && 
-                    'sdk' in window && 
-                    typeof (window as { sdk?: { actions?: { minimizeFrame?: () => void, openUrl?: (url: string) => void } } }).sdk?.actions?.minimizeFrame === 'function') {
-                  // First minimize the frame
-                  (window as { sdk: { actions: { minimizeFrame: () => void } } }).sdk.actions.minimizeFrame();
+                // Import the frame SDK
+                const frame = await import('@farcaster/frame-sdk');
+                
+                // Try to close the frame and open URL in main client
+                if (frame.sdk && frame.sdk.actions) {
+                  // Close the frame first
+                  await frame.sdk.actions.closeFrame();
                   
-                  // Then open the profile URL in the main client
-                  setTimeout(() => {
-                    if (typeof (window as { sdk?: { actions?: { openUrl?: (url: string) => void } } }).sdk?.actions?.openUrl === 'function') {
-                      (window as { sdk: { actions: { openUrl: (url: string) => void } } }).sdk.actions.openUrl(artistProfile);
-                    }
-                  }, 100);
+                  // Then open the profile URL
+                  await frame.sdk.actions.openUrl(artistProfile);
                 } else {
                   // Fallback to opening in new tab
                   window.open(artistProfile, '_blank');
                 }
               } catch (err) {
+                console.error('Error opening profile:', err);
                 // Fallback to opening in new tab
                 window.open(artistProfile, '_blank');
               }
