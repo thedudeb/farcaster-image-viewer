@@ -304,7 +304,7 @@ export default function Home() {
         </div>
       )}
 
-      {showIndicator && !menuOpen && (
+      {showIndicator && menuOpen && (
         <div
           className={`absolute bottom-[10%] left-1/2 transform -translate-x-1/2 text-white text-sm select-none pointer-events-none transition-opacity duration-500 ${
             fadeOut ? 'opacity-0' : 'opacity-100'
