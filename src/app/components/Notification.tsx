@@ -33,12 +33,19 @@ export default function Notification({ message, duration = 6000, type, artistPro
           <button
             onClick={() => {
               try {
-                // Try to open in main Farcaster client (not mini app)
+                // Try to minimize frame and open in main Farcaster client
                 if (typeof window !== 'undefined' && 
                     'sdk' in window && 
-                    typeof (window as { sdk?: { actions?: { openUrl?: (url: string, options?: { target?: string }) => void } } }).sdk?.actions?.openUrl === 'function') {
-                  // Open in main client to allow following, liking, etc.
-                  (window as { sdk: { actions: { openUrl: (url: string, options?: { target?: string }) => void } } }).sdk.actions.openUrl(artistProfile, { target: 'client' });
+                    typeof (window as { sdk?: { actions?: { minimizeFrame?: () => void, openUrl?: (url: string) => void } } }).sdk?.actions?.minimizeFrame === 'function') {
+                  // First minimize the frame
+                  (window as { sdk: { actions: { minimizeFrame: () => void } } }).sdk.actions.minimizeFrame();
+                  
+                  // Then open the profile URL in the main client
+                  setTimeout(() => {
+                    if (typeof (window as { sdk?: { actions?: { openUrl?: (url: string) => void } } }).sdk?.actions?.openUrl === 'function') {
+                      (window as { sdk: { actions: { openUrl: (url: string) => void } } }).sdk.actions.openUrl(artistProfile);
+                    }
+                  }, 100);
                 } else {
                   // Fallback to opening in new tab
                   window.open(artistProfile, '_blank');
