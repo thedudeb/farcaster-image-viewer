@@ -39,7 +39,7 @@ export default function Notification({ message, duration = 6000, type, artistPro
                 // Try to close the frame and open URL in main client
                 if (frame.sdk && frame.sdk.actions) {
                   // Close the frame first
-                  await frame.sdk.actions.closeFrame();
+                  await frame.sdk.actions.close();
                   
                   // Then open the profile URL
                   await frame.sdk.actions.openUrl(artistProfile);
