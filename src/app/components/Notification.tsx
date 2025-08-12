@@ -8,7 +8,7 @@ interface NotificationProps {
   onClose?: () => void;
 }
 
-export default function Notification({ message, duration = 3000, type, artistProfile, onClose }: NotificationProps) {
+export default function Notification({ message, duration = 6000, type, artistProfile, onClose }: NotificationProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
@@ -33,11 +33,12 @@ export default function Notification({ message, duration = 3000, type, artistPro
           <button
             onClick={() => {
               try {
-                // Try to open in Farcaster app first
+                // Try to open in main Farcaster client (not mini app)
                 if (typeof window !== 'undefined' && 
                     'sdk' in window && 
-                    typeof (window as { sdk?: { actions?: { openUrl?: (url: string) => void } } }).sdk?.actions?.openUrl === 'function') {
-                  (window as { sdk: { actions: { openUrl: (url: string) => void } } }).sdk.actions.openUrl(artistProfile);
+                    typeof (window as { sdk?: { actions?: { openUrl?: (url: string, options?: { target?: string }) => void } } }).sdk?.actions?.openUrl === 'function') {
+                  // Open in main client to allow following, liking, etc.
+                  (window as { sdk: { actions: { openUrl: (url: string, options?: { target?: string }) => void } } }).sdk.actions.openUrl(artistProfile, { target: 'client' });
                 } else {
                   // Fallback to opening in new tab
                   window.open(artistProfile, '_blank');
