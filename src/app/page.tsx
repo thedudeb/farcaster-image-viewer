@@ -15,7 +15,7 @@ const EPOCHS = [
 ];
 
 export default function Home() {
-  const [currentEpoch, setCurrentEpoch] = useState(3)
+  const [currentEpoch, setCurrentEpoch] = useState(5)
   const [index, setIndex] = useState<number | null>(1)
   const [showIndicator, setShowIndicator] = useState(true)
   const [fadeOut, setFadeOut] = useState(false)
