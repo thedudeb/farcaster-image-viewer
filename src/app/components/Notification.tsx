@@ -47,11 +47,11 @@ export default function Notification({ message, duration = 6000, type, artistPro
                   } catch (err) {
                     try {
                       // Try with target parameter
-                      await (frame.sdk.actions as any).openUrl(artistProfile, { target: 'client' });
+                      await (frame.sdk.actions as { openUrl: (url: string, options?: { target?: string }) => Promise<void> }).openUrl(artistProfile, { target: 'client' });
                     } catch (err2) {
                       try {
                         // Try with different target
-                        await (frame.sdk.actions as any).openUrl(artistProfile, { target: 'main' });
+                        await (frame.sdk.actions as { openUrl: (url: string, options?: { target?: string }) => Promise<void> }).openUrl(artistProfile, { target: 'main' });
                       } catch (err3) {
                         // Fallback to regular openUrl
                         await frame.sdk.actions.openUrl(artistProfile);
