@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { insertAnalyticsEvent, upsertUserSession, recordEpochCompletion } from '../../lib/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,20 +13,40 @@ export async function POST(request: NextRequest) {
       sessionId 
     } = body;
 
-    // Log the analytics data (you can replace this with your preferred storage)
-    console.log('Analytics Event:', {
+    const userAgent = request.headers.get('user-agent') || undefined;
+    const ipAddress = request.headers.get('x-forwarded-for') || request.ip || undefined;
+
+    // Insert analytics event into database
+    await insertAnalyticsEvent({
       eventType,
       epochId,
       imageIndex,
       userId,
-      timestamp: new Date(timestamp).toISOString(),
       sessionId,
-      userAgent: request.headers.get('user-agent'),
-      ip: request.headers.get('x-forwarded-for') || request.ip
+      userAgent,
+      ipAddress,
+      additionalData: { timestamp }
     });
 
-    // Here you could store to a database, send to analytics service, etc.
-    // For now, we'll just log it and you can add your preferred storage later
+    // Update user session
+    if (sessionId) {
+      await upsertUserSession({
+        sessionId,
+        userId,
+        userAgent,
+        ipAddress
+      });
+    }
+
+    // Record epoch completion if this is an epoch_completion event
+    if (eventType === 'epoch_completion' && epochId) {
+      await recordEpochCompletion({
+        epochId,
+        userId,
+        sessionId,
+        totalImages: imageIndex || 0
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
