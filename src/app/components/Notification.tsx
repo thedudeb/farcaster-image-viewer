@@ -35,41 +35,58 @@ export default function Notification({ message, duration = 6000, type, artistPro
               try {
                 console.log('Profile button clicked, artistProfile:', artistProfile);
                 
-                // Check if we're in a Farcaster frame environment
-                if (typeof window !== 'undefined' && 
-                    'sdk' in window && 
-                    typeof (window as { sdk?: { actions?: { close?: () => void, openUrl?: (url: string) => void } } }).sdk?.actions?.close === 'function') {
+                // Try multiple approaches to minimize and open profile
+                if (typeof window !== 'undefined' && 'sdk' in window) {
+                  const sdk = (window as any).sdk;
+                  console.log('SDK available:', sdk);
                   
-                  console.log('Frame SDK available, minimizing frame first...');
-                  
-                  // First, minimize/close the frame
-                  (window as { sdk: { actions: { close: () => void } } }).sdk.actions.close();
-                  
-                  // Then open the profile URL in the main client after a short delay
-                  setTimeout(() => {
-                    console.log('Opening profile in main client after minimize');
-                    try {
-                      // Try farcaster:// URL format to force main client
-                      const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
-                      console.log('Trying mainClientUrl:', mainClientUrl);
-                      
-                      // Use window.open as fallback since frame is now closed
-                      window.open(mainClientUrl, '_blank');
-                      console.log('Successfully opened mainClientUrl');
-                    } catch (err) {
-                      console.error('Error opening profile after minimize:', err);
-                      window.open(artistProfile, '_blank');
+                  if (sdk && sdk.actions) {
+                    console.log('SDK actions available:', Object.keys(sdk.actions));
+                    
+                    // Try to minimize/close the frame first
+                    if (sdk.actions.close) {
+                      console.log('Using close() method');
+                      sdk.actions.close();
+                    } else if (sdk.actions.minimize) {
+                      console.log('Using minimize() method');
+                      sdk.actions.minimize();
+                    } else if (sdk.actions.minimizeFrame) {
+                      console.log('Using minimizeFrame() method');
+                      sdk.actions.minimizeFrame();
                     }
-                  }, 100); // 100ms delay to ensure frame closes first
-                  
+                    
+                    // Wait a bit then open the profile
+                    setTimeout(() => {
+                      console.log('Opening profile after minimize');
+                      
+                      // Try farcaster:// URL first
+                      const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
+                      console.log('Trying farcaster:// URL:', mainClientUrl);
+                      
+                      // Try to open in main client
+                      if (sdk.actions.openUrl) {
+                        try {
+                          sdk.actions.openUrl(mainClientUrl);
+                          console.log('Opened with SDK openUrl');
+                        } catch (err) {
+                          console.log('SDK openUrl failed, trying window.open:', err);
+                          window.open(mainClientUrl, '_blank');
+                        }
+                      } else {
+                        window.open(mainClientUrl, '_blank');
+                      }
+                    }, 200); // Increased delay
+                    
+                  } else {
+                    console.log('No SDK actions available');
+                    window.open(artistProfile, '_blank');
+                  }
                 } else {
-                  console.log('Frame SDK not available, falling back to window.open');
-                  // Fallback to opening in new tab
+                  console.log('No SDK available');
                   window.open(artistProfile, '_blank');
                 }
               } catch (err) {
                 console.error('Error in profile button:', err);
-                // Fallback to opening in new tab
                 window.open(artistProfile, '_blank');
               }
             }}
