@@ -63,6 +63,43 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
             </button>
           ))}
         </div>
+        
+        {/* Separator */}
+        <div className="border-t border-gray-700 my-4"></div>
+        
+        {/* Request a Curate Button */}
+        <button
+          onClick={async () => {
+            try {
+              // Import the frame SDK
+              const frame = await import('@farcaster/frame-sdk');
+              
+              if (frame.sdk && frame.sdk.actions) {
+                // Use viewProfile to open DM with @thedude (FID 13874)
+                if (frame.sdk.actions.viewProfile) {
+                  console.log('Opening DM with @thedude (FID 13874)');
+                  await frame.sdk.actions.viewProfile({ fid: 13874 });
+                  console.log('Successfully opened DM');
+                } else {
+                  console.log('viewProfile not available, using openUrl fallback');
+                  // Fallback to openUrl with farcaster:// scheme
+                  const dmUrl = 'farcaster://thedude';
+                  await frame.sdk.actions.openUrl(dmUrl);
+                  console.log('Successfully opened with openUrl');
+                }
+              } else {
+                console.log('Frame SDK not available, falling back to window.open');
+                window.open('https://warpcast.com/thedude', '_blank');
+              }
+            } catch (err) {
+              console.error('Error opening DM:', err);
+              window.open('https://warpcast.com/thedude', '_blank');
+            }
+          }}
+          className="w-full text-center px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors duration-200"
+        >
+          Request a Curate
+        </button>
       </div>
     </div>
   );
