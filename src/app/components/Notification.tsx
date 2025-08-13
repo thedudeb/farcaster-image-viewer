@@ -12,13 +12,16 @@ export default function Notification({ message, duration = 6000, type, artistPro
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      onClose?.();
-    }, duration);
+    // For Epoch 5 notice, don't auto-hide - wait for user interaction
+    if (type !== 'epoch5-notice') {
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+        onClose?.();
+      }, duration);
 
-    return () => clearTimeout(timer);
-  }, [duration, onClose]);
+      return () => clearTimeout(timer);
+    }
+  }, [duration, onClose, type]);
 
   if (!isVisible) return null;
 
@@ -29,46 +32,57 @@ export default function Notification({ message, duration = 6000, type, artistPro
         <div className="mb-3">
           <p className="text-sm opacity-90">{message}</p>
         </div>
-        {artistProfile && (
-          <button
-            onClick={async () => {
-              try {
-                console.log('Profile button clicked, artistProfile:', artistProfile);
-                
-                // Import the frame SDK
-                const frame = await import('@farcaster/frame-sdk');
-                console.log('Frame SDK loaded:', frame);
-                
-                if (frame.sdk && frame.sdk.actions) {
-                  console.log('Frame SDK actions available:', Object.keys(frame.sdk.actions));
+        <div className="flex flex-col gap-2">
+          {artistProfile && (
+            <button
+              onClick={async () => {
+                try {
+                  console.log('Profile button clicked, artistProfile:', artistProfile);
                   
-                  // Use the official viewProfile method with FID to minimize app and show profile
-                  if (frame.sdk.actions.viewProfile) {
-                    console.log('Using viewProfile method with FID 1075107');
-                    await frame.sdk.actions.viewProfile({ fid: 1075107 });
-                    console.log('Successfully opened profile with viewProfile');
+                  // Import the frame SDK
+                  const frame = await import('@farcaster/frame-sdk');
+                  console.log('Frame SDK loaded:', frame);
+                  
+                  if (frame.sdk && frame.sdk.actions) {
+                    console.log('Frame SDK actions available:', Object.keys(frame.sdk.actions));
+                    
+                    // Use the official viewProfile method with FID to minimize app and show profile
+                    if (frame.sdk.actions.viewProfile) {
+                      console.log('Using viewProfile method with FID 1075107');
+                      await frame.sdk.actions.viewProfile({ fid: 1075107 });
+                      console.log('Successfully opened profile with viewProfile');
+                    } else {
+                      console.log('viewProfile not available, using openUrl fallback');
+                      // Fallback to openUrl with farcaster:// scheme
+                      const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
+                      await frame.sdk.actions.openUrl(mainClientUrl);
+                      console.log('Successfully opened with openUrl');
+                    }
+                    
                   } else {
-                    console.log('viewProfile not available, using openUrl fallback');
-                    // Fallback to openUrl with farcaster:// scheme
-                    const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
-                    await frame.sdk.actions.openUrl(mainClientUrl);
-                    console.log('Successfully opened with openUrl');
+                    console.log('Frame SDK not available, falling back to window.open');
+                    window.open(artistProfile, '_blank');
                   }
-                  
-                } else {
-                  console.log('Frame SDK not available, falling back to window.open');
+                } catch (err) {
+                  console.error('Error in profile button:', err);
                   window.open(artistProfile, '_blank');
                 }
-              } catch (err) {
-                console.error('Error in profile button:', err);
-                window.open(artistProfile, '_blank');
-              }
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+            >
+              View Artist Profile
+            </button>
+          )}
+          <button
+            onClick={() => {
+              setIsVisible(false);
+              onClose?.();
             }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
           >
-            View Artist Profile
+            Dismiss
           </button>
-        )}
+        </div>
       </div>
     );
   }
