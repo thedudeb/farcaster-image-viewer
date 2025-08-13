@@ -42,35 +42,12 @@ export default function Notification({ message, duration = 6000, type, artistPro
                 if (frame.sdk && frame.sdk.actions) {
                   console.log('Frame SDK actions available:', Object.keys(frame.sdk.actions));
                   
-                  // Use the official viewProfile method which minimizes the app and shows the profile
-                  // For @greywash, we need to get their FID first or use a different approach
+                  // Use openUrl with farcaster:// scheme to open in main client
+                  const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
+                  console.log('Trying farcaster:// URL:', mainClientUrl);
                   
-                  // Try using viewProfile with username if available
-                  if (frame.sdk.actions.viewProfile) {
-                    console.log('Using viewProfile method');
-                    try {
-                      // Extract username from URL: https://warpcast.com/greywash -> greywash
-                      const username = artistProfile.split('/').pop();
-                      console.log('Extracted username:', username);
-                      
-                      // Try to use viewProfile with username
-                      await frame.sdk.actions.viewProfile({ username });
-                      console.log('Successfully opened profile with viewProfile');
-                    } catch (err) {
-                      console.log('viewProfile failed, trying openUrl:', err);
-                      
-                      // Fallback to openUrl with farcaster:// scheme
-                      const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
-                      console.log('Trying farcaster:// URL:', mainClientUrl);
-                      
-                      await frame.sdk.actions.openUrl({ url: mainClientUrl });
-                      console.log('Successfully opened with openUrl');
-                    }
-                  } else {
-                    console.log('viewProfile not available, using openUrl');
-                    const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
-                    await frame.sdk.actions.openUrl({ url: mainClientUrl });
-                  }
+                  await frame.sdk.actions.openUrl({ url: mainClientUrl });
+                  console.log('Successfully opened with openUrl');
                   
                 } else {
                   console.log('Frame SDK not available, falling back to window.open');
