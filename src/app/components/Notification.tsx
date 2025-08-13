@@ -42,12 +42,18 @@ export default function Notification({ message, duration = 6000, type, artistPro
                 if (frame.sdk && frame.sdk.actions) {
                   console.log('Frame SDK actions available:', Object.keys(frame.sdk.actions));
                   
-                  // Use openUrl with farcaster:// scheme to open in main client
-                  const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
-                  console.log('Trying farcaster:// URL:', mainClientUrl);
-                  
-                  await frame.sdk.actions.openUrl({ url: mainClientUrl });
-                  console.log('Successfully opened with openUrl');
+                  // Use the official viewProfile method with FID to minimize app and show profile
+                  if (frame.sdk.actions.viewProfile) {
+                    console.log('Using viewProfile method with FID 1075107');
+                    await frame.sdk.actions.viewProfile({ fid: 1075107 });
+                    console.log('Successfully opened profile with viewProfile');
+                  } else {
+                    console.log('viewProfile not available, using openUrl fallback');
+                    // Fallback to openUrl with farcaster:// scheme
+                    const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
+                    await frame.sdk.actions.openUrl({ url: mainClientUrl });
+                    console.log('Successfully opened with openUrl');
+                  }
                   
                 } else {
                   console.log('Frame SDK not available, falling back to window.open');
