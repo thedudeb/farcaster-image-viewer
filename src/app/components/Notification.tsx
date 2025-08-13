@@ -31,68 +31,49 @@ export default function Notification({ message, duration = 6000, type, artistPro
         </div>
         {artistProfile && (
           <button
-            onClick={() => {
+            onClick={async () => {
               try {
                 console.log('Profile button clicked, artistProfile:', artistProfile);
                 
-                // For mobile, try a more direct approach
-                if (typeof window !== 'undefined' && 'sdk' in window) {
-                  const sdk = (window as { sdk?: { actions?: { close?: () => void; minimize?: () => void; minimizeFrame?: () => void; openUrl?: (url: string) => void } } }).sdk;
-                  console.log('SDK available:', sdk);
+                // Import the frame SDK
+                const frame = await import('@farcaster/frame-sdk');
+                console.log('Frame SDK loaded:', frame);
+                
+                if (frame.sdk && frame.sdk.actions) {
+                  console.log('Frame SDK actions available:', Object.keys(frame.sdk.actions));
                   
-                  if (sdk && sdk.actions) {
-                    console.log('SDK actions available:', Object.keys(sdk.actions));
-                    
-                    // First, try to minimize the frame (not close it)
-                    if (sdk.actions.minimize) {
-                      console.log('Minimizing frame first');
-                      sdk.actions.minimize();
-                    } else if (sdk.actions.minimizeFrame) {
-                      console.log('Using minimizeFrame method');
-                      sdk.actions.minimizeFrame();
-                    } else if (sdk.actions.close) {
-                      console.log('No minimize method, using close as fallback');
-                      sdk.actions.close();
-                    }
-                    
-                    // Then immediately try to open the profile in the main app
-                    setTimeout(() => {
-                      console.log('Opening profile in main app after minimize');
+                  // Use the official viewProfile method which minimizes the app and shows the profile
+                  // For @greywash, we need to get their FID first or use a different approach
+                  
+                  // Try using viewProfile with username if available
+                  if (frame.sdk.actions.viewProfile) {
+                    console.log('Using viewProfile method');
+                    try {
+                      // Extract username from URL: https://warpcast.com/greywash -> greywash
+                      const username = artistProfile.split('/').pop();
+                      console.log('Extracted username:', username);
                       
-                      // Try multiple URL formats for mobile
-                      const urls = [
-                        artistProfile.replace('https://warpcast.com', 'farcaster://'),
-                        artistProfile.replace('https://warpcast.com', 'warpcast://'),
-                        artistProfile
-                      ];
+                      // Try to use viewProfile with username
+                      await frame.sdk.actions.viewProfile({ username });
+                      console.log('Successfully opened profile with viewProfile');
+                    } catch (err) {
+                      console.log('viewProfile failed, trying openUrl:', err);
                       
-                      // Try each URL format
-                      for (const url of urls) {
-                        try {
-                          console.log('Trying URL:', url);
-                          window.location.href = url;
-                          console.log('Successfully navigated to:', url);
-                          break;
-                        } catch (err) {
-                          console.log('Failed to navigate to:', url, err);
-                          continue;
-                        }
-                      }
-                    }, 100);
-                    
-                    if (!sdk.actions.minimize && !sdk.actions.minimizeFrame && !sdk.actions.close) {
-                      console.log('No minimize/close methods available, trying direct navigation');
-                      // Fallback: try direct navigation
+                      // Fallback to openUrl with farcaster:// scheme
                       const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
-                      window.location.href = mainClientUrl;
+                      console.log('Trying farcaster:// URL:', mainClientUrl);
+                      
+                      await frame.sdk.actions.openUrl({ url: mainClientUrl });
+                      console.log('Successfully opened with openUrl');
                     }
-                    
                   } else {
-                    console.log('No SDK actions available');
-                    window.open(artistProfile, '_blank');
+                    console.log('viewProfile not available, using openUrl');
+                    const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
+                    await frame.sdk.actions.openUrl({ url: mainClientUrl });
                   }
+                  
                 } else {
-                  console.log('No SDK available');
+                  console.log('Frame SDK not available, falling back to window.open');
                   window.open(artistProfile, '_blank');
                 }
               } catch (err) {
