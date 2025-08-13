@@ -43,38 +43,45 @@ export default function Notification({ message, duration = 6000, type, artistPro
                   if (sdk && sdk.actions) {
                     console.log('SDK actions available:', Object.keys(sdk.actions));
                     
-                    // First, try to close the frame completely
-                    if (sdk.actions.close) {
-                      console.log('Closing frame first');
+                    // First, try to minimize the frame (not close it)
+                    if (sdk.actions.minimize) {
+                      console.log('Minimizing frame first');
+                      sdk.actions.minimize();
+                    } else if (sdk.actions.minimizeFrame) {
+                      console.log('Using minimizeFrame method');
+                      sdk.actions.minimizeFrame();
+                    } else if (sdk.actions.close) {
+                      console.log('No minimize method, using close as fallback');
                       sdk.actions.close();
+                    }
+                    
+                    // Then immediately try to open the profile in the main app
+                    setTimeout(() => {
+                      console.log('Opening profile in main app after minimize');
                       
-                      // Then immediately try to open the profile in the main app
-                      setTimeout(() => {
-                        console.log('Opening profile in main app after close');
-                        
-                        // Try multiple URL formats for mobile
-                        const urls = [
-                          artistProfile.replace('https://warpcast.com', 'farcaster://'),
-                          artistProfile.replace('https://warpcast.com', 'warpcast://'),
-                          artistProfile
-                        ];
-                        
-                        // Try each URL format
-                        for (const url of urls) {
-                          try {
-                            console.log('Trying URL:', url);
-                            window.location.href = url;
-                            console.log('Successfully navigated to:', url);
-                            break;
-                          } catch (err) {
-                            console.log('Failed to navigate to:', url, err);
-                            continue;
-                          }
+                      // Try multiple URL formats for mobile
+                      const urls = [
+                        artistProfile.replace('https://warpcast.com', 'farcaster://'),
+                        artistProfile.replace('https://warpcast.com', 'warpcast://'),
+                        artistProfile
+                      ];
+                      
+                      // Try each URL format
+                      for (const url of urls) {
+                        try {
+                          console.log('Trying URL:', url);
+                          window.location.href = url;
+                          console.log('Successfully navigated to:', url);
+                          break;
+                        } catch (err) {
+                          console.log('Failed to navigate to:', url, err);
+                          continue;
                         }
-                      }, 100);
-                      
-                    } else {
-                      console.log('No close method available, trying direct navigation');
+                      }
+                    }, 100);
+                    
+                    if (!sdk.actions.minimize && !sdk.actions.minimizeFrame && !sdk.actions.close) {
+                      console.log('No minimize/close methods available, trying direct navigation');
                       // Fallback: try direct navigation
                       const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
                       window.location.href = mainClientUrl;
