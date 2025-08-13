@@ -35,7 +35,7 @@ export default function Notification({ message, duration = 6000, type, artistPro
               try {
                 console.log('Profile button clicked, artistProfile:', artistProfile);
                 
-                // Try multiple approaches to minimize and open profile
+                // For mobile, try a more direct approach
                 if (typeof window !== 'undefined' && 'sdk' in window) {
                   const sdk = (window as { sdk?: { actions?: { close?: () => void; minimize?: () => void; minimizeFrame?: () => void; openUrl?: (url: string) => void } } }).sdk;
                   console.log('SDK available:', sdk);
@@ -43,39 +43,42 @@ export default function Notification({ message, duration = 6000, type, artistPro
                   if (sdk && sdk.actions) {
                     console.log('SDK actions available:', Object.keys(sdk.actions));
                     
-                    // Try to minimize/close the frame first
+                    // First, try to close the frame completely
                     if (sdk.actions.close) {
-                      console.log('Using close() method');
+                      console.log('Closing frame first');
                       sdk.actions.close();
-                    } else if (sdk.actions.minimize) {
-                      console.log('Using minimize() method');
-                      sdk.actions.minimize();
-                    } else if (sdk.actions.minimizeFrame) {
-                      console.log('Using minimizeFrame() method');
-                      sdk.actions.minimizeFrame();
-                    }
-                    
-                    // Wait a bit then open the profile
-                    setTimeout(() => {
-                      console.log('Opening profile after minimize');
                       
-                      // Try farcaster:// URL first
-                      const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
-                      console.log('Trying farcaster:// URL:', mainClientUrl);
-                      
-                      // Try to open in main client
-                      if (sdk.actions.openUrl) {
-                        try {
-                          sdk.actions.openUrl(mainClientUrl);
-                          console.log('Opened with SDK openUrl');
-                        } catch (err) {
-                          console.log('SDK openUrl failed, trying window.open:', err);
-                          window.open(mainClientUrl, '_blank');
+                      // Then immediately try to open the profile in the main app
+                      setTimeout(() => {
+                        console.log('Opening profile in main app after close');
+                        
+                        // Try multiple URL formats for mobile
+                        const urls = [
+                          artistProfile.replace('https://warpcast.com', 'farcaster://'),
+                          artistProfile.replace('https://warpcast.com', 'warpcast://'),
+                          artistProfile
+                        ];
+                        
+                        // Try each URL format
+                        for (const url of urls) {
+                          try {
+                            console.log('Trying URL:', url);
+                            window.location.href = url;
+                            console.log('Successfully navigated to:', url);
+                            break;
+                          } catch (err) {
+                            console.log('Failed to navigate to:', url, err);
+                            continue;
+                          }
                         }
-                      } else {
-                        window.open(mainClientUrl, '_blank');
-                      }
-                    }, 200); // Increased delay
+                      }, 100);
+                      
+                    } else {
+                      console.log('No close method available, trying direct navigation');
+                      // Fallback: try direct navigation
+                      const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
+                      window.location.href = mainClientUrl;
+                    }
                     
                   } else {
                     console.log('No SDK actions available');
