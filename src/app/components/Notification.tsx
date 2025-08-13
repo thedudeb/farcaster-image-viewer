@@ -51,7 +51,7 @@ export default function Notification({ message, duration = 6000, type, artistPro
                     console.log('viewProfile not available, using openUrl fallback');
                     // Fallback to openUrl with farcaster:// scheme
                     const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
-                    await frame.sdk.actions.openUrl({ url: mainClientUrl });
+                    await frame.sdk.actions.openUrl(mainClientUrl);
                     console.log('Successfully opened with openUrl');
                   }
                   
