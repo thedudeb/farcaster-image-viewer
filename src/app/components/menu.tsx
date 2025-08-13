@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { trackCurateRequest } from '../lib/analytics';
 
 interface MenuProps {
   onClose: () => void;
@@ -70,6 +71,9 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
         {/* Request a Curate Button */}
         <button
           onClick={async () => {
+            // Track the curate request
+            trackCurateRequest();
+            
             try {
               // Import the frame SDK
               const frame = await import('@farcaster/frame-sdk');

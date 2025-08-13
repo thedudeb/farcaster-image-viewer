@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { trackArtistProfileClick } from '../lib/analytics';
 
 interface NotificationProps {
   message: string;
@@ -35,9 +36,12 @@ export default function Notification({ message, duration = 6000, type, artistPro
         <div className="flex flex-col gap-2">
           {artistProfile && (
             <button
-              onClick={async () => {
-                try {
-                  console.log('Profile button clicked, artistProfile:', artistProfile);
+                          onClick={async () => {
+              // Track artist profile click
+              trackArtistProfileClick('@Greywash');
+              
+              try {
+                console.log('Profile button clicked, artistProfile:', artistProfile);
                   
                   // Import the frame SDK
                   const frame = await import('@farcaster/frame-sdk');

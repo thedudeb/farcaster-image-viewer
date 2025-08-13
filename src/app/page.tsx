@@ -4,6 +4,13 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Menu from './components/menu'
 import { sendFarcasterNotification } from './lib/notifications'
+import { 
+  trackImageView, 
+  trackEpochCompletion, 
+  trackEpochSwitch, 
+  trackMenuOpen, 
+  trackSessionStart 
+} from './lib/analytics'
 import * as frame from '@farcaster/frame-sdk'
 
 const EPOCHS = [
@@ -17,6 +24,11 @@ const EPOCHS = [
 export default function Home() {
   const [currentEpoch, setCurrentEpoch] = useState(5)
   const [index, setIndex] = useState<number | null>(1)
+  
+  // Track session start
+  useEffect(() => {
+    trackSessionStart();
+  }, []);
   const [showIndicator, setShowIndicator] = useState(true)
   const [fadeOut, setFadeOut] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -90,7 +102,7 @@ export default function Home() {
     }
   }, [currentEpoch]);
 
-  // Preload next image
+  // Preload next image and track image view
   useEffect(() => {
     if (!index) return
 
@@ -98,6 +110,14 @@ export default function Home() {
     const totalImages = currentEpochData?.totalImages || 0
     const nextIndex = index === totalImages ? 1 : index + 1
     const extension = currentEpoch === 5 ? 'jpeg' : 'jpg'
+    
+    // Track image view
+    trackImageView(currentEpoch, index);
+    
+    // Track epoch completion if this is the last image
+    if (index === totalImages) {
+      trackEpochCompletion(currentEpoch, totalImages);
+    }
     const nextImageSrc = `/images/epoch${currentEpoch}/${nextIndex}.${extension}`
 
     const img = new window.Image()
@@ -172,6 +192,7 @@ export default function Home() {
   const handleMenuButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent the tap from triggering navigation
     setMenuOpen(true)
+    trackMenuOpen()
   }
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -188,6 +209,7 @@ export default function Home() {
   }
 
   const handleEpochChange = async (epochId: number) => {
+    const previousEpoch = currentEpoch;
     setCurrentEpoch(epochId);
     setIndex(1);
     setImageKey(prev => prev + 1);
@@ -195,6 +217,9 @@ export default function Home() {
     setFadeOut(false);
     setMenuOpen(false);
     setShowMenuButton(false);
+    
+    // Track epoch switch
+    trackEpochSwitch(previousEpoch, epochId);
     
     const epochName = EPOCHS.find(e => e.id === epochId)?.name;
     window.dispatchEvent(new CustomEvent('showNotification', { detail: { message: `Switched to ${epochName}` } }));
