@@ -37,7 +37,7 @@ export default function Notification({ message, duration = 6000, type, artistPro
                 
                 // Try multiple approaches to minimize and open profile
                 if (typeof window !== 'undefined' && 'sdk' in window) {
-                  const sdk = (window as any).sdk;
+                  const sdk = (window as { sdk?: { actions?: { close?: () => void; minimize?: () => void; minimizeFrame?: () => void; openUrl?: (url: string) => void } } }).sdk;
                   console.log('SDK available:', sdk);
                   
                   if (sdk && sdk.actions) {
