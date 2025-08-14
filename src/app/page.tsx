@@ -146,6 +146,7 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [showMenuButton, setShowMenuButton] = useState(true)
   const [showTapRightOverlay, setShowTapRightOverlay] = useState(false)
+  const [showGreywashTapRight, setShowGreywashTapRight] = useState(false)
   const [hasTapped, setHasTapped] = useState(false)
   const touchStartX = useRef<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -215,6 +216,7 @@ export default function Home() {
         });
         setImageKey(prev => prev + 1)
         setShowTapRightOverlay(false); // Hide tap right overlay when navigating
+        setShowGreywashTapRight(false); // Hide Greywash tap right overlay when navigating
       } else if (e.key === 'ArrowRight') {
         setIndex((prev) => {
           if (!prev) return 1;
@@ -223,6 +225,7 @@ export default function Home() {
         });
         setImageKey(prev => prev + 1)
         setShowTapRightOverlay(false); // Hide tap right overlay when navigating
+        setShowGreywashTapRight(false); // Hide Greywash tap right overlay when navigating
       }
     };
 
@@ -245,18 +248,29 @@ export default function Home() {
     }
   }, [currentEpoch])
 
-  // Show Epoch 5 disclaimer on first load
+  // Show Epoch 5 disclaimer on first load and start loading epoch
   useEffect(() => {
     if (currentEpoch === 5) {
+      // Start loading Epoch 5 immediately when notification appears
+      epochPreloader.preloadEpoch(5);
+      
       // Small delay to ensure the component is fully mounted
       const timer = setTimeout(() => {
         window.dispatchEvent(new CustomEvent('showNotification', { 
-                  detail: {
-          message: `This epoch was created and curated by another amazing artist, @Greywash`,
-          type: 'epoch5-notice',
-          artistProfile: 'https://warpcast.com/greywash'
-        } 
+          detail: {
+            message: `This epoch was created and curated by another amazing artist, @Greywash`,
+            type: 'epoch5-notice',
+            artistProfile: 'https://warpcast.com/greywash'
+          } 
         }));
+        
+        // Show tap right overlay for 9 seconds after notification
+        setShowGreywashTapRight(true);
+        const tapRightTimer = setTimeout(() => {
+          setShowGreywashTapRight(false);
+        }, 9000);
+        
+        return () => clearTimeout(tapRightTimer);
       }, 500);
       
       return () => clearTimeout(timer);
@@ -328,6 +342,7 @@ export default function Home() {
       });
       setImageKey(prev => prev + 1);
       setShowTapRightOverlay(false); // Hide tap right overlay when navigating
+      setShowGreywashTapRight(false); // Hide Greywash tap right overlay when navigating
       if ("vibrate" in navigator) {
         navigator.vibrate(50);
       }
@@ -347,6 +362,7 @@ export default function Home() {
       });
       setImageKey(prev => prev + 1);
       setShowTapRightOverlay(false); // Hide tap right overlay when navigating
+      setShowGreywashTapRight(false); // Hide Greywash tap right overlay when navigating
       if ("vibrate" in navigator) {
         navigator.vibrate(50);
       }
@@ -391,6 +407,7 @@ export default function Home() {
     setMenuOpen(false);
     setShowMenuButton(false);
     setShowTapRightOverlay(false);
+    setShowGreywashTapRight(false);
     setEpochLoading(true);
     
     // Clear viewed images for new epoch
@@ -537,6 +554,15 @@ export default function Home() {
           className={`absolute bottom-[10%] left-1/2 transform -translate-x-1/2 text-white text-sm select-none pointer-events-none transition-opacity duration-500 ${
             fadeOut ? 'opacity-0' : 'opacity-100'
           }`}
+        >
+          <p>tap right</p>
+        </div>
+      )}
+
+      {/* Greywash Epoch 5 Tap Right Overlay */}
+      {showGreywashTapRight && (
+        <div
+          className="absolute bottom-[10%] left-1/2 transform -translate-x-1/2 text-white text-sm select-none pointer-events-none transition-opacity duration-500 opacity-100"
         >
           <p>tap right</p>
         </div>
