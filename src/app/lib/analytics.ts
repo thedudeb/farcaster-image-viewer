@@ -32,7 +32,9 @@ export const trackEvent = async (eventType: string, data: Record<string, unknown
     // Limit cache size to prevent memory issues
     if (analyticsCache.size > 1000) {
       const firstKey = analyticsCache.values().next().value;
-      analyticsCache.delete(firstKey);
+      if (firstKey) {
+        analyticsCache.delete(firstKey);
+      }
     }
 
     const userId = getUserId();
