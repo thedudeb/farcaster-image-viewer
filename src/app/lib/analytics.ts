@@ -13,14 +13,14 @@ const getSessionId = () => {
 // Get user ID from Farcaster context
 const getUserId = () => {
   if (typeof window === 'undefined') return null;
-  return (window as any).userFid || null;
+  return (window as { userFid?: string }).userFid || null;
 };
 
 // Simple cache to prevent duplicate analytics calls
 const analyticsCache = new Set<string>();
 
 // Track analytics event
-export const trackEvent = async (eventType: string, data: any = {}) => {
+export const trackEvent = async (eventType: string, data: Record<string, unknown> = {}) => {
   try {
     // Create a cache key to prevent duplicate calls
     const cacheKey = `${eventType}-${JSON.stringify(data)}`;

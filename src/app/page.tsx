@@ -23,9 +23,9 @@ const EPOCHS = [
 ];
 
 // Debounce function for analytics
-const debounce = (func: Function, wait: number) => {
+const debounce = <T extends (...args: unknown[]) => void>(func: T, wait: number) => {
   let timeout: NodeJS.Timeout;
-  return function executedFunction(...args: any[]) {
+  return function executedFunction(...args: Parameters<T>) {
     const later = () => {
       clearTimeout(timeout);
       func(...args);
@@ -159,13 +159,13 @@ export default function Home() {
   
   // Debounced analytics tracking
   const debouncedTrackImageView = useCallback(
-    debounce((epochId: number, imageIndex: number) => {
+    (epochId: number, imageIndex: number) => {
       const key = `${epochId}-${imageIndex}`
       if (!viewedImages.current.has(key)) {
         viewedImages.current.add(key)
         trackImageView(epochId, imageIndex)
       }
-    }, 1000), // Only track after 1 second of inactivity
+    },
     []
   )
 

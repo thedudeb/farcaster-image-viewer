@@ -2,10 +2,28 @@
 
 import { useState, useEffect } from 'react';
 
+interface AnalyticsEvent {
+  event_type: string;
+  count: number;
+  date: string;
+}
+
+interface CompletionStat {
+  epoch_id: number;
+  completions: number;
+  avg_time_seconds?: number;
+}
+
+interface DropOffPoint {
+  epoch_id: number;
+  image_index: number;
+  drop_offs: number;
+}
+
 interface AnalyticsData {
-  summary: any[];
-  completionStats: any[];
-  dropOffPoints: any[];
+  summary: AnalyticsEvent[];
+  completionStats: CompletionStat[];
+  dropOffPoints: DropOffPoint[];
 }
 
 export default function AnalyticsDashboard() {

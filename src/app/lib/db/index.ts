@@ -8,7 +8,7 @@ export interface AnalyticsEvent {
   sessionId?: string;
   userAgent?: string;
   ipAddress?: string;
-  additionalData?: any;
+  additionalData?: Record<string, unknown>;
 }
 
 export interface UserSession {
