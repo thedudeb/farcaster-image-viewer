@@ -304,7 +304,14 @@ export default function Home() {
     const currentEpochData = EPOCHS.find(e => e.id === currentEpoch)
     const totalImages = currentEpochData?.totalImages || 0
 
-    if (menuOpen) return
+    // If menu is open, only handle right taps to close menu
+    if (menuOpen) {
+      if (!isLeft) {
+        setMenuOpen(false)
+        setShowTapRightOverlay(false)
+      }
+      return
+    }
 
     if (isTopLeft) {
       if (!showMenuButton) {
@@ -525,7 +532,7 @@ export default function Home() {
         </div>
       )}
 
-      {showTapRightOverlay && (
+      {menuOpen && (
         <div
           className={`absolute bottom-[10%] left-1/2 transform -translate-x-1/2 text-white text-sm select-none pointer-events-none transition-opacity duration-500 ${
             fadeOut ? 'opacity-0' : 'opacity-100'
@@ -537,7 +544,10 @@ export default function Home() {
 
       {menuOpen && (
         <Menu 
-          onClose={() => setMenuOpen(false)} 
+          onClose={() => {
+            setMenuOpen(false)
+            setShowTapRightOverlay(false)
+          }} 
           onEpochChange={handleEpochChange}
           currentEpoch={currentEpoch}
         />
