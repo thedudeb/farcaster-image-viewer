@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { insertAnalyticsEvent, upsertUserSession, recordEpochCompletion } from '../../lib/db';
+import { insertAnalyticsEvent, upsertUserSession, recordEpochCompletion } from '../../../lib/db';
 
 export async function POST(request: NextRequest) {
   try {

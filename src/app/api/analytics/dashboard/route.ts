@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAnalyticsSummary, getEpochCompletionStats, getUserDropOffPoints } from '../../lib/db';
+import { getAnalyticsSummary, getEpochCompletionStats, getUserDropOffPoints } from '../../../lib/db';
 
 export async function GET(request: NextRequest) {
   try {
