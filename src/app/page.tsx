@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import Menu from './components/menu'
 import { sendFarcasterNotification } from './lib/notifications'
@@ -9,7 +9,8 @@ import {
   trackEpochCompletion, 
   trackEpochSwitch, 
   trackMenuOpen, 
-  trackSessionStart 
+  trackSessionStart,
+  clearAnalyticsCache
 } from './lib/analytics'
 import * as frame from '@farcaster/frame-sdk'
 
@@ -21,24 +22,182 @@ const EPOCHS = [
   { id: 5, name: 'Epoch 5-Greywash', totalImages: 6, locked: false },
 ];
 
+// Debounce function for analytics
+const debounce = (func: Function, wait: number) => {
+  let timeout: NodeJS.Timeout;
+  return function executedFunction(...args: any[]) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
+// Epoch preloader class
+class EpochPreloader {
+  private loadedEpochs = new Set<number>();
+  private loadingEpochs = new Set<number>();
+  private imageCache = new Map<string, HTMLImageElement>();
+
+  async preloadEpoch(epochId: number): Promise<void> {
+    if (this.loadedEpochs.has(epochId) || this.loadingEpochs.has(epochId)) {
+      return; // Already loaded or loading
+    }
+
+    this.loadingEpochs.add(epochId);
+    
+    const epochData = EPOCHS.find(e => e.id === epochId);
+    if (!epochData || epochData.totalImages === 0) {
+      this.loadedEpochs.add(epochId);
+      this.loadingEpochs.delete(epochId);
+      return;
+    }
+
+    const extension = epochId === 5 ? 'jpeg' : 'jpg';
+    const promises: Promise<void>[] = [];
+
+    // Preload all images in the epoch
+    for (let i = 1; i <= epochData.totalImages; i++) {
+      const imageSrc = `/images/epoch${epochId}/${i}.${extension}`;
+      const cacheKey = `${epochId}-${i}`;
+      
+      if (!this.imageCache.has(cacheKey)) {
+                 const promise = new Promise<void>((resolve) => {
+           const img = new window.Image();
+                     img.onload = () => {
+             this.imageCache.set(cacheKey, img);
+             this.manageCacheSize(); // Manage cache size after adding new image
+             resolve();
+           };
+          img.onerror = () => {
+            console.warn(`Failed to preload image: ${imageSrc}`);
+            resolve(); // Don't fail the whole epoch for one bad image
+          };
+          img.src = imageSrc;
+        });
+        promises.push(promise);
+      }
+    }
+
+    try {
+      await Promise.all(promises);
+      this.loadedEpochs.add(epochId);
+      console.log(`Epoch ${epochId} preloaded successfully`);
+    } catch (error) {
+      console.error(`Failed to preload epoch ${epochId}:`, error);
+    } finally {
+      this.loadingEpochs.delete(epochId);
+    }
+  }
+
+  isEpochLoaded(epochId: number): boolean {
+    return this.loadedEpochs.has(epochId);
+  }
+
+  isEpochLoading(epochId: number): boolean {
+    return this.loadingEpochs.has(epochId);
+  }
+
+  getCachedImage(epochId: number, imageIndex: number): HTMLImageElement | null {
+    const cacheKey = `${epochId}-${imageIndex}`;
+    return this.imageCache.get(cacheKey) || null;
+  }
+
+  clearCache(): void {
+    this.imageCache.clear();
+    this.loadedEpochs.clear();
+    this.loadingEpochs.clear();
+  }
+
+  // Manage cache size to prevent memory issues
+  private manageCacheSize(): void {
+    const maxCacheSize = 500; // Maximum number of cached images
+    if (this.imageCache.size > maxCacheSize) {
+      // Remove oldest entries (simple FIFO)
+      const keysToRemove = Array.from(this.imageCache.keys()).slice(0, this.imageCache.size - maxCacheSize);
+      keysToRemove.forEach(key => this.imageCache.delete(key));
+      console.log(`Cleared ${keysToRemove.length} cached images to manage memory`);
+    }
+  }
+}
+
+// Global preloader instance
+const epochPreloader = new EpochPreloader();
+
 export default function Home() {
   const [currentEpoch, setCurrentEpoch] = useState(5)
   const [index, setIndex] = useState<number | null>(1)
   
-  // Track session start
+  // Track session start only once
   useEffect(() => {
     trackSessionStart();
+    
+    // Performance monitoring
+    if (typeof window !== 'undefined' && 'performance' in window) {
+      const loadTime = performance.now();
+      console.log(`App load time: ${loadTime.toFixed(2)}ms`);
+    }
   }, []);
+  
   const [showIndicator, setShowIndicator] = useState(true)
   const [fadeOut, setFadeOut] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [showMenuButton, setShowMenuButton] = useState(true)
+  const [showTapRightOverlay, setShowTapRightOverlay] = useState(false)
   const [hasTapped, setHasTapped] = useState(false)
   const touchStartX = useRef<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [nextImage, setNextImage] = useState<string | null>(null)
   const [currentImage, setCurrentImage] = useState<string | null>(null)
   const [imageKey, setImageKey] = useState(0)
+  const [epochLoading, setEpochLoading] = useState(false)
+  
+  // Track viewed images to avoid duplicate analytics
+  const viewedImages = useRef<Set<string>>(new Set())
+  
+  // Debounced analytics tracking
+  const debouncedTrackImageView = useCallback(
+    debounce((epochId: number, imageIndex: number) => {
+      const key = `${epochId}-${imageIndex}`
+      if (!viewedImages.current.has(key)) {
+        viewedImages.current.add(key)
+        trackImageView(epochId, imageIndex)
+      }
+    }, 1000), // Only track after 1 second of inactivity
+    []
+  )
+
+  // Preload current epoch on mount and adjacent epochs in background
+  useEffect(() => {
+    // Preload current epoch immediately
+    epochPreloader.preloadEpoch(currentEpoch);
+    
+    // Preload adjacent epochs in background for better UX
+    const preloadAdjacentEpochs = async () => {
+      const currentEpochIndex = EPOCHS.findIndex(e => e.id === currentEpoch);
+      if (currentEpochIndex === -1) return;
+      
+      // Preload next epoch
+      const nextEpoch = EPOCHS[currentEpochIndex + 1];
+      if (nextEpoch && !nextEpoch.locked) {
+        setTimeout(() => {
+          epochPreloader.preloadEpoch(nextEpoch.id);
+        }, 2000); // Delay to prioritize current epoch
+      }
+      
+      // Preload previous epoch
+      const prevEpoch = EPOCHS[currentEpochIndex - 1];
+      if (prevEpoch && !prevEpoch.locked) {
+        setTimeout(() => {
+          epochPreloader.preloadEpoch(prevEpoch.id);
+        }, 3000); // Longer delay for previous epoch
+      }
+    };
+    
+    preloadAdjacentEpochs();
+  }, [currentEpoch]);
 
   // Add keyboard navigation
   useEffect(() => {
@@ -55,6 +214,7 @@ export default function Home() {
           return newIndex;
         });
         setImageKey(prev => prev + 1)
+        setShowTapRightOverlay(false); // Hide tap right overlay when navigating
       } else if (e.key === 'ArrowRight') {
         setIndex((prev) => {
           if (!prev) return 1;
@@ -62,6 +222,7 @@ export default function Home() {
           return newIndex;
         });
         setImageKey(prev => prev + 1)
+        setShowTapRightOverlay(false); // Hide tap right overlay when navigating
       }
     };
 
@@ -102,36 +263,38 @@ export default function Home() {
     }
   }, [currentEpoch]);
 
-  // Preload next image and track image view
+  // Optimized image loading and analytics tracking
   useEffect(() => {
     if (!index) return
 
     const currentEpochData = EPOCHS.find(e => e.id === currentEpoch)
     const totalImages = currentEpochData?.totalImages || 0
-    const nextIndex = index === totalImages ? 1 : index + 1
-    const extension = currentEpoch === 5 ? 'jpeg' : 'jpg'
     
-    // Track image view
-    trackImageView(currentEpoch, index);
-    
-    // Track epoch completion if this is the last image
+    // Only track epoch completion if this is the last image
     if (index === totalImages) {
       trackEpochCompletion(currentEpoch, totalImages);
     }
-    const nextImageSrc = `/images/epoch${currentEpoch}/${nextIndex}.${extension}`
-
-    const img = new window.Image()
-    img.src = nextImageSrc
-    img.onload = () => {
-      setNextImage(nextImageSrc)
+    
+    // Debounced analytics tracking instead of immediate
+    debouncedTrackImageView(currentEpoch, index)
+    
+    // Check if current image is already cached
+    const cachedImage = epochPreloader.getCachedImage(currentEpoch, index);
+    if (cachedImage) {
+      setIsLoading(false);
     }
+    
+    // Only update image key when actually needed
     setImageKey(prev => prev + 1)
-  }, [index, currentEpoch])
+  }, [index, currentEpoch, debouncedTrackImageView])
 
   const dismissIndicator = () => {
     setFadeOut(true)
     // Keep the indicator element in the DOM briefly for the fade out transition
-    setTimeout(() => setShowIndicator(false), 500)
+    setTimeout(() => {
+      setShowIndicator(false)
+      setShowTapRightOverlay(false)
+    }, 500)
   }
 
   const handleTap = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -157,6 +320,7 @@ export default function Home() {
         return newIndex;
       });
       setImageKey(prev => prev + 1);
+      setShowTapRightOverlay(false); // Hide tap right overlay when navigating
       if ("vibrate" in navigator) {
         navigator.vibrate(50);
       }
@@ -175,6 +339,7 @@ export default function Home() {
         return newIndex;
       });
       setImageKey(prev => prev + 1);
+      setShowTapRightOverlay(false); // Hide tap right overlay when navigating
       if ("vibrate" in navigator) {
         navigator.vibrate(50);
       }
@@ -192,6 +357,7 @@ export default function Home() {
   const handleMenuButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent the tap from triggering navigation
     setMenuOpen(true)
+    setShowTapRightOverlay(true)
     trackMenuOpen()
   }
 
@@ -217,6 +383,13 @@ export default function Home() {
     setFadeOut(false);
     setMenuOpen(false);
     setShowMenuButton(false);
+    setShowTapRightOverlay(false);
+    setEpochLoading(true);
+    
+    // Clear viewed images for new epoch
+    viewedImages.current.clear()
+    // Clear analytics cache for new epoch
+    clearAnalyticsCache()
     
     // Track epoch switch
     trackEpochSwitch(previousEpoch, epochId);
@@ -233,6 +406,15 @@ export default function Home() {
           artistProfile: 'https://warpcast.com/greywash' // Replace with actual Farcaster profile URL
         } 
       }));
+    }
+    
+    // Start preloading the new epoch
+    try {
+      await epochPreloader.preloadEpoch(epochId);
+      setEpochLoading(false);
+    } catch (error) {
+      console.error('Failed to preload epoch:', error);
+      setEpochLoading(false);
     }
     
     try {
@@ -320,16 +502,30 @@ export default function Home() {
             onLoad={() => setIsLoading(false)}
             onLoadStart={() => setIsLoading(true)}
             priority
+            loading="eager"
+            sizes="100vw"
+            quality={85}
           />
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
               <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
             </div>
           )}
+          
+          {/* Epoch Loading Indicator */}
+          {epochLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/70">
+              <div className="text-center text-white">
+                <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-lg font-semibold">Loading Epoch {currentEpoch}...</p>
+                <p className="text-sm opacity-75 mt-2">Preloading all images for smooth navigation</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {showIndicator && menuOpen && (
+      {showTapRightOverlay && (
         <div
           className={`absolute bottom-[10%] left-1/2 transform -translate-x-1/2 text-white text-sm select-none pointer-events-none transition-opacity duration-500 ${
             fadeOut ? 'opacity-0' : 'opacity-100'

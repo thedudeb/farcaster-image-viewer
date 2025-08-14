@@ -16,8 +16,9 @@ export async function POST(request: NextRequest) {
     const userAgent = request.headers.get('user-agent') || undefined;
     const ipAddress = request.headers.get('x-forwarded-for') || request.ip || undefined;
 
-    // Insert analytics event into database
-    await insertAnalyticsEvent({
+    // Make database operations non-blocking for better performance
+    // Only await critical operations, let others run in background
+    const analyticsPromise = insertAnalyticsEvent({
       eventType,
       epochId,
       imageIndex,
@@ -26,31 +27,41 @@ export async function POST(request: NextRequest) {
       userAgent,
       ipAddress,
       additionalData: { timestamp }
+    }).catch(error => {
+      console.error('Analytics insert error:', error);
     });
 
-    // Update user session
+    // Update user session in background
     if (sessionId) {
-      await upsertUserSession({
+      upsertUserSession({
         sessionId,
         userId,
         userAgent,
         ipAddress
+      }).catch(error => {
+        console.error('Session upsert error:', error);
       });
     }
 
     // Record epoch completion if this is an epoch_completion event
     if (eventType === 'epoch_completion' && epochId) {
-      await recordEpochCompletion({
+      recordEpochCompletion({
         epochId,
         userId,
         sessionId,
         totalImages: imageIndex || 0
+      }).catch(error => {
+        console.error('Epoch completion error:', error);
       });
     }
+
+    // Only wait for the main analytics insert
+    await analyticsPromise;
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Analytics tracking error:', error);
-    return NextResponse.json({ error: 'Failed to track analytics' }, { status: 500 });
+    // Don't fail the request, just log the error
+    return NextResponse.json({ success: false, error: 'Analytics tracking failed' }, { status: 200 });
   }
 }

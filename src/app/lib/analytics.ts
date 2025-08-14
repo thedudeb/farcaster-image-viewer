@@ -16,9 +16,25 @@ const getUserId = () => {
   return (window as any).userFid || null;
 };
 
+// Simple cache to prevent duplicate analytics calls
+const analyticsCache = new Set<string>();
+
 // Track analytics event
 export const trackEvent = async (eventType: string, data: any = {}) => {
   try {
+    // Create a cache key to prevent duplicate calls
+    const cacheKey = `${eventType}-${JSON.stringify(data)}`;
+    if (analyticsCache.has(cacheKey)) {
+      return; // Skip if already tracked
+    }
+    analyticsCache.add(cacheKey);
+    
+    // Limit cache size to prevent memory issues
+    if (analyticsCache.size > 1000) {
+      const firstKey = analyticsCache.values().next().value;
+      analyticsCache.delete(firstKey);
+    }
+
     const userId = getUserId();
     const sessionId = getSessionId();
     
@@ -81,4 +97,9 @@ export const trackImageShare = (epochId: number, imageIndex: number) => {
 // Track app session start
 export const trackSessionStart = () => {
   trackEvent('session_start');
+};
+
+// Clear analytics cache (useful when switching epochs)
+export const clearAnalyticsCache = () => {
+  analyticsCache.clear();
 };
