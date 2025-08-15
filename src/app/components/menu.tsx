@@ -94,13 +94,22 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
               const frame = await import('@farcaster/frame-sdk');
               
               if (frame.sdk && frame.sdk.actions) {
-                // Use composeCast to open DM composer with random message to @thedude
-                console.log('Opening DM composer with random curation request to @thedude');
-                await frame.sdk.actions.composeCast({ 
-                  text: `@thedude ${randomMessage}`,
-                  embeds: [window.location.origin]
-                });
-                console.log('Successfully opened DM composer');
+                // Try to open DM directly first, fallback to cast composer
+                console.log('Attempting to open DM with random curation request to @thedude');
+                try {
+                  // Try custom DM URL scheme first
+                  const dmUrl = `farcaster://dm/13874?text=${encodeURIComponent(randomMessage)}`;
+                  await frame.sdk.actions.openUrl(dmUrl);
+                  console.log('Successfully opened DM via URL scheme');
+                } catch (dmError) {
+                  console.log('DM URL scheme failed, falling back to cast composer');
+                  // Fallback to cast composer
+                  await frame.sdk.actions.composeCast({ 
+                    text: `@thedude ${randomMessage}`,
+                    embeds: [window.location.origin]
+                  });
+                  console.log('Successfully opened cast composer');
+                }
               } else {
                 console.log('Frame SDK not available, falling back to window.open');
                 const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(`@thedude ${randomMessage}`)}&embeds[]=${encodeURIComponent(window.location.origin)}`;
