@@ -98,17 +98,17 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                 console.log('Opening DM composer with random curation request to @thedude');
                 await frame.sdk.actions.composeCast({ 
                   text: `@thedude ${randomMessage}`,
-                  embeds: ['https://warpcast.com/thedude']
+                  embeds: [window.location.origin]
                 });
                 console.log('Successfully opened DM composer');
               } else {
                 console.log('Frame SDK not available, falling back to window.open');
-                const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(`@thedude ${randomMessage}`)}&embeds[]=${encodeURIComponent('https://warpcast.com/thedude')}`;
+                const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(`@thedude ${randomMessage}`)}&embeds[]=${encodeURIComponent(window.location.origin)}`;
                 window.open(composeUrl, '_blank');
               }
             } catch (err) {
               console.error('Error opening DM composer:', err);
-              const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(`@thedude ${randomMessage}`)}&embeds[]=${encodeURIComponent('https://warpcast.com/thedude')}`;
+              const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(`@thedude ${randomMessage}`)}&embeds[]=${encodeURIComponent(window.location.origin)}`;
               window.open(composeUrl, '_blank');
             }
           }}
