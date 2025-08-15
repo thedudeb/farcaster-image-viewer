@@ -255,6 +255,11 @@ export default function Home() {
 
   // Show tap right overlay when new epoch is loaded
   useEffect(() => {
+    // Don't show regular tap right overlay for Epoch 5 (it has its own special overlay)
+    if (currentEpoch === 5) {
+      return;
+    }
+    
     // Show tap right overlay for 5 seconds when epoch changes
     setShowTapRightOverlay(true);
     const tapRightTimer = setTimeout(() => {
@@ -281,6 +286,7 @@ export default function Home() {
         }));
         
         // Show Greywash tap right overlay for 9 seconds after notification
+        setShowTapRightOverlay(false); // Hide regular overlay first
         setShowGreywashTapRight(true);
         const tapRightTimer = setTimeout(() => {
           setShowGreywashTapRight(false);
