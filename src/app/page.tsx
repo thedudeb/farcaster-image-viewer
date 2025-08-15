@@ -567,6 +567,7 @@ export default function Home() {
           className={`absolute bottom-[10%] left-1/2 transform -translate-x-1/2 text-white text-sm select-none pointer-events-none transition-opacity duration-500 ${
             fadeOut ? 'opacity-0' : 'opacity-100'
           }`}
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px' }}
         >
           <p>tap right</p>
         </div>
@@ -578,6 +579,11 @@ export default function Home() {
           <div>menuOpen: {menuOpen.toString()}</div>
           <div>showGreywashTapRight: {showGreywashTapRight.toString()}</div>
           <div>fadeOut: {fadeOut.toString()}</div>
+          {showTapRightOverlay && (
+            <div style={{ backgroundColor: 'red', color: 'white', padding: '5px', marginTop: '5px' }}>
+              TAP RIGHT OVERLAY SHOULD BE VISIBLE!
+            </div>
+          )}
         </div>
       )}
 
