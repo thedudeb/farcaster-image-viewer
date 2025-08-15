@@ -564,7 +564,7 @@ export default function Home() {
 
       {showTapRightOverlay && (
         <div
-          className={`absolute bottom-[10%] left-1/2 transform -translate-x-1/2 text-white text-sm select-none pointer-events-none transition-opacity duration-500 ${
+          className={`fixed bottom-[10%] left-1/2 transform -translate-x-1/2 text-white text-sm select-none pointer-events-none transition-opacity duration-500 z-[60] ${
             fadeOut ? 'opacity-0' : 'opacity-100'
           }`}
           style={{ backgroundColor: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px' }}
