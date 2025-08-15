@@ -253,6 +253,17 @@ export default function Home() {
     }
   }, [currentEpoch])
 
+  // Show tap right overlay when new epoch is loaded
+  useEffect(() => {
+    // Show tap right overlay for 5 seconds when epoch changes
+    setShowTapRightOverlay(true);
+    const tapRightTimer = setTimeout(() => {
+      setShowTapRightOverlay(false);
+    }, 5000);
+    
+    return () => clearTimeout(tapRightTimer);
+  }, [currentEpoch]);
+
   // Show Epoch 5 disclaimer on first load and start loading epoch
   useEffect(() => {
     if (currentEpoch === 5) {
@@ -269,7 +280,7 @@ export default function Home() {
           } 
         }));
         
-        // Show tap right overlay for 9 seconds after notification
+        // Show Greywash tap right overlay for 9 seconds after notification
         setShowGreywashTapRight(true);
         const tapRightTimer = setTimeout(() => {
           setShowGreywashTapRight(false);
@@ -312,10 +323,6 @@ export default function Home() {
     // Keep the indicator element in the DOM briefly for the fade out transition
     setTimeout(() => {
       setShowIndicator(false)
-      // Only hide tap right overlay if menu is not open
-      if (!menuOpen) {
-        setShowTapRightOverlay(false)
-      }
     }, 500)
   }
 
@@ -389,7 +396,7 @@ export default function Home() {
     e.stopPropagation() // Prevent the tap from triggering navigation
     console.log('Menu button clicked - setting states...')
     setMenuOpen(true)
-    setShowTapRightOverlay(true)
+    setShowTapRightOverlay(false) // Don't show tap right overlay when menu is open
     setShowGreywashTapRight(false) // Ensure Greywash overlay is hidden when regular menu is opened
     trackMenuOpen()
     console.log('Menu button clicked - states set')
@@ -418,7 +425,6 @@ export default function Home() {
     setFadeOut(false);
     setMenuOpen(false);
     setShowMenuButton(false);
-    setShowTapRightOverlay(false);
     setShowGreywashTapRight(false);
     setEpochLoading(true);
     console.log('Epoch change - states reset')
