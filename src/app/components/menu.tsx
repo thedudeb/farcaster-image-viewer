@@ -74,59 +74,31 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
             // Track the curate request
             trackCurateRequest();
             
-            // Random curation request messages
-            const curationMessages = [
-              "Hey dude, I rolled this joint for you, can you please add me to the curation list",
-              "I saw you across the forest, and now I want to be on the 0ffline viewer mini app with my artwork",
-              "I baked you a lasagna, but the only ingredient missing, dude, is my art on the 0ffline viewer mini app.",
-              "I'm currently in a canoe, dude, in a fountain, waiting for you to feature my work.",
-              "I just high-fived a stranger who promised, dude, you'd put me on the curation list.",
-              "Here, dude I made you a friendship bracelet, it also doubles as a contract to feature my work.",
-              "I just finished knitting a scarf for your soul, dude. Payment? Just put me on the list.",
-              "I've been standing dramatically in the rain rehearsing this request — please add my art, dude."
-            ];
-            
-            // Pick a random message
-            const randomMessage = curationMessages[Math.floor(Math.random() * curationMessages.length)];
-            
-            // Show the message to the user first
-            window.dispatchEvent(new CustomEvent('showNotification', { 
-              detail: { 
-                message: `Copy this message and DM @thedude: "${randomMessage}"`,
-                type: 'curation-request',
-                duration: 8000
-              } 
-            }));
-            
-            // Wait a moment, then open the profile
-            setTimeout(async () => {
-              try {
-                // Import the frame SDK
-                const frame = await import('@farcaster/frame-sdk');
-                
-                if (frame.sdk && frame.sdk.actions) {
-                  // Try to use the Farcaster SDK's viewProfile method to open profile, then user can DM from there
-                  console.log('Opening @thedude profile for DM');
-                  if (frame.sdk.actions.viewProfile) {
-                    await frame.sdk.actions.viewProfile({ fid: 13874 });
-                    console.log('Successfully opened profile');
-                  } else {
-                    // Fallback to Warpcast URL
-                    const profileUrl = 'https://warpcast.com/thedude';
-                    await frame.sdk.actions.openUrl(profileUrl);
-                    console.log('Successfully opened profile via URL');
-                  }
+            try {
+              // Import the frame SDK
+              const frame = await import('@farcaster/frame-sdk');
+              
+              if (frame.sdk && frame.sdk.actions) {
+                // Use viewProfile to open DM with @thedude (FID 13874)
+                if (frame.sdk.actions.viewProfile) {
+                  console.log('Opening DM with @thedude (FID 13874)');
+                  await frame.sdk.actions.viewProfile({ fid: 13874 });
+                  console.log('Successfully opened DM');
                 } else {
-                  console.log('Frame SDK not available, falling back to window.open');
-                  const profileUrl = 'https://warpcast.com/thedude';
-                  window.open(profileUrl, '_blank');
+                  console.log('viewProfile not available, using openUrl fallback');
+                  // Fallback to openUrl with farcaster:// scheme
+                  const dmUrl = 'farcaster://thedude';
+                  await frame.sdk.actions.openUrl(dmUrl);
+                  console.log('Successfully opened with openUrl');
                 }
-              } catch (err) {
-                console.error('Error opening profile:', err);
-                const profileUrl = 'https://warpcast.com/thedude';
-                window.open(profileUrl, '_blank');
+              } else {
+                console.log('Frame SDK not available, falling back to window.open');
+                window.open('https://warpcast.com/thedude', '_blank');
               }
-            }, 1000);
+            } catch (err) {
+              console.error('Error opening DM:', err);
+              window.open('https://warpcast.com/thedude', '_blank');
+            }
           }}
           className="w-full text-center px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors duration-200"
         >
