@@ -158,6 +158,11 @@ export default function Home() {
   // Track viewed images to avoid duplicate analytics
   const viewedImages = useRef<Set<string>>(new Set())
   
+  // Debug tap right overlay state changes
+  useEffect(() => {
+    console.log('Tap right overlay state changed:', { showTapRightOverlay, menuOpen, currentEpoch })
+  }, [showTapRightOverlay, menuOpen, currentEpoch])
+  
   // Debounced analytics tracking
   const debouncedTrackImageView = useCallback(
     (epochId: number, imageIndex: number) => {
@@ -307,7 +312,10 @@ export default function Home() {
     // Keep the indicator element in the DOM briefly for the fade out transition
     setTimeout(() => {
       setShowIndicator(false)
-      setShowTapRightOverlay(false)
+      // Only hide tap right overlay if menu is not open
+      if (!menuOpen) {
+        setShowTapRightOverlay(false)
+      }
     }, 500)
   }
 
@@ -381,6 +389,7 @@ export default function Home() {
     e.stopPropagation() // Prevent the tap from triggering navigation
     setMenuOpen(true)
     setShowTapRightOverlay(true)
+    setShowGreywashTapRight(false) // Ensure Greywash overlay is hidden when regular menu is opened
     trackMenuOpen()
   }
 
@@ -549,7 +558,7 @@ export default function Home() {
         </div>
       )}
 
-      {menuOpen && (
+      {showTapRightOverlay && (
         <div
           className={`absolute bottom-[10%] left-1/2 transform -translate-x-1/2 text-white text-sm select-none pointer-events-none transition-opacity duration-500 ${
             fadeOut ? 'opacity-0' : 'opacity-100'
