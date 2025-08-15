@@ -89,26 +89,44 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
             // Pick a random message
             const randomMessage = curationMessages[Math.floor(Math.random() * curationMessages.length)];
             
-            try {
-              // Import the frame SDK
-              const frame = await import('@farcaster/frame-sdk');
-              
-              if (frame.sdk && frame.sdk.actions) {
-                // Use Farcaster protocol to open DM composer with the random message to @thedude (FID 13874)
-                const dmUrl = `farcaster://dm/13874?text=${encodeURIComponent(randomMessage)}`;
-                console.log('Opening DM composer with random curation request to @thedude');
-                await frame.sdk.actions.openUrl(dmUrl);
-                console.log('Successfully opened DM composer');
-              } else {
-                console.log('Frame SDK not available, falling back to window.open');
-                const dmUrl = `farcaster://dm/13874?text=${encodeURIComponent(randomMessage)}`;
-                window.open(dmUrl, '_blank');
+            // Show the message to the user first
+            window.dispatchEvent(new CustomEvent('showNotification', { 
+              detail: { 
+                message: `Copy this message and DM @thedude: "${randomMessage}"`,
+                type: 'curation-request',
+                duration: 8000
+              } 
+            }));
+            
+            // Wait a moment, then open the profile
+            setTimeout(async () => {
+              try {
+                // Import the frame SDK
+                const frame = await import('@farcaster/frame-sdk');
+                
+                if (frame.sdk && frame.sdk.actions) {
+                  // Try to use the Farcaster SDK's viewProfile method to open profile, then user can DM from there
+                  console.log('Opening @thedude profile for DM');
+                  if (frame.sdk.actions.viewProfile) {
+                    await frame.sdk.actions.viewProfile({ fid: 13874 });
+                    console.log('Successfully opened profile');
+                  } else {
+                    // Fallback to Warpcast URL
+                    const profileUrl = 'https://warpcast.com/thedude';
+                    await frame.sdk.actions.openUrl(profileUrl);
+                    console.log('Successfully opened profile via URL');
+                  }
+                } else {
+                  console.log('Frame SDK not available, falling back to window.open');
+                  const profileUrl = 'https://warpcast.com/thedude';
+                  window.open(profileUrl, '_blank');
+                }
+              } catch (err) {
+                console.error('Error opening profile:', err);
+                const profileUrl = 'https://warpcast.com/thedude';
+                window.open(profileUrl, '_blank');
               }
-            } catch (err) {
-              console.error('Error opening DM composer:', err);
-              const dmUrl = `farcaster://dm/13874?text=${encodeURIComponent(randomMessage)}`;
-              window.open(dmUrl, '_blank');
-            }
+            }, 1000);
           }}
           className="w-full text-center px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors duration-200"
         >
