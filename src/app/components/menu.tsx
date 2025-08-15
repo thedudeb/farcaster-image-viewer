@@ -94,19 +94,19 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
               const frame = await import('@farcaster/frame-sdk');
               
               if (frame.sdk && frame.sdk.actions) {
-                // Use openUrl to open the DM composer with the random message to @thedude (FID 13874)
-                const dmUrl = `https://warpcast.com/~/dm/13874?text=${encodeURIComponent(randomMessage)}`;
+                // Use Farcaster protocol to open DM composer with the random message to @thedude (FID 13874)
+                const dmUrl = `farcaster://dm/13874?text=${encodeURIComponent(randomMessage)}`;
                 console.log('Opening DM composer with random curation request to @thedude');
                 await frame.sdk.actions.openUrl(dmUrl);
                 console.log('Successfully opened DM composer');
               } else {
                 console.log('Frame SDK not available, falling back to window.open');
-                const dmUrl = `https://warpcast.com/~/dm/13874?text=${encodeURIComponent(randomMessage)}`;
+                const dmUrl = `farcaster://dm/13874?text=${encodeURIComponent(randomMessage)}`;
                 window.open(dmUrl, '_blank');
               }
             } catch (err) {
               console.error('Error opening DM composer:', err);
-              const dmUrl = `https://warpcast.com/~/dm/13874?text=${encodeURIComponent(randomMessage)}`;
+              const dmUrl = `farcaster://dm/13874?text=${encodeURIComponent(randomMessage)}`;
               window.open(dmUrl, '_blank');
             }
           }}
