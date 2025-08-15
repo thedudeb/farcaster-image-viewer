@@ -94,20 +94,20 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
               const frame = await import('@farcaster/frame-sdk');
               
               if (frame.sdk && frame.sdk.actions) {
-                // Use openUrl to open the message composer with the random message
-                const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(randomMessage)}&embeds[]=${encodeURIComponent('https://warpcast.com/thedude')}`;
-                console.log('Opening message composer with random curation request');
-                await frame.sdk.actions.openUrl(composeUrl);
-                console.log('Successfully opened message composer');
+                // Use openUrl to open the DM composer with the random message to @thedude (FID 13874)
+                const dmUrl = `https://warpcast.com/~/dm/13874?text=${encodeURIComponent(randomMessage)}`;
+                console.log('Opening DM composer with random curation request to @thedude');
+                await frame.sdk.actions.openUrl(dmUrl);
+                console.log('Successfully opened DM composer');
               } else {
                 console.log('Frame SDK not available, falling back to window.open');
-                const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(randomMessage)}&embeds[]=${encodeURIComponent('https://warpcast.com/thedude')}`;
-                window.open(composeUrl, '_blank');
+                const dmUrl = `https://warpcast.com/~/dm/13874?text=${encodeURIComponent(randomMessage)}`;
+                window.open(dmUrl, '_blank');
               }
             } catch (err) {
-              console.error('Error opening message composer:', err);
-              const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(randomMessage)}&embeds[]=${encodeURIComponent('https://warpcast.com/thedude')}`;
-              window.open(composeUrl, '_blank');
+              console.error('Error opening DM composer:', err);
+              const dmUrl = `https://warpcast.com/~/dm/13874?text=${encodeURIComponent(randomMessage)}`;
+              window.open(dmUrl, '_blank');
             }
           }}
           className="w-full text-center px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors duration-200"
