@@ -387,10 +387,12 @@ export default function Home() {
 
   const handleMenuButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent the tap from triggering navigation
+    console.log('Menu button clicked - setting states...')
     setMenuOpen(true)
     setShowTapRightOverlay(true)
     setShowGreywashTapRight(false) // Ensure Greywash overlay is hidden when regular menu is opened
     trackMenuOpen()
+    console.log('Menu button clicked - states set')
   }
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -407,6 +409,7 @@ export default function Home() {
   }
 
   const handleEpochChange = async (epochId: number) => {
+    console.log('Epoch change started:', { from: currentEpoch, to: epochId })
     const previousEpoch = currentEpoch;
     setCurrentEpoch(epochId);
     setIndex(1);
@@ -418,6 +421,7 @@ export default function Home() {
     setShowTapRightOverlay(false);
     setShowGreywashTapRight(false);
     setEpochLoading(true);
+    console.log('Epoch change - states reset')
     
     // Clear viewed images for new epoch
     viewedImages.current.clear()
@@ -565,6 +569,15 @@ export default function Home() {
           }`}
         >
           <p>tap right</p>
+        </div>
+      )}
+      {/* Debug info */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="absolute top-20 left-4 text-white text-xs bg-black/50 p-2 rounded">
+          <div>showTapRightOverlay: {showTapRightOverlay.toString()}</div>
+          <div>menuOpen: {menuOpen.toString()}</div>
+          <div>showGreywashTapRight: {showGreywashTapRight.toString()}</div>
+          <div>fadeOut: {fadeOut.toString()}</div>
         </div>
       )}
 
