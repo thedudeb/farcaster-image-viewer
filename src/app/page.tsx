@@ -159,15 +159,65 @@ export default function Home() {
   const viewedImages = useRef<Set<string>>(new Set())
   
   // Haptic feedback helper function
-  const triggerHapticFeedback = () => {
+  const triggerHapticFeedback = async () => {
     console.log('Triggering haptic feedback...');
     try {
-      // Use navigator.vibrate for haptic feedback
+      // Try multiple approaches for haptic feedback
+      
+      // 1. Try Farcaster SDK haptic feedback (if available)
+      try {
+        const frame = await import('@farcaster/frame-sdk');
+        if (frame.sdk && frame.sdk.actions) {
+          console.log('Farcaster SDK available, checking for haptic methods...');
+          console.log('Available actions:', Object.keys(frame.sdk.actions));
+          
+          // Check if there are any haptic-related methods (using type assertion for exploration)
+          const actions = frame.sdk.actions as any;
+          if (actions.hapticFeedback) {
+            console.log('Using Farcaster SDK hapticFeedback');
+            await actions.hapticFeedback('medium');
+            return;
+          }
+          
+          if (actions.vibrate) {
+            console.log('Using Farcaster SDK vibrate');
+            await actions.vibrate(50);
+            return;
+          }
+          
+          if (actions.triggerHaptic) {
+            console.log('Using Farcaster SDK triggerHaptic');
+            await actions.triggerHaptic('medium');
+            return;
+          }
+        }
+      } catch (sdkError) {
+        console.log('Farcaster SDK haptic methods not available:', sdkError);
+      }
+      
+      // 2. Try TBA-specific haptic feedback
+      try {
+        if (typeof window !== 'undefined' && (window as any).TBA && (window as any).TBA.hapticFeedback) {
+          console.log('Using TBA hapticFeedback');
+          (window as any).TBA.hapticFeedback('medium');
+          return;
+        }
+        
+        if (typeof window !== 'undefined' && (window as any).tba && (window as any).tba.hapticFeedback) {
+          console.log('Using tba hapticFeedback');
+          (window as any).tba.hapticFeedback('medium');
+          return;
+        }
+      } catch (tbaError) {
+        console.log('TBA haptic feedback not available:', tbaError);
+      }
+      
+      // 3. Try navigator.vibrate as fallback
       if ("vibrate" in navigator && navigator.vibrate) {
-        console.log('Using navigator.vibrate for haptic feedback');
+        console.log('Using navigator.vibrate fallback');
         navigator.vibrate(50);
       } else {
-        console.log('navigator.vibrate not available');
+        console.log('No haptic feedback methods available');
       }
     } catch (error) {
       console.log('Haptic feedback error:', error);
