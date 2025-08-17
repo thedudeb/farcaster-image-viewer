@@ -162,17 +162,12 @@ export default function Home() {
   const triggerHapticFeedback = () => {
     console.log('Triggering haptic feedback...');
     try {
-      // Use Farcaster SDK haptics for better support
-      if (typeof window !== 'undefined' && (window as unknown as { sdk?: { haptics?: { impactOccurred: (type: string) => void } } }).sdk?.haptics) {
-        console.log('Using Farcaster SDK haptics');
-        (window as unknown as { sdk: { haptics: { impactOccurred: (type: string) => void } } }).sdk.haptics.impactOccurred('medium');
-      }
-      // Fallback to basic vibration if Farcaster SDK is not available
-      else if ("vibrate" in navigator && navigator.vibrate) {
-        console.log('Using navigator.vibrate fallback');
+      // Use navigator.vibrate for haptic feedback
+      if ("vibrate" in navigator && navigator.vibrate) {
+        console.log('Using navigator.vibrate for haptic feedback');
         navigator.vibrate(50);
       } else {
-        console.log('No haptic feedback available');
+        console.log('navigator.vibrate not available');
       }
     } catch (error) {
       console.log('Haptic feedback error:', error);
