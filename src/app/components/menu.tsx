@@ -1,11 +1,41 @@
-import { useState } from 'react';
-import { trackCurateRequest } from '../lib/analytics';
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { trackCurateRequest, trackArtistProfileClick } from '../lib/analytics';
 
 interface MenuProps {
   onClose: () => void;
   onEpochChange: (epochId: number) => void;
   currentEpoch: number;
 }
+
+// Artist data for each epoch
+const EPOCH_ARTISTS = {
+  1: { 
+    fid: 15351, 
+    username: '0ffline', 
+    displayName: '0ffline'
+  },
+  2: { 
+    fid: 15351, 
+    username: '0ffline', 
+    displayName: '0ffline'
+  },
+  3: { 
+    fid: 15351, 
+    username: '0ffline', 
+    displayName: '0ffline'
+  },
+  4: { 
+    fid: 15351, 
+    username: '0ffline', 
+    displayName: '0ffline'
+  },
+  5: { 
+    fid: 1075107, 
+    username: 'greywash', 
+    displayName: 'Greywash'
+  },
+};
 
 const EPOCHS = [
   { id: 1, name: 'Epoch 1', totalImages: 77 },
@@ -16,13 +46,77 @@ const EPOCHS = [
 ];
 
 export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps) {
+  const [profilePictures, setProfilePictures] = useState<Record<number, string>>({});
+  const [loadingPictures, setLoadingPictures] = useState(true);
+
+  // Fetch profile pictures from Neynar API
+  useEffect(() => {
+    const fetchProfilePictures = async () => {
+      try {
+        const fids = Object.values(EPOCH_ARTISTS).map(artist => artist.fid);
+        const uniqueFids = [...new Set(fids)]; // Remove duplicates
+        
+        const response = await fetch('/api/artists/recent');
+        if (response.ok) {
+          const data = await response.json();
+          const pictures: Record<number, string> = {};
+          
+          // Map FIDs to profile pictures
+          data.artists?.forEach((artist: any) => {
+            pictures[artist.fid] = artist.pfp;
+          });
+          
+          setProfilePictures(pictures);
+        }
+      } catch (error) {
+        console.error('Failed to fetch profile pictures:', error);
+      } finally {
+        setLoadingPictures(false);
+      }
+    };
+
+    fetchProfilePictures();
+  }, []);
+
   const handleEpochSelect = (epochId: number) => {
     onEpochChange(epochId);
   };
 
+  const handleArtistClick = async (e: React.MouseEvent, artist: typeof EPOCH_ARTISTS[1]) => {
+    e.stopPropagation(); // Prevent epoch selection when clicking artist
+    
+    // Track artist profile click
+    trackArtistProfileClick(`@${artist.username}`);
+    
+    try {
+      // Import the frame SDK
+      const frame = await import('@farcaster/frame-sdk');
+      
+      if (frame.sdk && frame.sdk.actions) {
+        // Use the official viewProfile method with FID
+        if (frame.sdk.actions.viewProfile) {
+          await frame.sdk.actions.viewProfile({ fid: artist.fid });
+        } else {
+          // Fallback to openUrl with farcaster:// scheme
+          const profileUrl = `farcaster://profile/${artist.username}`;
+          await frame.sdk.actions.openUrl(profileUrl);
+        }
+      } else {
+        // Fallback to web URL
+        const profileUrl = `https://warpcast.com/${artist.username}`;
+        window.open(profileUrl, '_blank');
+      }
+    } catch (err) {
+      console.error('Error opening artist profile:', err);
+      // Final fallback
+      const profileUrl = `https://warpcast.com/${artist.username}`;
+      window.open(profileUrl, '_blank');
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex justify-center items-center">
-      <div className="w-64 bg-gray-900 p-4 rounded-lg">
+      <div className="w-96 bg-gray-900 p-4 rounded-lg">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-white text-xl font-bold">Menu</h2>
           <button
@@ -34,35 +128,88 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
         </div>
         
         <div className="space-y-2">
-          {EPOCHS.map((epoch) => (
-            <button
-              key={epoch.id}
-              onClick={() => !epoch.locked && handleEpochSelect(epoch.id)}
-              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                epoch.locked
-                  ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                  : currentEpoch === epoch.id
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:bg-gray-800'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span>
-                  {epoch.name}
-                  {!epoch.locked && (
-                    <span className="text-sm ml-2 opacity-75">
-                      ({epoch.totalImages} images)
+          {/* Artist profile hint */}
+          <div className="text-xs text-gray-400 mb-2 px-1">
+            💡 Click artist profile images to view their Farcaster profile
+          </div>
+          
+          {EPOCHS.map((epoch) => {
+            const artist = EPOCH_ARTISTS[epoch.id as keyof typeof EPOCH_ARTISTS];
+            
+            return (
+              <button
+                key={epoch.id}
+                onClick={() => !epoch.locked && handleEpochSelect(epoch.id)}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                  epoch.locked
+                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                    : currentEpoch === epoch.id
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-300 hover:bg-gray-800'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                                         {/* Artist Profile Image */}
+                     {artist && !epoch.locked && (
+                       <div 
+                         className="relative flex-shrink-0"
+                         onClick={(e) => handleArtistClick(e, artist)}
+                       >
+                         {loadingPictures ? (
+                           // Loading skeleton
+                           <div className="w-9 h-9 rounded-full bg-gray-700 animate-pulse ring-2 ring-gray-600"></div>
+                         ) : profilePictures[artist.fid] ? (
+                           // Real profile picture
+                           <Image
+                             src={profilePictures[artist.fid]}
+                             alt={`@${artist.username}`}
+                             width={36}
+                             height={36}
+                             className="rounded-full cursor-pointer hover:opacity-80 transition-all duration-200 hover:scale-105 ring-2 ring-gray-700 hover:ring-blue-500"
+                             title={`View @${artist.username}'s profile`}
+                             onError={(e) => {
+                               // Fallback to a simple colored circle with initials
+                               const target = e.target as HTMLImageElement;
+                               target.style.display = 'none';
+                               const fallback = target.nextElementSibling as HTMLElement;
+                               if (fallback) fallback.style.display = 'flex';
+                             }}
+                           />
+                         ) : null}
+                         {/* Fallback avatar with initials */}
+                         <div 
+                           className={`${profilePictures[artist.fid] ? 'hidden' : 'flex'} w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 items-center justify-center text-white text-xs font-bold cursor-pointer hover:opacity-80 transition-all duration-200 hover:scale-105 ring-2 ring-gray-700 hover:ring-blue-500`}
+                           title={`View @${artist.username}'s profile`}
+                         >
+                           {artist.displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                         </div>
+                         {/* Small indicator that it's clickable */}
+                         <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-gray-900 shadow-sm"></div>
+                       </div>
+                     )}
+                    
+                    <div className="flex flex-col">
+                      <span className="font-medium">
+                        {epoch.name}
+                      </span>
+                      {!epoch.locked && (
+                        <span className="text-sm opacity-75">
+                          by @{artist?.username} • {epoch.totalImages} images
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {epoch.locked && (
+                    <span className="text-gray-500">
+                      🔒
                     </span>
                   )}
-                </span>
-                {epoch.locked && (
-                  <span className="text-gray-500">
-                    🔒
-                  </span>
-                )}
-              </div>
-            </button>
-          ))}
+                </div>
+              </button>
+            );
+          })}
         </div>
         
         {/* Separator */}

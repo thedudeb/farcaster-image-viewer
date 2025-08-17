@@ -46,11 +46,23 @@ This project includes:
 - **Send Notification Endpoint** (`/api/send-notification`): Manually send notifications to users
 - **KV Storage**: Stores user notification details using Upstash Redis
 - **Frame Metadata**: Properly configured Farcaster frame metadata in layout
+- **Artist Profile Integration**: Clickable artist profile images in the epoch menu that link to Farcaster profiles
 
 ## API Endpoints
 
 - `POST /api/webhook` - Farcaster webhook handler
 - `POST /api/send-notification` - Manual notification sender
+- `GET /api/artists/recent` - Fetch recent artist data from Neynar API
+
+## Artist Profile Feature
+
+The app includes artist profile integration in the epoch menu:
+
+- **Profile Images**: Each epoch displays the curator's profile picture
+- **Clickable Links**: Profile images link directly to Farcaster profiles
+- **Fallback Avatars**: Graceful fallback to colored initials if profile images fail to load
+- **Analytics Tracking**: Artist profile clicks are tracked for insights
+- **Frame SDK Integration**: Uses Farcaster Frame SDK for native profile viewing
 
 ## Learn More
 

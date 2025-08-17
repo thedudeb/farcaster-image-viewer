@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
-const TEST_FIDS = [879829, 18561, 290249];
+const TEST_FIDS = [15351, 1075107]; // @0ffline and @greywash
 
 interface NeynarUser {
   fid: number;
@@ -18,7 +18,7 @@ export async function GET() {
 
   try {
     const fidsQuery = TEST_FIDS.join(',');
-    const response = await fetch(`https://api.neynar.com/v2/farcaster/users/bulk?fids=${fidsQuery}`, {
+    const response = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${fidsQuery}`, {
       method: 'GET',
       headers: {
         'api_key': NEYNAR_API_KEY,
