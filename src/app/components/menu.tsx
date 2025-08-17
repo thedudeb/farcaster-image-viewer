@@ -62,7 +62,7 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
           const pictures: Record<number, string> = {};
           
           // Map FIDs to profile pictures
-          data.artists?.forEach((artist: any) => {
+          data.artists?.forEach((artist: { fid: number; pfp: string }) => {
             pictures[artist.fid] = artist.pfp;
           });
           
