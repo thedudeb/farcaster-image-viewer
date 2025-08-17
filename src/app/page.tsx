@@ -158,6 +158,27 @@ export default function Home() {
   // Track viewed images to avoid duplicate analytics
   const viewedImages = useRef<Set<string>>(new Set())
   
+  // Haptic feedback helper function
+  const triggerHapticFeedback = () => {
+    console.log('Triggering haptic feedback...');
+    try {
+      // Use Farcaster SDK haptics for better support
+      if (typeof window !== 'undefined' && (window as unknown as { sdk?: { haptics?: { impactOccurred: (type: string) => void } } }).sdk?.haptics) {
+        console.log('Using Farcaster SDK haptics');
+        (window as unknown as { sdk: { haptics: { impactOccurred: (type: string) => void } } }).sdk.haptics.impactOccurred('medium');
+      }
+      // Fallback to basic vibration if Farcaster SDK is not available
+      else if ("vibrate" in navigator && navigator.vibrate) {
+        console.log('Using navigator.vibrate fallback');
+        navigator.vibrate(50);
+      } else {
+        console.log('No haptic feedback available');
+      }
+    } catch (error) {
+      console.log('Haptic feedback error:', error);
+    }
+  };
+  
   // Debug tap right overlay state changes
   useEffect(() => {
     console.log('Tap right overlay state changed:', { showTapRightOverlay, menuOpen, currentEpoch })
@@ -364,17 +385,7 @@ export default function Home() {
       setImageKey(prev => prev + 1);
       setShowTapRightOverlay(false); // Hide tap right overlay when navigating
       setShowGreywashTapRight(false); // Hide Greywash tap right overlay when navigating
-      if ("vibrate" in navigator) {
-        navigator.vibrate(50);
-      }
-      // Use Farcaster SDK haptics for better support
-      if (typeof window !== 'undefined' && (window as unknown as { sdk?: { haptics?: { impactOccurred: (type: string) => void } } }).sdk?.haptics) {
-        (window as unknown as { sdk: { haptics: { impactOccurred: (type: string) => void } } }).sdk.haptics.impactOccurred('medium');
-      }
-      // Fallback to basic vibration if Farcaster SDK is not available
-      else if ("vibrate" in navigator) {
-        navigator.vibrate(100);
-      }
+      triggerHapticFeedback();
     } else {
       setIndex((prev) => {
         if (!prev) return 1;
@@ -384,17 +395,7 @@ export default function Home() {
       setImageKey(prev => prev + 1);
       setShowTapRightOverlay(false); // Hide tap right overlay when navigating
       setShowGreywashTapRight(false); // Hide Greywash tap right overlay when navigating
-      if ("vibrate" in navigator) {
-        navigator.vibrate(50);
-      }
-      // Use Farcaster SDK haptics for better support
-      if (typeof window !== 'undefined' && (window as unknown as { sdk?: { haptics?: { impactOccurred: (type: string) => void } } }).sdk?.haptics) {
-        (window as unknown as { sdk: { haptics: { impactOccurred: (type: string) => void } } }).sdk.haptics.impactOccurred('medium');
-      }
-      // Fallback to basic vibration if Farcaster SDK is not available
-      else if ("vibrate" in navigator) {
-        navigator.vibrate(100);
-      }
+      triggerHapticFeedback();
     }
   }
 
