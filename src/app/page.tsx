@@ -327,22 +327,22 @@ export default function Home() {
           console.log('Available actions:', Object.keys(frame.sdk.actions));
           
           // Check if there are any haptic-related methods (using type assertion for exploration)
-          const actions = frame.sdk.actions as any;
-          if (actions.hapticFeedback) {
+          const actions = frame.sdk.actions as Record<string, unknown>;
+          if ('hapticFeedback' in actions && typeof actions.hapticFeedback === 'function') {
             console.log('Using Farcaster SDK hapticFeedback');
-            await actions.hapticFeedback('medium');
+            await (actions.hapticFeedback as (type: string) => Promise<void>)('medium');
             return;
           }
           
-          if (actions.vibrate) {
+          if ('vibrate' in actions && typeof actions.vibrate === 'function') {
             console.log('Using Farcaster SDK vibrate');
-            await actions.vibrate(50);
+            await (actions.vibrate as (duration: number) => Promise<void>)(50);
             return;
           }
           
-          if (actions.triggerHaptic) {
+          if ('triggerHaptic' in actions && typeof actions.triggerHaptic === 'function') {
             console.log('Using Farcaster SDK triggerHaptic');
-            await actions.triggerHaptic('medium');
+            await (actions.triggerHaptic as (type: string) => Promise<void>)('medium');
             return;
           }
         }
@@ -352,15 +352,20 @@ export default function Home() {
       
       // 2. Try TBA-specific haptic feedback
       try {
-        if (typeof window !== 'undefined' && (window as any).TBA && (window as any).TBA.hapticFeedback) {
+        const windowWithTBA = window as typeof window & {
+          TBA?: { hapticFeedback?: (type: string) => void };
+          tba?: { hapticFeedback?: (type: string) => void };
+        };
+        
+        if (typeof window !== 'undefined' && windowWithTBA.TBA?.hapticFeedback) {
           console.log('Using TBA hapticFeedback');
-          (window as any).TBA.hapticFeedback('medium');
+          windowWithTBA.TBA.hapticFeedback('medium');
           return;
         }
         
-        if (typeof window !== 'undefined' && (window as any).tba && (window as any).tba.hapticFeedback) {
+        if (typeof window !== 'undefined' && windowWithTBA.tba?.hapticFeedback) {
           console.log('Using tba hapticFeedback');
-          (window as any).tba.hapticFeedback('medium');
+          windowWithTBA.tba.hapticFeedback('medium');
           return;
         }
       } catch (tbaError) {
