@@ -14,6 +14,161 @@ import {
 } from './lib/analytics'
 import * as frame from '@farcaster/frame-sdk'
 
+// ZoomableImage component for pinch-to-zoom functionality
+const ZoomableImage = ({ 
+  src, 
+  alt, 
+  onLoad, 
+  onLoadStart, 
+  priority = false 
+}: { 
+  src: string; 
+  alt: string; 
+  onLoad: () => void; 
+  onLoadStart: () => void; 
+  priority?: boolean;
+}) => {
+  const [scale, setScale] = useState(1);
+  const [translateX, setTranslateX] = useState(0);
+  const [translateY, setTranslateY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  
+  const imageRef = useRef<HTMLDivElement>(null);
+  const lastTouchDistance = useRef<number>(0);
+  const lastTouchCenter = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // Reset zoom when image changes
+  useEffect(() => {
+    setScale(1);
+    setTranslateX(0);
+    setTranslateY(0);
+  }, [src]);
+
+  const getDistance = (touches: React.TouchList) => {
+    if (touches.length < 2) return 0;
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const getCenter = (touches: React.TouchList) => {
+    if (touches.length < 2) return { x: 0, y: 0 };
+    const x = (touches[0].clientX + touches[1].clientX) / 2;
+    const y = (touches[0].clientY + touches[1].clientY) / 2;
+    return { x, y };
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+    } else if (e.touches.length === 2) {
+      lastTouchDistance.current = getDistance(e.touches);
+      lastTouchCenter.current = getCenter(e.touches);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    
+    if (e.touches.length === 1 && isDragging && scale > 1) {
+      const deltaX = e.touches[0].clientX - dragStart.x;
+      const deltaY = e.touches[0].clientY - dragStart.y;
+      
+      setTranslateX(prev => prev + deltaX);
+      setTranslateY(prev => prev + deltaY);
+      setDragStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+    } else if (e.touches.length === 2) {
+      const currentDistance = getDistance(e.touches);
+      const currentCenter = getCenter(e.touches);
+      
+      if (lastTouchDistance.current > 0) {
+        const newScale = scale * (currentDistance / lastTouchDistance.current);
+        const clampedScale = Math.max(1, Math.min(3, newScale)); // Limit zoom between 1x and 3x
+        
+        if (clampedScale !== scale) {
+          setScale(clampedScale);
+          
+          // Adjust translation to keep zoom centered
+          if (imageRef.current) {
+            const rect = imageRef.current.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            const deltaX = currentCenter.x - centerX;
+            const deltaY = currentCenter.y - centerY;
+            
+            setTranslateX(prev => prev + deltaX * (clampedScale - scale) / scale);
+            setTranslateY(prev => prev + deltaY * (clampedScale - scale) / scale);
+          }
+        }
+      }
+      
+      lastTouchDistance.current = currentDistance;
+      lastTouchCenter.current = currentCenter;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    lastTouchDistance.current = 0;
+  };
+
+  const handleDoubleClick = () => {
+    setScale(1);
+    setTranslateX(0);
+    setTranslateY(0);
+  };
+
+  return (
+    <div 
+      ref={imageRef}
+      className="w-full h-full overflow-hidden"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onDoubleClick={handleDoubleClick}
+    >
+      <div
+        className="w-full h-full transition-transform duration-200 ease-out"
+        style={{
+          transform: `scale(${scale}) translate(${translateX / scale}px, ${translateY / scale}px)`,
+          transformOrigin: 'center center',
+        }}
+      >
+        <Image
+          src={src}
+          alt={alt}
+          width={1920}
+          height={1080}
+          className="object-contain w-full h-full"
+          onLoad={onLoad}
+          onLoadStart={onLoadStart}
+          priority={priority}
+          loading="eager"
+          sizes="100vw"
+          quality={85}
+        />
+      </div>
+      
+      {/* Zoom indicator */}
+      {scale > 1 && (
+        <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm z-10">
+          {Math.round(scale * 100)}%
+        </div>
+      )}
+      
+      {/* Zoom hint */}
+      {scale === 1 && (
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-2 rounded text-sm opacity-75 pointer-events-none">
+          Pinch to zoom • Double-tap to reset
+        </div>
+      )}
+    </div>
+  );
+};
+
 const EPOCHS = [
   { id: 1, name: 'Epoch 1', totalImages: 77 },
   { id: 2, name: 'Epoch 2', totalImages: 106 },
@@ -587,19 +742,13 @@ export default function Home() {
 
       {index && (
         <div className="relative w-full h-full">
-          <Image
+          <ZoomableImage
             key={imageKey}
             src={imageSrc}
             alt={`Image ${index} from Epoch ${currentEpoch}`}
-            width={1920}
-            height={1080}
-            className="object-contain w-full h-full transition-opacity duration-300"
             onLoad={() => setIsLoading(false)}
             onLoadStart={() => setIsLoading(true)}
             priority
-            loading="eager"
-            sizes="100vw"
-            quality={85}
           />
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
