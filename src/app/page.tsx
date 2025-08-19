@@ -159,12 +159,7 @@ const ZoomableImage = ({
         </div>
       )}
       
-      {/* Zoom hint */}
-      {scale === 1 && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-2 rounded text-sm opacity-75 pointer-events-none">
-          Pinch to zoom • Double-tap to reset
-        </div>
-      )}
+
     </div>
   );
 };
