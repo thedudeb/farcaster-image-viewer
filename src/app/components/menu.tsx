@@ -236,35 +236,25 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
             // Pick a random message
             const randomMessage = curationMessages[Math.floor(Math.random() * curationMessages.length)];
             
+            // Create the compose URL with the message and app embed
+            const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(`@thedude ${randomMessage}`)}&embeds[]=${encodeURIComponent(window.location.origin)}`;
+            
             try {
               // Import the frame SDK
               const frame = await import('@farcaster/frame-sdk');
               
-              if (frame.sdk && frame.sdk.actions) {
-                // Try to open DM directly first, fallback to cast composer
-                console.log('Attempting to open DM with random curation request to @thedude');
-                try {
-                  // Try custom DM URL scheme first
-                  const dmUrl = `farcaster://dm/13874?text=${encodeURIComponent(randomMessage)}`;
-                  await frame.sdk.actions.openUrl(dmUrl);
-                  console.log('Successfully opened DM via URL scheme');
-                } catch (dmError) {
-                  console.log('DM URL scheme failed, falling back to cast composer');
-                  // Fallback to cast composer
-                  await frame.sdk.actions.composeCast({ 
-                    text: `@thedude ${randomMessage}`,
-                    embeds: [window.location.origin]
-                  });
+                              if (frame.sdk && frame.sdk.actions) {
+                  // Use the standard openUrl method with the compose URL
+                  console.log('Opening cast composer with curation request');
+                  await frame.sdk.actions.openUrl(composeUrl);
                   console.log('Successfully opened cast composer');
-                }
-              } else {
+                } else {
                 console.log('Frame SDK not available, falling back to window.open');
-                const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(`@thedude ${randomMessage}`)}&embeds[]=${encodeURIComponent(window.location.origin)}`;
                 window.open(composeUrl, '_blank');
               }
             } catch (err) {
-              console.error('Error opening DM composer:', err);
-              const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(`@thedude ${randomMessage}`)}&embeds[]=${encodeURIComponent(window.location.origin)}`;
+              console.error('Error opening cast composer:', err);
+              // Fallback to window.open
               window.open(composeUrl, '_blank');
             }
           }}
