@@ -157,10 +157,10 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                                          {/* Artist Profile Image */}
-                     {artist && !epoch.locked && (
+                     {artist && (
                        <div 
                          className="relative flex-shrink-0"
-                         onClick={(e) => handleArtistClick(e, artist)}
+                         onClick={!epoch.locked ? (e) => handleArtistClick(e, artist) : undefined}
                        >
                          {loadingPictures ? (
                            // Loading skeleton
@@ -172,8 +172,12 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                              alt={`@${artist.username}`}
                              width={36}
                              height={36}
-                             className="rounded-full cursor-pointer hover:opacity-80 transition-all duration-200 hover:scale-105 ring-2 ring-gray-700 hover:ring-blue-500"
-                             title={`View @${artist.username}'s profile`}
+                             className={`rounded-full transition-all duration-200 ring-2 ${
+                               epoch.locked 
+                                 ? 'ring-gray-600 opacity-60 cursor-not-allowed' 
+                                 : 'cursor-pointer hover:opacity-80 hover:scale-105 ring-gray-700 hover:ring-blue-500'
+                             }`}
+                             title={epoch.locked ? `@${artist.username} (locked)` : `View @${artist.username}'s profile`}
                              onError={(e) => {
                                // Fallback to a simple colored circle with initials
                                const target = e.target as HTMLImageElement;
@@ -185,13 +189,19 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                          ) : null}
                          {/* Fallback avatar with initials */}
                          <div 
-                           className={`${profilePictures[artist.fid] ? 'hidden' : 'flex'} w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 items-center justify-center text-white text-xs font-bold cursor-pointer hover:opacity-80 transition-all duration-200 hover:scale-105 ring-2 ring-gray-700 hover:ring-blue-500`}
-                           title={`View @${artist.username}'s profile`}
+                           className={`${profilePictures[artist.fid] ? 'hidden' : 'flex'} w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 items-center justify-center text-white text-xs font-bold transition-all duration-200 ring-2 ${
+                             epoch.locked 
+                               ? 'ring-gray-600 opacity-60 cursor-not-allowed' 
+                               : 'cursor-pointer hover:opacity-80 hover:scale-105 ring-gray-700 hover:ring-blue-500'
+                           }`}
+                           title={epoch.locked ? `@${artist.username} (locked)` : `View @${artist.username}'s profile`}
                          >
                            {artist.displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
                          </div>
-                         {/* Small indicator that it's clickable */}
-                         <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-gray-900 shadow-sm"></div>
+                         {/* Small indicator that it's clickable (only when not locked) */}
+                         {!epoch.locked && (
+                           <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-gray-900 shadow-sm"></div>
+                         )}
                        </div>
                      )}
                     
@@ -199,11 +209,9 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                       <span className="font-medium">
                         {epoch.name}
                       </span>
-                      {!epoch.locked && (
-                        <span className="text-sm opacity-75">
-                          by @{artist?.username} • {epoch.totalImages} images
-                        </span>
-                      )}
+                      <span className={`text-sm ${epoch.locked ? 'text-gray-500' : 'opacity-75'}`}>
+                        by @{artist?.username} {!epoch.locked && `• ${epoch.totalImages} images`}
+                      </span>
                     </div>
                   </div>
                   
