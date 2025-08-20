@@ -47,7 +47,7 @@ const EPOCHS = [
   { id: 2, name: 'Epoch 2', totalImages: 106 },
   { id: 3, name: 'Epoch 3', totalImages: 111 },
   { id: 4, name: 'Epoch 4', totalImages: 0, locked: true },
-  { id: 5, name: 'Epoch 5-Greywash', totalImages: 6, locked: false },
+  { id: 5, name: 'Epoch 5', totalImages: 6, locked: false },
   { id: 6, name: 'Epoch 6', totalImages: 0, locked: true },
 ];
 
