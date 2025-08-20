@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
-const TEST_FIDS = [15351, 1075107]; // @0ffline and @greywash
+const TEST_FIDS = [15351, 1075107, 288204]; // @0ffline, @greywash, and new artist
 
 interface NeynarUser {
   fid: number;
