@@ -37,8 +37,8 @@ const EPOCH_ARTISTS = {
   },
   6: { 
     fid: 288204, 
-    username: 'unknown', 
-    displayName: 'Unknown'
+    username: 'dwn2earth', 
+    displayName: 'dwn2earth'
   },
 };
 
@@ -48,7 +48,7 @@ const EPOCHS = [
   { id: 3, name: 'Epoch 3', totalImages: 111 },
   { id: 4, name: 'Epoch 4', totalImages: 0, locked: true },
   { id: 5, name: 'Epoch 5-Greywash', totalImages: 6, locked: false },
-  { id: 6, name: 'Epoch 6', totalImages: 0, locked: false },
+  { id: 6, name: 'Epoch 6', totalImages: 0, locked: true },
 ];
 
 export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps) {
