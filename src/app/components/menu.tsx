@@ -97,7 +97,7 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
     const newTapCount = epoch6Taps + 1;
     setEpoch6Taps(newTapCount);
     
-    if (newTapCount >= 3) {
+    if (newTapCount >= 5) {
       // Trigger unlock animation
       setUnlockAnimation(true);
       
@@ -109,10 +109,10 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
       }, 500);
     }
     
-    // Reset tap count after 2 seconds if not completed
+    // Reset tap count after 3 seconds if not completed
     setTimeout(() => {
       setEpoch6Taps(0);
-    }, 2000);
+    }, 3000);
   };
 
   const handleArtistClick = async (e: React.MouseEvent, artist: typeof EPOCH_ARTISTS[1]) => {
@@ -179,7 +179,7 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                     handleEpochSelect(epoch.id);
                   }
                 }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 ${
+                className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
                   epoch.id === 6 && unlockAnimation
                     ? 'bg-green-600 text-white scale-105 shadow-lg'
                     : epoch.locked && epoch.id !== 6
@@ -189,6 +189,17 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                     : 'text-gray-300 hover:bg-gray-800'
                 }`}
               >
+                {/* Progress bar for Epoch 6 easter egg */}
+                {epoch.id === 6 && !epoch6Unlocked && epoch6Taps > 0 && (
+                  <div 
+                    className="absolute inset-0 bg-green-600 transition-all duration-300 ease-out"
+                    style={{ 
+                      width: `${(epoch6Taps / 5) * 100}%`,
+                      zIndex: 1
+                    }}
+                  />
+                )}
+                <div className="relative z-10">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                                          {/* Artist Profile Image */}
@@ -243,11 +254,6 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                     <div className="flex flex-col">
                       <span className="font-medium">
                         {epoch.name}
-                        {epoch.id === 6 && !epoch6Unlocked && epoch6Taps > 0 && (
-                          <span className="ml-2 text-xs text-green-400">
-                            ({epoch6Taps}/3)
-                          </span>
-                        )}
                       </span>
                       <span className={`text-sm ${epoch.locked ? 'text-gray-500' : 'opacity-75'}`}>
                         by @{artist?.username} {!epoch.locked && `• ${epoch.totalImages} images`}
@@ -270,6 +276,7 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                       🔓
                     </span>
                   )}
+                                  </div>
                 </div>
               </button>
             );
