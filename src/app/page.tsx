@@ -201,7 +201,7 @@ class EpochPreloader {
       return;
     }
 
-    const extension = epochId === 5 ? 'jpeg' : 'jpg';
+    const extension = epochId === 5 ? 'jpeg' : epochId === 6 ? 'png' : 'jpg';
     const promises: Promise<void>[] = [];
 
     // Preload all images in the epoch
@@ -686,7 +686,7 @@ export default function Home() {
     }
   };
 
-  const imageSrc = index ? `/images/epoch${currentEpoch}/${index}.${currentEpoch === 5 ? 'jpeg' : 'jpg'}` : ''
+  const imageSrc = index ? `/images/epoch${currentEpoch}/${index}.${currentEpoch === 5 ? 'jpeg' : currentEpoch === 6 ? 'png' : 'jpg'}` : ''
 
 
 
