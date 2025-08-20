@@ -54,6 +54,9 @@ const EPOCHS = [
 export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps) {
   const [profilePictures, setProfilePictures] = useState<Record<number, string>>({});
   const [loadingPictures, setLoadingPictures] = useState(true);
+  const [epoch6Taps, setEpoch6Taps] = useState(0);
+  const [epoch6Unlocked, setEpoch6Unlocked] = useState(false);
+  const [unlockAnimation, setUnlockAnimation] = useState(false);
 
   // Fetch profile pictures from Neynar API
   useEffect(() => {
@@ -86,6 +89,30 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
 
   const handleEpochSelect = (epochId: number) => {
     onEpochChange(epochId);
+  };
+
+  const handleEpoch6Tap = () => {
+    if (epoch6Unlocked) return; // Already unlocked
+    
+    const newTapCount = epoch6Taps + 1;
+    setEpoch6Taps(newTapCount);
+    
+    if (newTapCount >= 3) {
+      // Trigger unlock animation
+      setUnlockAnimation(true);
+      
+      // Unlock after animation starts
+      setTimeout(() => {
+        setEpoch6Unlocked(true);
+        setUnlockAnimation(false);
+        setEpoch6Taps(0);
+      }, 500);
+    }
+    
+    // Reset tap count after 2 seconds if not completed
+    setTimeout(() => {
+      setEpoch6Taps(0);
+    }, 2000);
   };
 
   const handleArtistClick = async (e: React.MouseEvent, artist: typeof EPOCH_ARTISTS[1]) => {
@@ -145,9 +172,17 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
             return (
               <button
                 key={epoch.id}
-                onClick={() => !epoch.locked && handleEpochSelect(epoch.id)}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                  epoch.locked
+                onClick={() => {
+                  if (epoch.id === 6 && !epoch6Unlocked) {
+                    handleEpoch6Tap();
+                  } else if (!epoch.locked || (epoch.id === 6 && epoch6Unlocked)) {
+                    handleEpochSelect(epoch.id);
+                  }
+                }}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 ${
+                  epoch.id === 6 && unlockAnimation
+                    ? 'bg-green-600 text-white scale-105 shadow-lg'
+                    : epoch.locked && epoch.id !== 6
                     ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
                     : currentEpoch === epoch.id
                     ? 'bg-blue-600 text-white'
@@ -208,6 +243,11 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                     <div className="flex flex-col">
                       <span className="font-medium">
                         {epoch.name}
+                        {epoch.id === 6 && !epoch6Unlocked && epoch6Taps > 0 && (
+                          <span className="ml-2 text-xs text-green-400">
+                            ({epoch6Taps}/3)
+                          </span>
+                        )}
                       </span>
                       <span className={`text-sm ${epoch.locked ? 'text-gray-500' : 'opacity-75'}`}>
                         by @{artist?.username} {!epoch.locked && `• ${epoch.totalImages} images`}
@@ -215,9 +255,19 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                     </div>
                   </div>
                   
-                  {epoch.locked && (
+                  {epoch.locked && epoch.id !== 6 && (
                     <span className="text-gray-500">
                       🔒
+                    </span>
+                  )}
+                  {epoch.id === 6 && !epoch6Unlocked && (
+                    <span className={`text-gray-500 transition-all duration-300 ${unlockAnimation ? 'scale-125 text-green-400' : ''}`}>
+                      🔒
+                    </span>
+                  )}
+                  {epoch.id === 6 && epoch6Unlocked && (
+                    <span className="text-green-400 animate-pulse">
+                      🔓
                     </span>
                   )}
                 </div>
