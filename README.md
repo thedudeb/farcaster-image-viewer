@@ -1,83 +1,159 @@
 # Farcaster Image Viewer
 
-This is a [Next.js](https://nextjs.org) project with Farcaster Frame integration for webhook handling and notifications.
+A curated digital art gallery built for the Farcaster community. Experience carefully selected digital art collections through an immersive, interactive gallery with mobile-optimized touch controls.
 
-## Environment Variables
+## ✨ Features
 
-Create a `.env.local` file in the root directory with the following variables:
+### Image Viewer
+- **Multi-Epoch Support**: Browse through 7 different curated epochs with 300+ images
+- **Touch Controls**: Pinch-to-zoom, swipe navigation, and haptic feedback
+- **Keyboard Navigation**: Arrow keys for desktop users
+- **Smart Preloading**: Intelligent image caching for smooth browsing
+- **Analytics**: Track user engagement and image views
+- **Farcaster Integration**: Share images directly to Warpcast
 
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
 ```bash
-# Farcaster API Key
-NEYNAR_API_KEY=
-
-# App URL for notifications
-NEXT_PUBLIC_URL=https://your-app-domain.vercel.app
+git clone <repository-url>
+cd farcaster-image-viewer
 ```
 
-Note: KV storage credentials are hardcoded in the project for simplicity.
-
-## Getting Started
-
-First, install dependencies:
-
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-Then, run the development server:
-
+3. Run the development server:
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-## Farcaster Frame Features
+## 📱 Usage
 
-This project includes:
+### Image Viewer (`/`)
+- **Navigation**: Tap left/right or use arrow keys to navigate images
+- **Zoom**: Pinch to zoom on mobile devices, double-click to reset
+- **Menu**: Tap the menu button (top-left) to switch between epochs
+- **Share**: Use the share button (top-right) to share images on Farcaster
 
-- **Webhook Endpoint** (`/api/webhook`): Handles Farcaster frame events (frame_added, frame_removed, notifications_enabled/disabled)
-- **Send Notification Endpoint** (`/api/send-notification`): Manually send notifications to users
-- **KV Storage**: Stores user notification details using Upstash Redis
-- **Frame Metadata**: Properly configured Farcaster frame metadata in layout
-- **Artist Profile Integration**: Clickable artist profile images in the epoch menu that link to Farcaster profiles
+## 🎨 Epochs
 
-## API Endpoints
+The viewer contains 7 curated epochs:
 
-- `POST /api/webhook` - Farcaster webhook handler
-- `POST /api/send-notification` - Manual notification sender
-- `GET /api/artists/recent` - Fetch recent artist data from Neynar API
+- **Epoch 1**: 77 images (JPG)
+- **Epoch 2**: 106 images (JPG) 
+- **Epoch 3**: 111 images (JPG)
+- **Epoch 4**: Coming soon (Locked)
+- **Epoch 5**: 6 images by @Greywash (JPEG)
+- **Epoch 6**: 10 images (PNG) - Locked
+- **Epoch -7**: Coming soon by @Chronist (Locked)
 
-## Artist Profile Feature
+## 🛠️ Technology Stack
 
-The app includes artist profile integration in the epoch menu:
+- **Framework**: Next.js 15 with App Router
+- **Styling**: Tailwind CSS 4
+- **Language**: TypeScript
+- **Deployment**: Vercel
+- **Analytics**: Custom tracking system
+- **Farcaster Integration**: Frame SDK
 
-- **Profile Images**: Each epoch displays the curator's profile picture
-- **Clickable Links**: Profile images link directly to Farcaster profiles
-- **Fallback Avatars**: Graceful fallback to colored initials if profile images fail to load
-- **Analytics Tracking**: Artist profile clicks are tracked for insights
-- **Frame SDK Integration**: Uses Farcaster Frame SDK for native profile viewing
+## 📊 Analytics
 
-## Learn More
+The app includes comprehensive analytics tracking:
+- Session starts
+- Image views
+- Epoch completions
+- Epoch switches
+- Menu interactions
 
-To learn more about Next.js, take a look at the following resources:
+## 🔧 Development
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [Farcaster Frames Documentation](https://docs.farcaster.xyz/reference/frames/spec) - learn about Farcaster frames.
+### Project Structure
+```
+src/
+├── app/
+│   ├── page.tsx                    # Main image viewer
+│   ├── landing-page-backup.tsx     # Saved landing page for future use
+│   ├── components/
+│   │   ├── menu.tsx               # Epoch selection menu
+│   │   └── NotificationWrapper.tsx
+│   ├── lib/
+│   │   ├── analytics.ts           # Analytics tracking
+│   │   └── notifications.ts       # Farcaster notifications
+│   └── api/                       # API routes
+└── public/
+    └── images/                    # Image collections
+        ├── epoch1/
+        ├── epoch2/
+        └── ...
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Available Scripts
 
-## Deploy on Vercel
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🌟 Features in Detail
 
-Don't forget to add your environment variables in the Vercel project settings!
+### Responsive Design
+- Mobile-first approach with touch-optimized controls
+- Desktop support with keyboard navigation
+- Adaptive layouts for all screen sizes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Performance Optimizations
+- Image preloading and caching
+- Debounced analytics tracking
+- Memory management for large image collections
+- Optimized loading states and transitions
+
+### User Experience
+- Smooth animations and transitions
+- Haptic feedback on mobile devices
+- Intuitive navigation patterns
+- Loading indicators and progress feedback
+
+## 🎨 Landing Page (Saved for Future Use)
+
+A beautiful futuristic landing page has been created and saved as `src/app/landing-page-backup.tsx`. This includes:
+
+- **Futuristic Design**: Modern, responsive design with animated backgrounds
+- **Interactive Elements**: Mouse-tracking parallax effects and smooth animations
+- **Feature Showcase**: Highlighting key app features
+- **Image Preview**: Auto-rotating carousel showcasing sample images
+- **Call-to-Action**: Prominent buttons and modern UI elements
+
+This landing page can be easily moved to a separate project for future use.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🙏 Acknowledgments
+
+- Built for the Farcaster community
+- Special thanks to @Greywash for Epoch 5 curation
+- Inspired by the digital art community
+
+---
+
+**Experience the future of digital art viewing on Farcaster! 🚀**

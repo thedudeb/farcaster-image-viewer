@@ -40,15 +40,24 @@ const EPOCH_ARTISTS = {
     username: 'dwn2earth', 
     displayName: 'dwn2earth'
   },
+  [-7]: { 
+    fid: 499579, 
+    username: 'chronist', 
+    displayName: 'Chronist'
+  },
 };
 
 const EPOCHS = [
+  { id: 5, name: 'Epoch 5', totalImages: 6, locked: false },
+  { id: 6, name: 'Epoch 6', totalImages: 10, locked: true },
+  { id: -7, name: 'Epoch -7', totalImages: 0, locked: true },
+];
+
+const EPOCHS_1_TO_4 = [
   { id: 1, name: 'Epoch 1', totalImages: 77 },
   { id: 2, name: 'Epoch 2', totalImages: 106 },
   { id: 3, name: 'Epoch 3', totalImages: 111 },
   { id: 4, name: 'Epoch 4', totalImages: 0, locked: true },
-  { id: 5, name: 'Epoch 5', totalImages: 6, locked: false },
-  { id: 6, name: 'Epoch 6', totalImages: 10, locked: true },
 ];
 
 export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps) {
@@ -57,6 +66,7 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
   const [epoch6Taps, setEpoch6Taps] = useState(0);
   const [epoch6Unlocked, setEpoch6Unlocked] = useState(false);
   const [unlockAnimation, setUnlockAnimation] = useState(false);
+  const [showEpoch1To4Submenu, setShowEpoch1To4Submenu] = useState(false);
 
   // Fetch profile pictures from Neynar API
   useEffect(() => {
@@ -151,12 +161,14 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
     <div className="fixed inset-0 bg-black/80 z-50 flex justify-center items-center">
       <div className="w-96 bg-gray-900 p-4 rounded-lg">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-white text-xl font-bold">Menu</h2>
+          <h2 className="text-white text-xl font-bold">
+            {showEpoch1To4Submenu ? 'Epoch 1-4' : 'Menu'}
+          </h2>
           <button
-            onClick={onClose}
+            onClick={showEpoch1To4Submenu ? () => setShowEpoch1To4Submenu(false) : onClose}
             className="text-white hover:text-gray-300"
           >
-            ✕
+            {showEpoch1To4Submenu ? '←' : '✕'}
           </button>
         </div>
         
@@ -166,128 +178,284 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
             💡 Click artist profile images to view their Farcaster profile
           </div>
           
-          {EPOCHS.map((epoch) => {
-            const artist = EPOCH_ARTISTS[epoch.id as keyof typeof EPOCH_ARTISTS];
-            
-            return (
+                    {showEpoch1To4Submenu ? (
+            // Sub-menu: Show Epochs 1-4
+            EPOCHS_1_TO_4.map((epoch) => {
+              const artist = EPOCH_ARTISTS[epoch.id as keyof typeof EPOCH_ARTISTS];
+              
+              return (
+                <button
+                  key={epoch.id}
+                  onClick={() => {
+                    if (!epoch.locked) {
+                      handleEpochSelect(epoch.id);
+                    }
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
+                    epoch.locked
+                      ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                      : currentEpoch === epoch.id
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-300 hover:bg-gray-800'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {/* Artist Profile Image */}
+                      {artist && (
+                        <div 
+                          className="relative flex-shrink-0"
+                          onClick={!epoch.locked ? (e) => handleArtistClick(e, artist) : undefined}
+                        >
+                          {loadingPictures ? (
+                            // Loading skeleton
+                            <div className="w-9 h-9 rounded-full bg-gray-700 animate-pulse ring-2 ring-gray-600"></div>
+                          ) : profilePictures[artist.fid] ? (
+                            // Real profile picture
+                            <Image
+                              src={profilePictures[artist.fid]}
+                              alt={`@${artist.username}`}
+                              width={36}
+                              height={36}
+                              className={`rounded-full transition-all duration-200 ring-2 ${
+                                epoch.locked 
+                                  ? 'ring-gray-600 opacity-60 cursor-not-allowed' 
+                                  : 'cursor-pointer hover:opacity-80 hover:scale-105 ring-gray-700 hover:ring-blue-500'
+                              }`}
+                              title={epoch.locked ? `@${artist.username} (locked)` : `View @${artist.username}'s profile`}
+                              onError={(e) => {
+                                // Fallback to a simple colored circle with initials
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const fallback = target.nextElementSibling as HTMLElement;
+                                if (fallback) fallback.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          {/* Fallback avatar with initials */}
+                          <div 
+                            className={`${profilePictures[artist.fid] ? 'hidden' : 'flex'} w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 items-center justify-center text-white text-xs font-bold transition-all duration-200 ring-2 ${
+                              epoch.locked 
+                                ? 'ring-gray-600 opacity-60 cursor-not-allowed' 
+                                : 'cursor-pointer hover:opacity-80 hover:scale-105 ring-gray-700 hover:ring-blue-500'
+                            }`}
+                            title={epoch.locked ? `@${artist.username} (locked)` : `View @${artist.username}'s profile`}
+                          >
+                            {artist.displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </div>
+                          {/* Small indicator that it's clickable (only when not locked) */}
+                          {!epoch.locked && (
+                            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-gray-900 shadow-sm"></div>
+                          )}
+                        </div>
+                      )}
+                      
+                      <div className="flex flex-col">
+                        <span className="font-medium">
+                          {epoch.name}
+                        </span>
+                        <span className={`text-sm ${epoch.locked ? 'text-gray-500' : 'opacity-75'}`}>
+                          by @{artist?.username} {!epoch.locked && `• ${epoch.totalImages} images`}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {epoch.locked && (
+                      <span className="text-gray-500">
+                        🔒
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })
+          ) : (
+            // Main menu: Show consolidated Epoch 1-4 and other epochs
+            <>
+              {/* Epoch 1-4 consolidated option */}
               <button
-                key={epoch.id}
-                onClick={() => {
-                  if (epoch.id === 6 && !epoch6Unlocked) {
-                    handleEpoch6Tap();
-                  } else if (!epoch.locked || (epoch.id === 6 && epoch6Unlocked)) {
-                    handleEpochSelect(epoch.id);
-                  }
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
-                  epoch.id === 6 && unlockAnimation
-                    ? 'bg-green-600 text-white scale-105 shadow-lg'
-                    : epoch.locked && epoch.id !== 6
-                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                    : currentEpoch === epoch.id
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:bg-gray-800'
-                }`}
+                onClick={() => setShowEpoch1To4Submenu(true)}
+                className="w-full text-left px-4 py-3 rounded-lg transition-all duration-300 text-gray-300 hover:bg-gray-800"
               >
-                {/* Progress bar for Epoch 6 easter egg */}
-                {epoch.id === 6 && !epoch6Unlocked && epoch6Taps > 0 && (
-                  <div 
-                    className="absolute inset-0 bg-green-600 transition-all duration-300 ease-out"
-                    style={{ 
-                      width: `${(epoch6Taps / 5) * 100}%`,
-                      zIndex: 1
-                    }}
-                  />
-                )}
-                <div className="relative z-10">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                                         {/* Artist Profile Image */}
-                     {artist && (
-                       <div 
-                         className="relative flex-shrink-0"
-                         onClick={!epoch.locked ? (e) => handleArtistClick(e, artist) : undefined}
-                       >
-                         {loadingPictures ? (
-                           // Loading skeleton
-                           <div className="w-9 h-9 rounded-full bg-gray-700 animate-pulse ring-2 ring-gray-600"></div>
-                         ) : profilePictures[artist.fid] ? (
-                           // Real profile picture
-                           <Image
-                             src={profilePictures[artist.fid]}
-                             alt={`@${artist.username}`}
-                             width={36}
-                             height={36}
-                             className={`rounded-full transition-all duration-200 ring-2 ${
-                               epoch.locked 
-                                 ? 'ring-gray-600 opacity-60 cursor-not-allowed' 
-                                 : 'cursor-pointer hover:opacity-80 hover:scale-105 ring-gray-700 hover:ring-blue-500'
-                             }`}
-                             title={epoch.locked ? `@${artist.username} (locked)` : `View @${artist.username}'s profile`}
-                             onError={(e) => {
-                               // Fallback to a simple colored circle with initials
-                               const target = e.target as HTMLImageElement;
-                               target.style.display = 'none';
-                               const fallback = target.nextElementSibling as HTMLElement;
-                               if (fallback) fallback.style.display = 'flex';
-                             }}
-                           />
-                         ) : null}
-                         {/* Fallback avatar with initials */}
-                         <div 
-                           className={`${profilePictures[artist.fid] ? 'hidden' : 'flex'} w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 items-center justify-center text-white text-xs font-bold transition-all duration-200 ring-2 ${
-                             epoch.locked 
-                               ? 'ring-gray-600 opacity-60 cursor-not-allowed' 
-                               : 'cursor-pointer hover:opacity-80 hover:scale-105 ring-gray-700 hover:ring-blue-500'
-                           }`}
-                           title={epoch.locked ? `@${artist.username} (locked)` : `View @${artist.username}'s profile`}
-                         >
-                           {artist.displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
-                         </div>
-                         {/* Small indicator that it's clickable (only when not locked) */}
-                         {!epoch.locked && (
-                           <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-gray-900 shadow-sm"></div>
-                         )}
-                       </div>
-                     )}
+                    {/* Artist Profile Image for 0ffline (Epoch 1-4 artist) */}
+                    <div className="relative flex-shrink-0">
+                      {loadingPictures ? (
+                        // Loading skeleton
+                        <div className="w-9 h-9 rounded-full bg-gray-700 animate-pulse ring-2 ring-gray-600"></div>
+                      ) : profilePictures[15351] ? (
+                        // Real profile picture
+                        <Image
+                          src={profilePictures[15351]}
+                          alt="@0ffline"
+                          width={36}
+                          height={36}
+                          className="rounded-full transition-all duration-200 ring-2 ring-gray-700 hover:ring-blue-500 cursor-pointer hover:opacity-80 hover:scale-105"
+                          title="View @0ffline's profile"
+                          onError={(e) => {
+                            // Fallback to a simple colored circle with initials
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const fallback = target.nextElementSibling as HTMLElement;
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      {/* Fallback avatar with initials */}
+                      <div 
+                        className={`${profilePictures[15351] ? 'hidden' : 'flex'} w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 items-center justify-center text-white text-xs font-bold transition-all duration-200 ring-2 ring-gray-700 hover:ring-blue-500 cursor-pointer hover:opacity-80 hover:scale-105`}
+                        title="View @0ffline's profile"
+                      >
+                        0
+                      </div>
+                      {/* Small indicator that it's clickable */}
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-gray-900 shadow-sm"></div>
+                    </div>
                     
                     <div className="flex flex-col">
                       <span className="font-medium">
-                        {epoch.name}
+                        Epoch 1-4
                       </span>
-                      <span className={`text-sm ${epoch.locked ? 'text-gray-500' : 'opacity-75'}`}>
-                        by @{artist?.username} {!epoch.locked && `• ${epoch.totalImages} images`}
+                      <span className="text-sm opacity-75">
+                        by @0ffline • 294 images
                       </span>
                     </div>
                   </div>
                   
-                  {epoch.locked && epoch.id !== 6 && (
-                    <span className="text-gray-500">
-                      🔒
-                    </span>
-                  )}
-                  {epoch.id === 6 && !epoch6Unlocked && (
-                    <span className={`text-gray-500 transition-all duration-300 ${unlockAnimation ? 'scale-125 text-green-400' : ''}`}>
-                      🔒
-                    </span>
-                  )}
-                  {epoch.id === 6 && epoch6Unlocked && (
-                    <span className="text-green-400 animate-pulse">
-                      🔓
-                    </span>
-                  )}
-                                  </div>
+                  <span className="text-gray-400">
+                    →
+                  </span>
                 </div>
               </button>
-            );
-          })}
-        </div>
+              
+                             {/* Other epochs */}
+               {EPOCHS.map((epoch) => {
+                 const artist = EPOCH_ARTISTS[epoch.id as keyof typeof EPOCH_ARTISTS];
+                 
+                 return (
+                   <button
+                     key={epoch.id}
+                     onClick={() => {
+                       if (epoch.id === 6 && !epoch6Unlocked) {
+                         handleEpoch6Tap();
+                       } else if (!epoch.locked || (epoch.id === 6 && epoch6Unlocked)) {
+                         handleEpochSelect(epoch.id);
+                       }
+                     }}
+                     className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
+                       epoch.id === 6 && unlockAnimation
+                         ? 'bg-green-600 text-white scale-105 shadow-lg'
+                         : epoch.locked && epoch.id !== 6
+                         ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                         : currentEpoch === epoch.id
+                         ? 'bg-blue-600 text-white'
+                         : 'text-gray-300 hover:bg-gray-800'
+                     }`}
+                   >
+                     {/* Progress bar for Epoch 6 easter egg */}
+                     {epoch.id === 6 && !epoch6Unlocked && epoch6Taps > 0 && (
+                       <div 
+                         className="absolute inset-0 bg-green-600 transition-all duration-300 ease-out"
+                         style={{ 
+                           width: `${(epoch6Taps / 5) * 100}%`,
+                           zIndex: 1
+                         }}
+                       />
+                     )}
+                     <div className="relative z-10">
+                       <div className="flex items-center justify-between">
+                         <div className="flex items-center gap-3">
+                           {/* Artist Profile Image */}
+                           {artist && (
+                             <div 
+                               className="relative flex-shrink-0"
+                               onClick={!epoch.locked ? (e) => handleArtistClick(e, artist) : undefined}
+                             >
+                               {loadingPictures ? (
+                                 // Loading skeleton
+                                 <div className="w-9 h-9 rounded-full bg-gray-700 animate-pulse ring-2 ring-gray-600"></div>
+                               ) : profilePictures[artist.fid] ? (
+                                 // Real profile picture
+                                 <Image
+                                   src={profilePictures[artist.fid]}
+                                   alt={`@${artist.username}`}
+                                   width={36}
+                                   height={36}
+                                   className={`rounded-full transition-all duration-200 ring-2 ${
+                                     epoch.locked 
+                                       ? 'ring-gray-600 opacity-60 cursor-not-allowed' 
+                                       : 'cursor-pointer hover:opacity-80 hover:scale-105 ring-gray-700 hover:ring-blue-500'
+                                   }`}
+                                   title={epoch.locked ? `@${artist.username} (locked)` : `View @${artist.username}'s profile`}
+                                   onError={(e) => {
+                                     // Fallback to a simple colored circle with initials
+                                     const target = e.target as HTMLImageElement;
+                                     target.style.display = 'none';
+                                     const fallback = target.nextElementSibling as HTMLElement;
+                                     if (fallback) fallback.style.display = 'flex';
+                                   }}
+                                 />
+                               ) : null}
+                               {/* Fallback avatar with initials */}
+                               <div 
+                                 className={`${profilePictures[artist.fid] ? 'hidden' : 'flex'} w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 items-center justify-center text-white text-xs font-bold transition-all duration-200 ring-2 ${
+                                   epoch.locked 
+                                     ? 'ring-gray-600 opacity-60 cursor-not-allowed' 
+                                     : 'cursor-pointer hover:opacity-80 hover:scale-105 ring-gray-700 hover:ring-blue-500'
+                                 }`}
+                                 title={epoch.locked ? `@${artist.username} (locked)` : `View @${artist.username}'s profile`}
+                               >
+                                 {artist.displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                               </div>
+                               {/* Small indicator that it's clickable (only when not locked) */}
+                               {!epoch.locked && (
+                                 <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-gray-900 shadow-sm"></div>
+                               )}
+                             </div>
+                           )}
+                           
+                           <div className="flex flex-col">
+                             <span className="font-medium">
+                               {epoch.name}
+                             </span>
+                             <span className={`text-sm ${epoch.locked ? 'text-gray-500' : 'opacity-75'}`}>
+                               by @{artist?.username} {!epoch.locked && `• ${epoch.totalImages} images`}
+                             </span>
+                           </div>
+                         </div>
+                         
+                         {epoch.locked && epoch.id !== 6 && (
+                           <span className="text-gray-500">
+                             🔒
+                           </span>
+                         )}
+                         {epoch.id === 6 && !epoch6Unlocked && (
+                           <span className={`text-gray-500 transition-all duration-300 ${unlockAnimation ? 'scale-125 text-green-400' : ''}`}>
+                             🔒
+                           </span>
+                         )}
+                         {epoch.id === 6 && epoch6Unlocked && (
+                           <span className="text-green-400 animate-pulse">
+                             🔓
+                           </span>
+                         )}
+                       </div>
+                     </div>
+                   </button>
+                 );
+               })}
+             </>
+           )}
+         </div>
         
-        {/* Separator */}
-        <div className="border-t border-gray-700 my-4"></div>
-        
-        {/* Request a Curate Button */}
-        <button
+        {/* Separator and Request a Curate Button - only show in main menu */}
+        {!showEpoch1To4Submenu && (
+          <>
+            <div className="border-t border-gray-700 my-4"></div>
+            
+            {/* Request a Curate Button */}
+            <button
           onClick={async () => {
             // Track the curate request
             trackCurateRequest();
@@ -333,6 +501,8 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
         >
           Request a Curate
         </button>
+          </>
+        )}
       </div>
     </div>
   );

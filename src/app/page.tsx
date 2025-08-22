@@ -151,10 +151,6 @@ const ZoomableImage = ({
           quality={85}
         />
       </div>
-      
-
-      
-
     </div>
   );
 };
@@ -166,6 +162,7 @@ const EPOCHS = [
   { id: 4, name: 'Epoch 4', totalImages: 0, locked: true },
   { id: 5, name: 'Epoch 5', totalImages: 6, locked: false },
   { id: 6, name: 'Epoch 6', totalImages: 10, locked: true },
+  { id: -7, name: 'Epoch -7', totalImages: 0, locked: true, artist: 'Chronist', fid: 499579 },
 ];
 
 // Debounce function for analytics
@@ -210,13 +207,13 @@ class EpochPreloader {
       const cacheKey = `${epochId}-${i}`;
       
       if (!this.imageCache.has(cacheKey)) {
-                 const promise = new Promise<void>((resolve) => {
-           const img = new window.Image();
-                     img.onload = () => {
-             this.imageCache.set(cacheKey, img);
-             this.manageCacheSize(); // Manage cache size after adding new image
-             resolve();
-           };
+        const promise = new Promise<void>((resolve) => {
+          const img = new window.Image();
+          img.onload = () => {
+            this.imageCache.set(cacheKey, img);
+            this.manageCacheSize(); // Manage cache size after adding new image
+            resolve();
+          };
           img.onerror = () => {
             console.warn(`Failed to preload image: ${imageSrc}`);
             resolve(); // Don't fail the whole epoch for one bad image
@@ -688,8 +685,6 @@ export default function Home() {
 
   const imageSrc = index ? `/images/epoch${currentEpoch}/${index}.${currentEpoch === 5 ? 'jpeg' : currentEpoch === 6 ? 'png' : 'jpg'}` : ''
 
-
-
   return (
     <div
       className="w-screen h-screen bg-black flex items-center justify-center relative"
@@ -773,20 +768,6 @@ export default function Home() {
           style={{ backgroundColor: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px' }}
         >
           <p>tap right</p>
-        </div>
-      )}
-      {/* Debug info */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="absolute top-20 left-4 text-white text-xs bg-black/50 p-2 rounded">
-          <div>showTapRightOverlay: {showTapRightOverlay.toString()}</div>
-          <div>menuOpen: {menuOpen.toString()}</div>
-          <div>showGreywashTapRight: {showGreywashTapRight.toString()}</div>
-          <div>fadeOut: {fadeOut.toString()}</div>
-          {showTapRightOverlay && (
-            <div style={{ backgroundColor: 'red', color: 'white', padding: '5px', marginTop: '5px' }}>
-              TAP RIGHT OVERLAY SHOULD BE VISIBLE!
-            </div>
-          )}
         </div>
       )}
 
