@@ -40,7 +40,7 @@ const EPOCH_ARTISTS = {
     username: 'dwn2earth', 
     displayName: 'dwn2earth'
   },
-  [-7]: { 
+  7: { 
     fid: 499579, 
     username: 'chronist', 
     displayName: 'Chronist'
@@ -50,7 +50,7 @@ const EPOCH_ARTISTS = {
 const EPOCHS = [
   { id: 5, name: 'Epoch 5', totalImages: 6, locked: false },
   { id: 6, name: 'Epoch 6', totalImages: 10, locked: true },
-  { id: -7, name: 'Epoch -7', totalImages: 0, locked: true },
+  { id: 7, name: 'Epoch 7', totalImages: 45, locked: false },
 ];
 
 const EPOCHS_1_TO_4 = [
@@ -65,6 +65,8 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
   const [loadingPictures, setLoadingPictures] = useState(true);
   const [epoch6Taps, setEpoch6Taps] = useState(0);
   const [epoch6Unlocked, setEpoch6Unlocked] = useState(false);
+  const [epoch7Taps, setEpoch7Taps] = useState(0);
+  const [epoch7Unlocked, setEpoch7Unlocked] = useState(false);
   const [unlockAnimation, setUnlockAnimation] = useState(false);
   const [showEpoch1To4Submenu, setShowEpoch1To4Submenu] = useState(false);
 
@@ -75,6 +77,8 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
         const fids = Object.values(EPOCH_ARTISTS).map(artist => artist.fid);
         const uniqueFids = [...new Set(fids)]; // Remove duplicates
         
+        console.log('Fetching profile pictures for FIDs:', uniqueFids);
+        
         const response = await fetch('/api/artists/recent');
         if (response.ok) {
           const data = await response.json();
@@ -83,9 +87,13 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
           // Map FIDs to profile pictures
           data.artists?.forEach((artist: { fid: number; pfp: string }) => {
             pictures[artist.fid] = artist.pfp;
+            console.log(`Loaded profile picture for FID ${artist.fid}:`, artist.pfp ? 'Success' : 'No URL');
           });
           
+          console.log('Profile pictures loaded:', Object.keys(pictures));
           setProfilePictures(pictures);
+        } else {
+          console.error('Failed to fetch artists:', response.status, await response.text());
         }
       } catch (error) {
         console.error('Failed to fetch profile pictures:', error);
@@ -122,6 +130,30 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
     // Reset tap count after 3 seconds if not completed
     setTimeout(() => {
       setEpoch6Taps(0);
+    }, 3000);
+  };
+
+  const handleEpoch7Tap = () => {
+    if (epoch7Unlocked) return; // Already unlocked
+    
+    const newTapCount = epoch7Taps + 1;
+    setEpoch7Taps(newTapCount);
+    
+    if (newTapCount >= 7) { // Epoch 7 needs 7 taps to unlock
+      // Trigger unlock animation
+      setUnlockAnimation(true);
+      
+      // Unlock after animation starts
+      setTimeout(() => {
+        setEpoch7Unlocked(true);
+        setUnlockAnimation(false);
+        setEpoch7Taps(0);
+      }, 500);
+    }
+    
+    // Reset tap count after 3 seconds if not completed
+    setTimeout(() => {
+      setEpoch7Taps(0);
     }, 3000);
   };
 
@@ -224,11 +256,15 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                               }`}
                               title={epoch.locked ? `@${artist.username} (locked)` : `View @${artist.username}'s profile`}
                               onError={(e) => {
+                                console.log(`Image failed to load for ${artist.username}:`, profilePictures[artist.fid]);
                                 // Fallback to a simple colored circle with initials
                                 const target = e.target as HTMLImageElement;
                                 target.style.display = 'none';
                                 const fallback = target.nextElementSibling as HTMLElement;
                                 if (fallback) fallback.style.display = 'flex';
+                              }}
+                              onLoad={() => {
+                                console.log(`Image loaded successfully for ${artist.username}`);
                               }}
                             />
                           ) : null}
@@ -294,11 +330,15 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                           className="rounded-full transition-all duration-200 ring-2 ring-gray-700 hover:ring-blue-500 cursor-pointer hover:opacity-80 hover:scale-105"
                           title="View @0ffline's profile"
                           onError={(e) => {
+                            console.log(`Image failed to load for @0ffline:`, profilePictures[15351]);
                             // Fallback to a simple colored circle with initials
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
                             const fallback = target.nextElementSibling as HTMLElement;
                             if (fallback) fallback.style.display = 'flex';
+                          }}
+                          onLoad={() => {
+                            console.log(`Image loaded successfully for @0ffline`);
                           }}
                         />
                       ) : null}
@@ -339,14 +379,18 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                      onClick={() => {
                        if (epoch.id === 6 && !epoch6Unlocked) {
                          handleEpoch6Tap();
-                       } else if (!epoch.locked || (epoch.id === 6 && epoch6Unlocked)) {
+                       } else if (epoch.id === 7 && !epoch7Unlocked) {
+                         handleEpoch7Tap();
+                       } else if (!epoch.locked || (epoch.id === 6 && epoch6Unlocked) || (epoch.id === 7 && epoch7Unlocked)) {
                          handleEpochSelect(epoch.id);
                        }
                      }}
                      className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
                        epoch.id === 6 && unlockAnimation
                          ? 'bg-green-600 text-white scale-105 shadow-lg'
-                         : epoch.locked && epoch.id !== 6
+                         : epoch.id === 7 && unlockAnimation
+                         ? 'bg-green-600 text-white scale-105 shadow-lg'
+                         : epoch.locked && epoch.id !== 6 && epoch.id !== 7
                          ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
                          : currentEpoch === epoch.id
                          ? 'bg-blue-600 text-white'
@@ -359,6 +403,16 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                          className="absolute inset-0 bg-green-600 transition-all duration-300 ease-out"
                          style={{ 
                            width: `${(epoch6Taps / 5) * 100}%`,
+                           zIndex: 1
+                         }}
+                       />
+                     )}
+                     {/* Progress bar for Epoch 7 easter egg */}
+                     {epoch.id === 7 && !epoch7Unlocked && epoch7Taps > 0 && (
+                       <div 
+                         className="absolute inset-0 bg-green-600 transition-all duration-300 ease-out"
+                         style={{ 
+                           width: `${(epoch7Taps / 7) * 100}%`,
                            zIndex: 1
                          }}
                        />
@@ -389,11 +443,15 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                                    }`}
                                    title={epoch.locked ? `@${artist.username} (locked)` : `View @${artist.username}'s profile`}
                                    onError={(e) => {
+                                     console.log(`Image failed to load for ${artist.username}:`, profilePictures[artist.fid]);
                                      // Fallback to a simple colored circle with initials
                                      const target = e.target as HTMLImageElement;
                                      target.style.display = 'none';
                                      const fallback = target.nextElementSibling as HTMLElement;
                                      if (fallback) fallback.style.display = 'flex';
+                                   }}
+                                   onLoad={() => {
+                                     console.log(`Image loaded successfully for ${artist.username}`);
                                    }}
                                  />
                                ) : null}
@@ -425,7 +483,7 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                            </div>
                          </div>
                          
-                         {epoch.locked && epoch.id !== 6 && (
+                         {epoch.locked && epoch.id !== 6 && epoch.id !== 7 && (
                            <span className="text-gray-500">
                              🔒
                            </span>
@@ -436,6 +494,16 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                            </span>
                          )}
                          {epoch.id === 6 && epoch6Unlocked && (
+                           <span className="text-green-400 animate-pulse">
+                             🔓
+                           </span>
+                         )}
+                         {epoch.id === 7 && !epoch7Unlocked && (
+                           <span className={`text-gray-500 transition-all duration-300 ${unlockAnimation ? 'scale-125 text-green-400' : ''}`}>
+                             🔒
+                           </span>
+                         )}
+                         {epoch.id === 7 && epoch7Unlocked && (
                            <span className="text-green-400 animate-pulse">
                              🔓
                            </span>

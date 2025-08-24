@@ -56,7 +56,7 @@ The viewer contains 7 curated epochs:
 - **Epoch 4**: Coming soon (Locked)
 - **Epoch 5**: 6 images by @Greywash (JPEG)
 - **Epoch 6**: 10 images (PNG) - Locked
-- **Epoch -7**: Coming soon by @Chronist (Locked)
+- **Epoch 7**: 45 images by @Chronist (Locked)
 
 ## 🛠️ Technology Stack
 

@@ -116,7 +116,7 @@ export default function LandingPagePreview() {
                 C
               </div>
               <p className="text-cyan-300 font-medium">Chronist</p>
-              <p className="text-gray-400 text-sm">Epoch -7</p>
+              <p className="text-gray-400 text-sm">Epoch 7</p>
             </div>
             
             <div className="text-center">
