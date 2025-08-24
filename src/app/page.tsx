@@ -241,17 +241,20 @@ class EpochPreloader {
   private getPriorityImageIndices(currentIndex: number, totalImages: number): number[] {
     const priority = [currentIndex];
     
-    // Add next 3 images for smooth navigation
-    for (let i = 1; i <= 3; i++) {
+    // Add next 5 images for ultra-smooth navigation
+    for (let i = 1; i <= 5; i++) {
       const nextIndex = currentIndex + i;
       if (nextIndex <= totalImages) {
         priority.push(nextIndex);
       }
     }
     
-    // Add previous image if available
-    if (currentIndex > 1) {
-      priority.unshift(currentIndex - 1);
+    // Add previous 2 images if available
+    for (let i = 1; i <= 2; i++) {
+      const prevIndex = currentIndex - i;
+      if (prevIndex >= 1) {
+        priority.unshift(prevIndex);
+      }
     }
     
     return priority;
@@ -301,17 +304,6 @@ class EpochPreloader {
         this.imageCache.set(cacheKey, img);
         this.loadingQueue.delete(cacheKey);
         this.manageCacheSize();
-        
-        // Update progress
-        const epochData = EPOCHS.find(e => e.id === epochId);
-        if (epochData) {
-          const progress = (this.imageCache.size / epochData.totalImages) * 100;
-          // Dispatch custom event for progress updates
-          window.dispatchEvent(new CustomEvent('imageLoadingProgress', { 
-            detail: { epochId, progress: Math.min(progress, 100) } 
-          }));
-        }
-        
         resolve();
       };
       
@@ -397,6 +389,12 @@ export default function Home() {
   useEffect(() => {
     trackSessionStart();
     
+    // Start preloading epoch 7 images immediately when app loads
+    // This happens during the mini app loading screen
+    epochPreloader.preloadEpoch(7).catch(error => {
+      console.error('Failed to preload epoch 7:', error);
+    });
+    
     // Performance monitoring
     if (typeof window !== 'undefined' && 'performance' in window) {
       const loadTime = performance.now();
@@ -412,12 +410,11 @@ export default function Home() {
   const [showGreywashTapRight, setShowGreywashTapRight] = useState(false)
   const [hasTapped, setHasTapped] = useState(false)
   const touchStartX = useRef<number | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [nextImage, setNextImage] = useState<string | null>(null)
   const [currentImage, setCurrentImage] = useState<string | null>(null)
   const [imageKey, setImageKey] = useState(0)
   const [epochLoading, setEpochLoading] = useState(false)
-  const [imageLoadingProgress, setImageLoadingProgress] = useState(0)
   
   // Track viewed images to avoid duplicate analytics
   const viewedImages = useRef<Set<string>>(new Set())
@@ -747,7 +744,6 @@ export default function Home() {
     setMenuOpen(false);
     setShowMenuButton(false);
     setShowGreywashTapRight(false);
-    setEpochLoading(true);
     console.log('Epoch change - states reset')
     
     // Clear viewed images for new epoch
@@ -772,14 +768,10 @@ export default function Home() {
       }));
     }
     
-    // Start preloading the new epoch with priority loading
-    try {
-      await epochPreloader.preloadEpoch(epochId);
-      setEpochLoading(false);
-    } catch (error) {
+    // Start preloading the new epoch silently in background
+    epochPreloader.preloadEpoch(epochId).catch(error => {
       console.error('Failed to preload epoch:', error);
-      setEpochLoading(false);
-    }
+    });
     
     try {
       // TODO: Replace with actual Farcaster user ID
@@ -795,8 +787,8 @@ export default function Home() {
     const epochData = EPOCHS.find(e => e.id === epochId);
     if (!epochData) return;
 
-    const startIndex = Math.max(1, currentIndex - 2);
-    const endIndex = Math.min(epochData.totalImages, currentIndex + 3);
+    const startIndex = Math.max(1, currentIndex - 3);
+    const endIndex = Math.min(epochData.totalImages, currentIndex + 4);
     
     // Preload range in background
     epochPreloader.preloadImageRange(epochId, startIndex, endIndex);
@@ -808,21 +800,6 @@ export default function Home() {
       preloadNearbyImages(currentEpoch, index);
     }
   }, [index, currentEpoch, preloadNearbyImages]);
-
-  // Listen for image loading progress updates
-  useEffect(() => {
-    const handleImageProgress = (event: CustomEvent) => {
-      if (event.detail.epochId === currentEpoch) {
-        setImageLoadingProgress(event.detail.progress);
-      }
-    };
-
-    window.addEventListener('imageLoadingProgress', handleImageProgress as EventListener);
-    
-    return () => {
-      window.removeEventListener('imageLoadingProgress', handleImageProgress as EventListener);
-    };
-  }, [currentEpoch]);
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -897,28 +874,8 @@ export default function Home() {
             priority
           />
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-              <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          )}
-          
-          {/* Epoch Loading Indicator */}
-          {epochLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/70">
-              <div className="text-center text-white">
-                <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-lg font-semibold">Loading Epoch {currentEpoch}...</p>
-                <p className="text-sm opacity-75 mt-2">Preloading priority images for smooth navigation</p>
-                
-                {/* Progress bar */}
-                <div className="w-64 bg-gray-700 rounded-full h-2 mt-4 mx-auto">
-                  <div 
-                    className="bg-green-500 h-2 rounded-full transition-all duration-300 ease-out"
-                    style={{ width: `${imageLoadingProgress}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs opacity-75 mt-2">{Math.round(imageLoadingProgress)}% loaded</p>
-              </div>
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             </div>
           )}
         </div>
