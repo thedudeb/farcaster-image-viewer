@@ -410,11 +410,9 @@ export default function Home() {
   const [showGreywashTapRight, setShowGreywashTapRight] = useState(false)
   const [hasTapped, setHasTapped] = useState(false)
   const touchStartX = useRef<number | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
   const [nextImage, setNextImage] = useState<string | null>(null)
   const [currentImage, setCurrentImage] = useState<string | null>(null)
   const [imageKey, setImageKey] = useState(0)
-  const [epochLoading, setEpochLoading] = useState(false)
   
   // Track viewed images to avoid duplicate analytics
   const viewedImages = useRef<Set<string>>(new Set())
@@ -646,15 +644,19 @@ export default function Home() {
     // Debounced analytics tracking instead of immediate
     debouncedTrackImageView(currentEpoch, index)
     
-    // Check if current image is already cached
-    const cachedImage = epochPreloader.getCachedImage(currentEpoch, index);
-    if (cachedImage) {
-      setIsLoading(false);
-    }
-    
     // Only update image key when actually needed
     setImageKey(prev => prev + 1)
   }, [index, currentEpoch, debouncedTrackImageView])
+
+  // Check if we have a cached image to avoid loading state
+  useEffect(() => {
+    if (index && currentEpoch) {
+      const cachedImage = epochPreloader.getCachedImage(currentEpoch, index);
+      if (cachedImage) {
+        // Image is already cached, no loading needed
+      }
+    }
+  }, [index, currentEpoch]);
 
   const dismissIndicator = () => {
     setFadeOut(true)
@@ -869,15 +871,10 @@ export default function Home() {
             key={imageKey}
             src={imageSrc}
             alt={`Image ${index} from Epoch ${currentEpoch}`}
-            onLoad={() => setIsLoading(false)}
-            onLoadStart={() => setIsLoading(true)}
+            onLoad={() => {}} // Removed onLoad
+            onLoadStart={() => {}} // Removed onLoadStart
             priority
           />
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          )}
         </div>
       )}
 
