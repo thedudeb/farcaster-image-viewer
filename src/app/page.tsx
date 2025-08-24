@@ -33,6 +33,7 @@ const ZoomableImage = ({
   const [translateY, setTranslateY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [imageLoaded, setImageLoaded] = useState(false);
   
   const imageRef = useRef<HTMLDivElement>(null);
   const lastTouchDistance = useRef<number>(0);
@@ -43,7 +44,17 @@ const ZoomableImage = ({
     setScale(1);
     setTranslateX(0);
     setTranslateY(0);
+    setImageLoaded(false);
   }, [src]);
+
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+    onLoad();
+  };
+
+  const handleImageLoadStart = () => {
+    onLoadStart();
+  };
 
   const getDistance = (touches: React.TouchList) => {
     if (touches.length < 2) return 0;
@@ -142,14 +153,25 @@ const ZoomableImage = ({
           alt={alt}
           width={1920}
           height={1080}
-          className="object-contain w-full h-full"
-          onLoad={onLoad}
-          onLoadStart={onLoadStart}
+          className={`object-contain w-full h-full transition-opacity duration-300 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          onLoad={handleImageLoad}
+          onLoadStart={handleImageLoadStart}
           priority={priority}
           loading="eager"
           sizes="100vw"
           quality={85}
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
         />
+        
+        {/* Loading placeholder */}
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-gray-800 animate-pulse flex items-center justify-center">
+            <div className="w-16 h-16 border-4 border-gray-600 border-t-white rounded-full animate-spin"></div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -183,6 +205,7 @@ class EpochPreloader {
   private loadedEpochs = new Set<number>();
   private loadingEpochs = new Set<number>();
   private imageCache = new Map<string, HTMLImageElement>();
+  private loadingQueue = new Map<string, Promise<void>>();
 
   async preloadEpoch(epochId: number): Promise<void> {
     if (this.loadedEpochs.has(epochId) || this.loadingEpochs.has(epochId)) {
@@ -199,39 +222,135 @@ class EpochPreloader {
     }
 
     const extension = epochId === 5 ? 'jpeg' : epochId === 6 ? 'png' : epochId === 7 ? 'jpg' : 'jpg';
+    
+    // Progressive loading: load current + next few images first, then the rest
+    const currentImageIndex = 1; // Start with first image
+    const priorityImages = this.getPriorityImageIndices(currentImageIndex, epochData.totalImages);
+    
+    // Load priority images first (current + next 3)
+    await this.loadPriorityImages(epochId, priorityImages, extension);
+    
+    // Then load the rest in background
+    this.loadRemainingImages(epochId, priorityImages, epochData.totalImages, extension);
+    
+    this.loadedEpochs.add(epochId);
+    this.loadingEpochs.delete(epochId);
+    console.log(`Epoch ${epochId} preloaded successfully`);
+  }
+
+  private getPriorityImageIndices(currentIndex: number, totalImages: number): number[] {
+    const priority = [currentIndex];
+    
+    // Add next 3 images for smooth navigation
+    for (let i = 1; i <= 3; i++) {
+      const nextIndex = currentIndex + i;
+      if (nextIndex <= totalImages) {
+        priority.push(nextIndex);
+      }
+    }
+    
+    // Add previous image if available
+    if (currentIndex > 1) {
+      priority.unshift(currentIndex - 1);
+    }
+    
+    return priority;
+  }
+
+  private async loadPriorityImages(epochId: number, priorityIndices: number[], extension: string): Promise<void> {
+    const promises = priorityIndices.map(index => 
+      this.loadSingleImage(epochId, index, extension, true)
+    );
+    
+    try {
+      await Promise.all(promises);
+      console.log(`Priority images for epoch ${epochId} loaded`);
+    } catch (error) {
+      console.error(`Failed to load priority images for epoch ${epochId}:`, error);
+    }
+  }
+
+  private loadRemainingImages(epochId: number, priorityIndices: number[], totalImages: number, extension: string): void {
+    // Load remaining images in background
+    for (let i = 1; i <= totalImages; i++) {
+      if (!priorityIndices.includes(i)) {
+        this.loadSingleImage(epochId, i, extension, false);
+      }
+    }
+  }
+
+  private async loadSingleImage(epochId: number, imageIndex: number, extension: string, isPriority: boolean): Promise<void> {
+    const imageSrc = `/images/epoch${epochId}/${imageIndex}.${extension}`;
+    const cacheKey = `${epochId}-${imageIndex}`;
+    
+    // Check if already cached
+    if (this.imageCache.has(cacheKey)) {
+      return;
+    }
+
+    // Check if already loading
+    if (this.loadingQueue.has(cacheKey)) {
+      return this.loadingQueue.get(cacheKey);
+    }
+
+    // Create loading promise
+    const loadingPromise = new Promise<void>((resolve) => {
+      const img = new window.Image();
+      
+      img.onload = () => {
+        this.imageCache.set(cacheKey, img);
+        this.loadingQueue.delete(cacheKey);
+        this.manageCacheSize();
+        
+        // Update progress
+        const epochData = EPOCHS.find(e => e.id === epochId);
+        if (epochData) {
+          const progress = (this.imageCache.size / epochData.totalImages) * 100;
+          // Dispatch custom event for progress updates
+          window.dispatchEvent(new CustomEvent('imageLoadingProgress', { 
+            detail: { epochId, progress: Math.min(progress, 100) } 
+          }));
+        }
+        
+        resolve();
+      };
+      
+      img.onerror = () => {
+        console.warn(`Failed to preload image: ${imageSrc}`);
+        this.loadingQueue.delete(cacheKey);
+        resolve(); // Don't fail the whole epoch for one bad image
+      };
+      
+      // Set loading priority
+      if (isPriority) {
+        img.loading = 'eager';
+      }
+      
+      img.src = imageSrc;
+    });
+
+    this.loadingQueue.set(cacheKey, loadingPromise);
+    return loadingPromise;
+  }
+
+  // Preload specific image range (for navigation)
+  async preloadImageRange(epochId: number, startIndex: number, endIndex: number): Promise<void> {
+    const epochData = EPOCHS.find(e => e.id === epochId);
+    if (!epochData) return;
+
+    const extension = epochId === 5 ? 'jpeg' : epochId === 6 ? 'png' : epochId === 7 ? 'jpg' : 'jpg';
     const promises: Promise<void>[] = [];
 
-    // Preload all images in the epoch
-    for (let i = 1; i <= epochData.totalImages; i++) {
-      const imageSrc = `/images/epoch${epochId}/${i}.${extension}`;
-      const cacheKey = `${epochId}-${i}`;
-      
-      if (!this.imageCache.has(cacheKey)) {
-        const promise = new Promise<void>((resolve) => {
-          const img = new window.Image();
-          img.onload = () => {
-            this.imageCache.set(cacheKey, img);
-            this.manageCacheSize(); // Manage cache size after adding new image
-            resolve();
-          };
-          img.onerror = () => {
-            console.warn(`Failed to preload image: ${imageSrc}`);
-            resolve(); // Don't fail the whole epoch for one bad image
-          };
-          img.src = imageSrc;
-        });
-        promises.push(promise);
+    for (let i = startIndex; i <= endIndex; i++) {
+      if (i >= 1 && i <= epochData.totalImages) {
+        promises.push(this.loadSingleImage(epochId, i, extension, true));
       }
     }
 
     try {
       await Promise.all(promises);
-      this.loadedEpochs.add(epochId);
-      console.log(`Epoch ${epochId} preloaded successfully`);
     } catch (error) {
-      console.error(`Failed to preload epoch ${epochId}:`, error);
-    } finally {
-      this.loadingEpochs.delete(epochId);
+      console.error(`Failed to preload image range for epoch ${epochId}:`, error);
     }
   }
 
@@ -250,13 +369,14 @@ class EpochPreloader {
 
   clearCache(): void {
     this.imageCache.clear();
+    this.loadingQueue.clear();
     this.loadedEpochs.clear();
     this.loadingEpochs.clear();
   }
 
   // Manage cache size to prevent memory issues
   private manageCacheSize(): void {
-    const maxCacheSize = 500; // Maximum number of cached images
+    const maxCacheSize = 200; // Reduced from 500 to improve performance
     if (this.imageCache.size > maxCacheSize) {
       // Remove oldest entries (simple FIFO)
       const keysToRemove = Array.from(this.imageCache.keys()).slice(0, this.imageCache.size - maxCacheSize);
@@ -297,6 +417,7 @@ export default function Home() {
   const [currentImage, setCurrentImage] = useState<string | null>(null)
   const [imageKey, setImageKey] = useState(0)
   const [epochLoading, setEpochLoading] = useState(false)
+  const [imageLoadingProgress, setImageLoadingProgress] = useState(0)
   
   // Track viewed images to avoid duplicate analytics
   const viewedImages = useRef<Set<string>>(new Set())
@@ -651,7 +772,7 @@ export default function Home() {
       }));
     }
     
-    // Start preloading the new epoch
+    // Start preloading the new epoch with priority loading
     try {
       await epochPreloader.preloadEpoch(epochId);
       setEpochLoading(false);
@@ -668,6 +789,40 @@ export default function Home() {
       console.error('Failed to send Farcaster notification:', error);
     }
   };
+
+  // Preload nearby images when navigating
+  const preloadNearbyImages = useCallback((epochId: number, currentIndex: number) => {
+    const epochData = EPOCHS.find(e => e.id === epochId);
+    if (!epochData) return;
+
+    const startIndex = Math.max(1, currentIndex - 2);
+    const endIndex = Math.min(epochData.totalImages, currentIndex + 3);
+    
+    // Preload range in background
+    epochPreloader.preloadImageRange(epochId, startIndex, endIndex);
+  }, []);
+
+  // Update preloading when index changes
+  useEffect(() => {
+    if (index && currentEpoch) {
+      preloadNearbyImages(currentEpoch, index);
+    }
+  }, [index, currentEpoch, preloadNearbyImages]);
+
+  // Listen for image loading progress updates
+  useEffect(() => {
+    const handleImageProgress = (event: CustomEvent) => {
+      if (event.detail.epochId === currentEpoch) {
+        setImageLoadingProgress(event.detail.progress);
+      }
+    };
+
+    window.addEventListener('imageLoadingProgress', handleImageProgress as EventListener);
+    
+    return () => {
+      window.removeEventListener('imageLoadingProgress', handleImageProgress as EventListener);
+    };
+  }, [currentEpoch]);
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -753,7 +908,16 @@ export default function Home() {
               <div className="text-center text-white">
                 <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                 <p className="text-lg font-semibold">Loading Epoch {currentEpoch}...</p>
-                <p className="text-sm opacity-75 mt-2">Preloading all images for smooth navigation</p>
+                <p className="text-sm opacity-75 mt-2">Preloading priority images for smooth navigation</p>
+                
+                {/* Progress bar */}
+                <div className="w-64 bg-gray-700 rounded-full h-2 mt-4 mx-auto">
+                  <div 
+                    className="bg-green-500 h-2 rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${imageLoadingProgress}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs opacity-75 mt-2">{Math.round(imageLoadingProgress)}% loaded</p>
               </div>
             </div>
           )}
