@@ -33,7 +33,6 @@ const ZoomableImage = ({
   const [translateY, setTranslateY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [imageLoaded, setImageLoaded] = useState(false);
   
   const imageRef = useRef<HTMLDivElement>(null);
   const lastTouchDistance = useRef<number>(0);
@@ -44,11 +43,9 @@ const ZoomableImage = ({
     setScale(1);
     setTranslateX(0);
     setTranslateY(0);
-    setImageLoaded(false);
   }, [src]);
 
   const handleImageLoad = () => {
-    setImageLoaded(true);
     onLoad();
   };
 
@@ -153,25 +150,14 @@ const ZoomableImage = ({
           alt={alt}
           width={1920}
           height={1080}
-          className={`object-contain w-full h-full transition-opacity duration-300 ${
-            imageLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
+          className="object-contain w-full h-full"
           onLoad={handleImageLoad}
           onLoadStart={handleImageLoadStart}
           priority={priority}
           loading="eager"
           sizes="100vw"
           quality={85}
-          placeholder="blur"
-          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
         />
-        
-        {/* Loading placeholder */}
-        {!imageLoaded && (
-          <div className="absolute inset-0 bg-gray-800 animate-pulse flex items-center justify-center">
-            <div className="w-16 h-16 border-4 border-gray-600 border-t-white rounded-full animate-spin"></div>
-          </div>
-        )}
       </div>
     </div>
   );
