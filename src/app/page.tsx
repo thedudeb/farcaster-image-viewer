@@ -175,12 +175,20 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
     '2024-09-02': { name: 'Chronist', epoch: 7, fid: 499579 }, // Sep 2-9
   };
 
+  // Debug: Log the featured artists data
+  useEffect(() => {
+    console.log('Featured artists data:', featuredArtists);
+    console.log('Current month:', currentMonth.toISOString().split('T')[0]);
+  }, [currentMonth]);
+
   // Fetch profile pictures from Neynar API
   useEffect(() => {
     const fetchProfilePictures = async () => {
       try {
         const fids = Object.values(featuredArtists).map(artist => artist.fid);
         const uniqueFids = [...new Set(fids)];
+        
+        console.log('Fetching profile pictures for FIDs:', uniqueFids);
         
         const response = await fetch('/api/artists/recent');
         if (response.ok) {
@@ -189,9 +197,13 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
           
           data.artists?.forEach((artist: { fid: number; pfp: string }) => {
             pictures[artist.fid] = artist.pfp;
+            console.log(`Loaded profile picture for FID ${artist.fid}:`, artist.pfp ? 'Success' : 'No URL');
           });
           
+          console.log('Profile pictures loaded:', Object.keys(pictures));
           setProfilePictures(pictures);
+        } else {
+          console.error('Failed to fetch artists:', response.status, await response.text());
         }
       } catch (error) {
         console.error('Failed to fetch profile pictures:', error);
@@ -314,6 +326,11 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
               const isWeekStart = day.getDay() === 0;
               const isToday = formatDate(day) === formatDate(new Date());
 
+              // Debug logging
+              if (isWeekStart && artist) {
+                console.log(`Week starting ${formatDate(weekStart)}:`, artist.name, 'FID:', artist.fid, 'Profile pic:', profilePictures[artist.fid] ? 'Yes' : 'No');
+              }
+
               return (
                 <div
                   key={index}
@@ -339,6 +356,10 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                             src={profilePictures[artist.fid]} 
                             alt={artist.name}
                             className="w-12 h-12 rounded-full object-cover mb-2 border-2 border-purple-300"
+                            onError={(e) => {
+                              console.log('Profile picture failed to load for:', artist.name);
+                              e.currentTarget.style.display = 'none';
+                            }}
                           />
                         ) : (
                           <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white text-sm font-bold mb-2">
@@ -350,6 +371,9 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                         </div>
                         <div className="text-xs text-gray-500">
                           Epoch {artist.epoch}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          FID: {artist.fid}
                         </div>
                       </div>
                     )}
