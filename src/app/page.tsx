@@ -170,9 +170,9 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
   
   // Featured artists data with actual dates and FIDs
   const featuredArtists = {
-    '2025-08-17': { name: 'Greywash', epoch: 5, fid: 1075107 }, // Week of Aug 17-23
-    '2025-08-24': { name: 'dwn2earth', epoch: 6, fid: 288204 }, // Week of Aug 24-30
-    '2025-08-31': { name: 'Chronist', epoch: 7, fid: 499579 }, // Week of Aug 31-Sep 6
+    '2025-08-03': { name: 'Greywash', epoch: 5, fid: 1075107 }, // Week of Aug 3-9
+    '2025-08-10': { name: 'dwn2earth', epoch: 6, fid: 288204 }, // Week of Aug 10-16
+    '2025-08-17': { name: 'Chronist', epoch: 7, fid: 499579 }, // Week of Aug 17-23
   };
 
   // Debug: Log the featured artists data
@@ -197,7 +197,7 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
   // Track when artists are being rendered
   useEffect(() => {
     if (isOpen) {
-      const weekStarts = ['2025-08-17', '2025-08-24', '2025-08-31'];
+      const weekStarts = ['2025-08-03', '2025-08-10', '2025-08-17'];
       weekStarts.forEach(weekStart => {
         const artist = featuredArtists[weekStart as keyof typeof featuredArtists];
         if (artist) {
