@@ -170,15 +170,14 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
   
   // Featured artists data with actual dates and FIDs
   const featuredArtists = {
-    '2024-08-19': { name: 'Greywash', epoch: 5, fid: 1075107 }, // Aug 21-27
-    '2024-08-26': { name: 'dwn2earth', epoch: 6, fid: 288204 }, // Aug 27-Sep 2
-    '2024-09-02': { name: 'Chronist', epoch: 7, fid: 499579 }, // Sep 2-9
+    '2025-08-19': { name: 'Greywash', epoch: 5, fid: 1075107 }, // Aug 21-27
+    '2025-08-26': { name: 'dwn2earth', epoch: 6, fid: 288204 }, // Aug 27-Sep 2
+    '2025-09-02': { name: 'Chronist', epoch: 7, fid: 499579 }, // Sep 2-9
   };
 
   // Debug: Log the featured artists data
   useEffect(() => {
-    console.log('Featured artists data:', featuredArtists);
-    console.log('Current month:', currentMonth.toISOString().split('T')[0]);
+    // Removed debugging logs
   }, [currentMonth]);
 
   // Fetch profile pictures from Neynar API
@@ -188,8 +187,6 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
         const fids = Object.values(featuredArtists).map(artist => artist.fid);
         const uniqueFids = [...new Set(fids)];
         
-        console.log('Fetching profile pictures for FIDs:', uniqueFids);
-        
         const response = await fetch('/api/artists/recent');
         if (response.ok) {
           const data = await response.json();
@@ -197,10 +194,8 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
           
           data.artists?.forEach((artist: { fid: number; pfp: string }) => {
             pictures[artist.fid] = artist.pfp;
-            console.log(`Loaded profile picture for FID ${artist.fid}:`, artist.pfp ? 'Success' : 'No URL');
           });
           
-          console.log('Profile pictures loaded:', Object.keys(pictures));
           setProfilePictures(pictures);
         } else {
           console.error('Failed to fetch artists:', response.status, await response.text());
@@ -325,11 +320,6 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
               const artist = getArtistForWeek(weekStart);
               const isWeekStart = day.getDay() === 0;
               const isToday = formatDate(day) === formatDate(new Date());
-
-              // Debug logging
-              if (isWeekStart && artist) {
-                console.log(`Week starting ${formatDate(weekStart)}:`, artist.name, 'FID:', artist.fid, 'Profile pic:', profilePictures[artist.fid] ? 'Yes' : 'No');
-              }
 
               return (
                 <div
