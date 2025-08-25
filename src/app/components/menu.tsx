@@ -443,7 +443,7 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                            </div>
                          </div>
                          
-                         {epoch.locked && (
+                         {epoch.locked && epoch.id !== 6 && (
                            <span className="text-gray-500">
                              🔒
                            </span>
