@@ -166,19 +166,40 @@ const ZoomableImage = ({
 // Calendar component for featured artists
 const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [profilePictures, setProfilePictures] = useState<Record<number, string>>({});
   
-  // Featured artists data - you can update this with actual artist schedules
+  // Featured artists data with actual dates and FIDs
   const featuredArtists = {
-    '2024-01-15': { name: '0ffline', epoch: 1, pfp: '/api/artists/recent' },
-    '2024-01-22': { name: '0ffline', epoch: 2, pfp: '/api/artists/recent' },
-    '2024-01-29': { name: '0ffline', epoch: 3, pfp: '/api/artists/recent' },
-    '2024-02-05': { name: 'Greywash', epoch: 5, pfp: '/api/artists/recent' },
-    '2024-02-12': { name: 'dwn2earth', epoch: 6, pfp: '/api/artists/recent' },
-    '2024-02-19': { name: 'Chronist', epoch: 7, pfp: '/api/artists/recent' },
-    '2024-02-26': { name: '0ffline', epoch: 1, pfp: '/api/artists/recent' },
-    '2024-03-05': { name: 'Greywash', epoch: 5, pfp: '/api/artists/recent' },
-    '2024-03-12': { name: 'Chronist', epoch: 7, pfp: '/api/artists/recent' },
+    '2024-08-19': { name: 'Greywash', epoch: 5, fid: 1075107 }, // Aug 21-27
+    '2024-08-26': { name: 'dwn2earth', epoch: 6, fid: 288204 }, // Aug 27-Sep 2
+    '2024-09-02': { name: 'Chronist', epoch: 7, fid: 499579 }, // Sep 2-9
   };
+
+  // Fetch profile pictures from Neynar API
+  useEffect(() => {
+    const fetchProfilePictures = async () => {
+      try {
+        const fids = Object.values(featuredArtists).map(artist => artist.fid);
+        const uniqueFids = [...new Set(fids)];
+        
+        const response = await fetch('/api/artists/recent');
+        if (response.ok) {
+          const data = await response.json();
+          const pictures: Record<number, string> = {};
+          
+          data.artists?.forEach((artist: { fid: number; pfp: string }) => {
+            pictures[artist.fid] = artist.pfp;
+          });
+          
+          setProfilePictures(pictures);
+        }
+      } catch (error) {
+        console.error('Failed to fetch profile pictures:', error);
+      }
+    };
+
+    fetchProfilePictures();
+  }, []);
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -232,7 +253,7 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full mx-4 max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6">
           <div className="flex items-center justify-between">
@@ -273,7 +294,7 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
         {/* Calendar Grid */}
         <div className="p-6 overflow-auto max-h-[60vh]">
           {/* Day headers */}
-          <div className="grid grid-cols-7 gap-2 mb-4">
+          <div className="grid grid-cols-7 gap-3 mb-4">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
               <div key={day} className="text-center text-sm font-semibold text-gray-600 py-2">
                 {day}
@@ -282,10 +303,10 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
           </div>
 
           {/* Calendar days */}
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-3">
             {days.map((day, index) => {
               if (!day) {
-                return <div key={index} className="h-24 bg-gray-50 rounded-lg"></div>;
+                return <div key={index} className="h-32 bg-gray-50 rounded-lg"></div>;
               }
 
               const weekStart = getWeekStart(day);
@@ -296,7 +317,7 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
               return (
                 <div
                   key={index}
-                  className={`h-24 rounded-lg border-2 transition-all duration-200 ${
+                  className={`h-32 rounded-lg border-2 transition-all duration-200 ${
                     isToday 
                       ? 'border-blue-500 bg-blue-50' 
                       : isWeekStart && artist
@@ -304,7 +325,7 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
                 >
-                  <div className="p-2 h-full flex flex-col">
+                  <div className="p-3 h-full flex flex-col">
                     <div className={`text-sm font-medium ${
                       isToday ? 'text-blue-600' : 'text-gray-700'
                     }`}>
@@ -313,10 +334,18 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                     
                     {isWeekStart && artist && (
                       <div className="flex-1 flex flex-col items-center justify-center text-center">
-                        <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
-                          {artist.name.charAt(0)}
-                        </div>
-                        <div className="text-xs font-medium text-purple-700">
+                        {profilePictures[artist.fid] ? (
+                          <img 
+                            src={profilePictures[artist.fid]} 
+                            alt={artist.name}
+                            className="w-12 h-12 rounded-full object-cover mb-2 border-2 border-purple-300"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white text-sm font-bold mb-2">
+                            {artist.name.charAt(0)}
+                          </div>
+                        )}
+                        <div className="text-sm font-medium text-purple-700">
                           {artist.name}
                         </div>
                         <div className="text-xs text-gray-500">
