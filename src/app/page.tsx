@@ -165,47 +165,14 @@ const ZoomableImage = ({
 
 // Calendar component for featured artists
 const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [profilePictures, setProfilePictures] = useState<Record<number, string>>({});
   
   // Featured artists data with actual dates and FIDs
   const featuredArtists = {
-    '2025-08-03': { name: 'Greywash', epoch: 5, fid: 1075107 }, // Week of Aug 3-9
-    '2025-08-10': { name: 'dwn2earth', epoch: 6, fid: 288204 }, // Week of Aug 10-16
-    '2025-08-17': { name: 'Chronist', epoch: 7, fid: 499579 }, // Week of Aug 17-23
+    '2025-08-17': { name: 'Greywash', epoch: 5, fid: 1075107 }, // Aug 21-27
+    '2025-08-24': { name: 'dwn2earth', epoch: 6, fid: 288204 }, // Aug 27-Sep 2
+    '2025-09-02': { name: 'Chronist', epoch: 7, fid: 499579 }, // Sep 2-9
   };
-
-  // Debug: Log the featured artists data
-  useEffect(() => {
-    console.log('=== CALENDAR DEBUG ===');
-    console.log('Featured artists data:', featuredArtists);
-    console.log('Current month:', currentMonth.toISOString().split('T')[0]);
-    console.log('Current month name:', currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
-    console.log('Profile pictures loaded:', Object.keys(profilePictures));
-    
-    // Frame-specific debugging
-    console.log('Frame context check:');
-    console.log('- window.location.href:', window.location.href);
-    console.log('- document.referrer:', document.referrer);
-    console.log('- window.parent !== window:', window.parent !== window);
-    console.log('- navigator.userAgent:', navigator.userAgent);
-    console.log('- Is in Frame:', window.location.href.includes('frame') || document.referrer.includes('frame'));
-    
-    console.log('=====================');
-  }, [currentMonth, profilePictures]);
-
-  // Track when artists are being rendered
-  useEffect(() => {
-    if (isOpen) {
-      const weekStarts = ['2025-08-03', '2025-08-10', '2025-08-17'];
-      weekStarts.forEach(weekStart => {
-        const artist = featuredArtists[weekStart as keyof typeof featuredArtists];
-        if (artist) {
-          console.log(`Artist ${artist.name} should be visible for week ${weekStart}`);
-        }
-      });
-    }
-  }, [isOpen, currentMonth]);
 
   // Fetch profile pictures from Neynar API
   useEffect(() => {
@@ -235,199 +202,118 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
     fetchProfilePictures();
   }, []);
 
-  const getDaysInMonth = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDay = firstDay.getDay();
-    
-    return { daysInMonth, startingDay };
-  };
-
-  const formatDate = (date: Date) => {
-    return date.toISOString().split('T')[0];
-  };
-
-  const getWeekStart = (date: Date) => {
-    const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day;
-    const weekStart = new Date(d.setDate(diff));
-    console.log(`Week start calculation: ${formatDate(date)} (day ${day}) -> ${formatDate(weekStart)}`);
-    return weekStart;
-  };
-
-  const getArtistForWeek = (weekStart: Date) => {
-    const weekKey = formatDate(weekStart);
-    const artist = featuredArtists[weekKey as keyof typeof featuredArtists];
-    if (artist) {
-      console.log(`Found artist for week ${weekKey}:`, artist.name);
-    }
-    return artist;
-  };
-
-  const { daysInMonth, startingDay } = getDaysInMonth(currentMonth);
-  const days = [];
-  
-  console.log('Calendar generation:', {
-    daysInMonth,
-    startingDay,
-    currentMonth: currentMonth.toISOString().split('T')[0]
-  });
-  
-  // Add empty cells for days before the first day of the month
-  for (let i = 0; i < startingDay; i++) {
-    days.push(null);
-  }
-  
-  // Add days of the month
-  for (let i = 1; i <= daysInMonth; i++) {
-    days.push(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i));
-  }
-
-  const nextMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
-  };
-
-  const prevMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
-  };
-
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full mx-4 max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Featured Artists Calendar</h2>
+            <h2 className="text-2xl font-bold">Featured Artists Schedule</h2>
             <button
               onClick={onClose}
-              className="text-white hover:text-gray-200 transition-colors"
+              className="text-white hover:text-gray-200 text-2xl font-bold"
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-          </div>
-          <div className="flex items-center justify-between mt-4">
-            <button
-              onClick={prevMonth}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="15,18 9,12 15,6"/>
-              </svg>
-            </button>
-            <h3 className="text-xl font-semibold">
-              {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-            </h3>
-            <button
-              onClick={nextMonth}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="9,18 15,12 9,6"/>
-              </svg>
+              ×
             </button>
           </div>
         </div>
 
-        {/* Calendar Grid */}
-        <div className="p-6 overflow-auto max-h-[60vh]">
-          {/* Day headers */}
-          <div className="grid grid-cols-7 gap-3 mb-4">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="text-center text-sm font-semibold text-gray-600 py-2">
-                {day}
+        {/* Week View Content */}
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+          <div className="space-y-6">
+            {/* Week 1: Greywash */}
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-purple-800">Week of August 17-23, 2025</h3>
+                <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+                  Epoch 5
+                </span>
               </div>
-            ))}
-          </div>
-
-          {/* Calendar days */}
-          <div className="grid grid-cols-7 gap-3">
-            {days.map((day, index) => {
-              if (!day) {
-                return <div key={index} className="h-32 bg-gray-50 rounded-lg"></div>;
-              }
-
-              const weekStart = getWeekStart(day);
-              const artist = getArtistForWeek(weekStart);
-              const isWeekStart = day.getDay() === 0;
-              const isToday = formatDate(day) === formatDate(new Date());
-
-              // Debug: Log week starts being checked
-              if (isWeekStart) {
-                console.log(`Checking week starting: ${formatDate(weekStart)}`);
-              }
-
-              return (
-                <div
-                  key={index}
-                  className={`h-32 rounded-lg border-2 transition-all duration-200 ${
-                    isToday 
-                      ? 'border-blue-500 bg-blue-50' 
-                      : isWeekStart && artist
-                      ? 'border-purple-300 bg-purple-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
-                >
-                  <div className="p-3 h-full flex flex-col">
-                    <div className={`text-sm font-medium ${
-                      isToday ? 'text-blue-600' : 'text-gray-700'
-                    }`}>
-                      {day.getDate()}
-                    </div>
-                    
-                    {isWeekStart && artist && (
-                      <div className="flex-1 flex flex-col items-center justify-center text-center">
-                        {profilePictures[artist.fid] ? (
-                          <img 
-                            src={profilePictures[artist.fid]} 
-                            alt={artist.name}
-                            className="w-12 h-12 rounded-full object-cover mb-2 border-2 border-purple-300"
-                            onError={(e) => {
-                              console.log('Profile picture failed to load for:', artist.name);
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white text-sm font-bold mb-2">
-                            {artist.name.charAt(0)}
-                          </div>
-                        )}
-                        <div className="text-sm font-medium text-purple-700">
-                          {artist.name}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Epoch {artist.epoch}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          FID: {artist.fid}
-                        </div>
-                      </div>
-                    )}
+              <div className="flex items-center space-x-4">
+                {profilePictures[1075107] ? (
+                  <img 
+                    src={profilePictures[1075107]} 
+                    alt="Greywash"
+                    className="w-16 h-16 rounded-full object-cover border-3 border-purple-300"
+                    onError={(e) => {
+                      console.log('Profile picture failed to load for: Greywash');
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                    G
                   </div>
+                )}
+                <div>
+                  <h4 className="text-xl font-bold text-purple-900">Greywash</h4>
+                  <p className="text-purple-600">FID: 1075107</p>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Legend */}
-        <div className="bg-gray-50 p-4 border-t">
-          <div className="flex items-center justify-center space-x-6 text-sm">
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 border-2 border-blue-500 bg-blue-50 rounded"></div>
-              <span>Today</span>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 border-2 border-purple-300 bg-purple-50 rounded"></div>
-              <span>Featured Artist</span>
+
+            {/* Week 2: dwn2earth */}
+            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-blue-800">Week of August 24-30, 2025</h3>
+                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                  Epoch 6
+                </span>
+              </div>
+              <div className="flex items-center space-x-4">
+                {profilePictures[288204] ? (
+                  <img 
+                    src={profilePictures[288204]} 
+                    alt="dwn2earth"
+                    className="w-16 h-16 rounded-full object-cover border-3 border-blue-300"
+                    onError={(e) => {
+                      console.log('Profile picture failed to load for: dwn2earth');
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                    D
+                  </div>
+                )}
+                <div>
+                  <h4 className="text-xl font-bold text-blue-900">dwn2earth</h4>
+                  <p className="text-blue-600">FID: 288204</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Week 3: Chronist */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-green-800">Week of September 2-8, 2025</h3>
+                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                  Epoch 7
+                </span>
+              </div>
+              <div className="flex items-center space-x-4">
+                {profilePictures[499579] ? (
+                  <img 
+                    src={profilePictures[499579]} 
+                    alt="Chronist"
+                    className="w-16 h-16 rounded-full object-cover border-3 border-green-300"
+                    onError={(e) => {
+                      console.log('Profile picture failed to load for: Chronist');
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-400 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                    C
+                  </div>
+                )}
+                <div>
+                  <h4 className="text-xl font-bold text-green-900">Chronist</h4>
+                  <p className="text-green-600">FID: 499579</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
