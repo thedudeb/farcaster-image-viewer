@@ -182,8 +182,30 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
     console.log('Current month:', currentMonth.toISOString().split('T')[0]);
     console.log('Current month name:', currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
     console.log('Profile pictures loaded:', Object.keys(profilePictures));
+    
+    // Frame-specific debugging
+    console.log('Frame context check:');
+    console.log('- window.location.href:', window.location.href);
+    console.log('- document.referrer:', document.referrer);
+    console.log('- window.parent !== window:', window.parent !== window);
+    console.log('- navigator.userAgent:', navigator.userAgent);
+    console.log('- Is in Frame:', window.location.href.includes('frame') || document.referrer.includes('frame'));
+    
     console.log('=====================');
   }, [currentMonth, profilePictures]);
+
+  // Track when artists are being rendered
+  useEffect(() => {
+    if (isOpen) {
+      const weekStarts = ['2025-08-17', '2025-08-24', '2025-08-31'];
+      weekStarts.forEach(weekStart => {
+        const artist = featuredArtists[weekStart as keyof typeof featuredArtists];
+        if (artist) {
+          console.log(`Artist ${artist.name} should be visible for week ${weekStart}`);
+        }
+      });
+    }
+  }, [isOpen, currentMonth]);
 
   // Fetch profile pictures from Neynar API
   useEffect(() => {
