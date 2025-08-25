@@ -387,7 +387,7 @@ const EPOCHS = [
   { id: 4, name: 'Epoch 4', totalImages: 0, locked: true },
   { id: 5, name: 'Epoch 5', totalImages: 6, locked: false },
   { id: 6, name: 'Epoch 6', totalImages: 10, locked: true },
-  { id: 7, name: 'Epoch 7', totalImages: 45, locked: false, artist: 'Chronist', fid: 499579 },
+  { id: 7, name: 'Epoch 7', totalImages: 45, locked: true, artist: 'Chronist', fid: 499579 },
 ];
 
 // Debounce function for analytics
