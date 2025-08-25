@@ -238,7 +238,7 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Featured Artists Schedule</h2>
+            <h2 className="text-2xl font-bold">Upcoming</h2>
             <button
               onClick={onClose}
               className="text-white hover:text-gray-200 text-2xl font-bold"
@@ -254,8 +254,8 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
             {/* Week 1: Greywash */}
             <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-purple-800">Week of August 17-23, 2025</h3>
-                <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+                <h3 className="text-base font-semibold text-purple-800">Week of August 17-23, 2025</h3>
+                <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
                   Epoch 5
                 </span>
               </div>
@@ -286,8 +286,8 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                   onClick={() => handleArtistClick(featuredArtists['2025-08-17'])}
                   title="View Greywash's Farcaster profile"
                 >
-                  <h4 className="text-xl font-bold text-purple-900">Greywash</h4>
-                  <p className="text-purple-600">FID: 1075107</p>
+                  <h4 className="text-lg font-bold text-purple-900">Greywash</h4>
+                  <p className="text-sm text-purple-600">FID: 1075107</p>
                 </div>
               </div>
             </div>
@@ -295,8 +295,8 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
             {/* Week 2: dwn2earth */}
             <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-blue-800">Week of August 24-30, 2025</h3>
-                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                <h3 className="text-base font-semibold text-blue-800">Week of August 24-30, 2025</h3>
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
                   Epoch 6
                 </span>
               </div>
@@ -327,8 +327,8 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                   onClick={() => handleArtistClick(featuredArtists['2025-08-24'])}
                   title="View dwn2earth's Farcaster profile"
                 >
-                  <h4 className="text-xl font-bold text-blue-900">dwn2earth</h4>
-                  <p className="text-blue-600">FID: 288204</p>
+                  <h4 className="text-lg font-bold text-blue-900">dwn2earth</h4>
+                  <p className="text-sm text-blue-600">FID: 288204</p>
                 </div>
               </div>
             </div>
@@ -336,8 +336,8 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
             {/* Week 3: Chronist */}
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-green-800">Week of September 2-8, 2025</h3>
-                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                <h3 className="text-base font-semibold text-green-800">Week of September 2-8, 2025</h3>
+                <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
                   Epoch 7
                 </span>
               </div>
@@ -368,8 +368,8 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                   onClick={() => handleArtistClick(featuredArtists['2025-09-02'])}
                   title="View Chronist's Farcaster profile"
                 >
-                  <h4 className="text-xl font-bold text-green-900">Chronist</h4>
-                  <p className="text-green-600">FID: 499579</p>
+                  <h4 className="text-lg font-bold text-green-900">Chronist</h4>
+                  <p className="text-sm text-green-600">FID: 499579</p>
                 </div>
               </div>
             </div>
