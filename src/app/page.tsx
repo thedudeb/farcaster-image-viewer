@@ -169,9 +169,37 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
   
   // Featured artists data with actual dates and FIDs
   const featuredArtists = {
-    '2025-08-17': { name: 'Greywash', epoch: 5, fid: 1075107 }, // Aug 21-27
-    '2025-08-24': { name: 'dwn2earth', epoch: 6, fid: 288204 }, // Aug 27-Sep 2
-    '2025-09-02': { name: 'Chronist', epoch: 7, fid: 499579 }, // Sep 2-9
+    '2025-08-17': { name: 'Greywash', epoch: 5, fid: 1075107, username: 'greywash' }, // Aug 21-27
+    '2025-08-24': { name: 'dwn2earth', epoch: 6, fid: 288204, username: 'dwn2earth' }, // Aug 27-Sep 2
+    '2025-09-02': { name: 'Chronist', epoch: 7, fid: 499579, username: 'chronist' }, // Sep 2-9
+  };
+
+  // Handle artist profile click using Farcaster Frame SDK
+  const handleArtistClick = async (artist: { name: string; fid: number; username: string }) => {
+    try {
+      // Import the frame SDK
+      const frame = await import('@farcaster/frame-sdk');
+      
+      if (frame.sdk && frame.sdk.actions) {
+        // Use the official viewProfile method with FID
+        if (frame.sdk.actions.viewProfile) {
+          await frame.sdk.actions.viewProfile({ fid: artist.fid });
+        } else {
+          // Fallback to openUrl with farcaster:// scheme
+          const profileUrl = `farcaster://profile/${artist.username}`;
+          await frame.sdk.actions.openUrl(profileUrl);
+        }
+      } else {
+        // Fallback to web URL
+        const profileUrl = `https://warpcast.com/${artist.username}`;
+        window.open(profileUrl, '_blank');
+      }
+    } catch (err) {
+      console.error('Error opening artist profile:', err);
+      // Final fallback
+      const profileUrl = `https://warpcast.com/${artist.username}`;
+      window.open(profileUrl, '_blank');
+    }
   };
 
   // Fetch profile pictures from Neynar API
@@ -234,7 +262,7 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
               <div className="flex items-center space-x-4">
                 <div 
                   className="cursor-pointer hover:scale-105 transition-transform duration-200"
-                  onClick={() => window.open(`https://warpcast.com/greywash`, '_blank')}
+                  onClick={() => handleArtistClick(featuredArtists['2025-08-17'])}
                   title="View Greywash's Farcaster profile"
                 >
                   {profilePictures[1075107] ? (
@@ -255,7 +283,7 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                 </div>
                 <div 
                   className="cursor-pointer hover:text-purple-700 transition-colors"
-                  onClick={() => window.open(`https://warpcast.com/greywash`, '_blank')}
+                  onClick={() => handleArtistClick(featuredArtists['2025-08-17'])}
                   title="View Greywash's Farcaster profile"
                 >
                   <h4 className="text-xl font-bold text-purple-900">Greywash</h4>
@@ -275,7 +303,7 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
               <div className="flex items-center space-x-4">
                 <div 
                   className="cursor-pointer hover:scale-105 transition-transform duration-200"
-                  onClick={() => window.open(`https://warpcast.com/dwn2earth`, '_blank')}
+                  onClick={() => handleArtistClick(featuredArtists['2025-08-24'])}
                   title="View dwn2earth's Farcaster profile"
                 >
                   {profilePictures[288204] ? (
@@ -296,7 +324,7 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                 </div>
                 <div 
                   className="cursor-pointer hover:text-blue-700 transition-colors"
-                  onClick={() => window.open(`https://warpcast.com/dwn2earth`, '_blank')}
+                  onClick={() => handleArtistClick(featuredArtists['2025-08-24'])}
                   title="View dwn2earth's Farcaster profile"
                 >
                   <h4 className="text-xl font-bold text-blue-900">dwn2earth</h4>
@@ -316,7 +344,7 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
               <div className="flex items-center space-x-4">
                 <div 
                   className="cursor-pointer hover:scale-105 transition-transform duration-200"
-                  onClick={() => window.open(`https://warpcast.com/chronist`, '_blank')}
+                  onClick={() => handleArtistClick(featuredArtists['2025-09-02'])}
                   title="View Chronist's Farcaster profile"
                 >
                   {profilePictures[499579] ? (
@@ -337,7 +365,7 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                 </div>
                 <div 
                   className="cursor-pointer hover:text-green-700 transition-colors"
-                  onClick={() => window.open(`https://warpcast.com/chronist`, '_blank')}
+                  onClick={() => handleArtistClick(featuredArtists['2025-09-02'])}
                   title="View Chronist's Farcaster profile"
                 >
                   <h4 className="text-xl font-bold text-green-900">Chronist</h4>
