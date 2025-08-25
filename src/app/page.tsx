@@ -170,9 +170,9 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
   
   // Featured artists data with actual dates and FIDs
   const featuredArtists = {
-    '2025-08-19': { name: 'Greywash', epoch: 5, fid: 1075107 }, // Aug 21-27
-    '2025-08-26': { name: 'dwn2earth', epoch: 6, fid: 288204 }, // Aug 27-Sep 2
-    '2025-09-02': { name: 'Chronist', epoch: 7, fid: 499579 }, // Sep 2-9
+    '2025-08-17': { name: 'Greywash', epoch: 5, fid: 1075107 }, // Week of Aug 17-23
+    '2025-08-24': { name: 'dwn2earth', epoch: 6, fid: 288204 }, // Week of Aug 24-30
+    '2025-08-31': { name: 'Chronist', epoch: 7, fid: 499579 }, // Week of Aug 31-Sep 6
   };
 
   // Debug: Log the featured artists data
@@ -232,7 +232,11 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
 
   const getArtistForWeek = (weekStart: Date) => {
     const weekKey = formatDate(weekStart);
-    return featuredArtists[weekKey as keyof typeof featuredArtists];
+    const artist = featuredArtists[weekKey as keyof typeof featuredArtists];
+    if (artist) {
+      console.log(`Found artist for week ${weekKey}:`, artist.name);
+    }
+    return artist;
   };
 
   const { daysInMonth, startingDay } = getDaysInMonth(currentMonth);
@@ -320,6 +324,11 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
               const artist = getArtistForWeek(weekStart);
               const isWeekStart = day.getDay() === 0;
               const isToday = formatDate(day) === formatDate(new Date());
+
+              // Debug: Log week starts being checked
+              if (isWeekStart) {
+                console.log(`Checking week starting: ${formatDate(weekStart)}`);
+              }
 
               return (
                 <div
