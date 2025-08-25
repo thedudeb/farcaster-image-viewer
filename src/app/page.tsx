@@ -232,22 +232,32 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                 </span>
               </div>
               <div className="flex items-center space-x-4">
-                {profilePictures[1075107] ? (
-                  <img 
-                    src={profilePictures[1075107]} 
-                    alt="Greywash"
-                    className="w-16 h-16 rounded-full object-cover border-3 border-purple-300"
-                    onError={(e) => {
-                      console.log('Profile picture failed to load for: Greywash');
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                    G
-                  </div>
-                )}
-                <div>
+                <div 
+                  className="cursor-pointer hover:scale-105 transition-transform duration-200"
+                  onClick={() => window.open(`https://warpcast.com/greywash`, '_blank')}
+                  title="View Greywash's Farcaster profile"
+                >
+                  {profilePictures[1075107] ? (
+                    <img 
+                      src={profilePictures[1075107]} 
+                      alt="Greywash"
+                      className="w-16 h-16 rounded-full object-cover border-3 border-purple-300"
+                      onError={(e) => {
+                        console.log('Profile picture failed to load for: Greywash');
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                      G
+                    </div>
+                  )}
+                </div>
+                <div 
+                  className="cursor-pointer hover:text-purple-700 transition-colors"
+                  onClick={() => window.open(`https://warpcast.com/greywash`, '_blank')}
+                  title="View Greywash's Farcaster profile"
+                >
                   <h4 className="text-xl font-bold text-purple-900">Greywash</h4>
                   <p className="text-purple-600">FID: 1075107</p>
                 </div>
@@ -263,22 +273,32 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                 </span>
               </div>
               <div className="flex items-center space-x-4">
-                {profilePictures[288204] ? (
-                  <img 
-                    src={profilePictures[288204]} 
-                    alt="dwn2earth"
-                    className="w-16 h-16 rounded-full object-cover border-3 border-blue-300"
-                    onError={(e) => {
-                      console.log('Profile picture failed to load for: dwn2earth');
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                    D
-                  </div>
-                )}
-                <div>
+                <div 
+                  className="cursor-pointer hover:scale-105 transition-transform duration-200"
+                  onClick={() => window.open(`https://warpcast.com/dwn2earth`, '_blank')}
+                  title="View dwn2earth's Farcaster profile"
+                >
+                  {profilePictures[288204] ? (
+                    <img 
+                      src={profilePictures[288204]} 
+                      alt="dwn2earth"
+                      className="w-16 h-16 rounded-full object-cover border-3 border-blue-300"
+                      onError={(e) => {
+                        console.log('Profile picture failed to load for: dwn2earth');
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                      D
+                    </div>
+                  )}
+                </div>
+                <div 
+                  className="cursor-pointer hover:text-blue-700 transition-colors"
+                  onClick={() => window.open(`https://warpcast.com/dwn2earth`, '_blank')}
+                  title="View dwn2earth's Farcaster profile"
+                >
                   <h4 className="text-xl font-bold text-blue-900">dwn2earth</h4>
                   <p className="text-blue-600">FID: 288204</p>
                 </div>
@@ -294,22 +314,32 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                 </span>
               </div>
               <div className="flex items-center space-x-4">
-                {profilePictures[499579] ? (
-                  <img 
-                    src={profilePictures[499579]} 
-                    alt="Chronist"
-                    className="w-16 h-16 rounded-full object-cover border-3 border-green-300"
-                    onError={(e) => {
-                      console.log('Profile picture failed to load for: Chronist');
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-400 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                    C
-                  </div>
-                )}
-                <div>
+                <div 
+                  className="cursor-pointer hover:scale-105 transition-transform duration-200"
+                  onClick={() => window.open(`https://warpcast.com/chronist`, '_blank')}
+                  title="View Chronist's Farcaster profile"
+                >
+                  {profilePictures[499579] ? (
+                    <img 
+                      src={profilePictures[499579]} 
+                      alt="Chronist"
+                      className="w-16 h-16 rounded-full object-cover border-3 border-green-300"
+                      onError={(e) => {
+                        console.log('Profile picture failed to load for: Chronist');
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-400 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                      C
+                    </div>
+                  )}
+                </div>
+                <div 
+                  className="cursor-pointer hover:text-green-700 transition-colors"
+                  onClick={() => window.open(`https://warpcast.com/chronist`, '_blank')}
+                  title="View Chronist's Farcaster profile"
+                >
                   <h4 className="text-xl font-bold text-green-900">Chronist</h4>
                   <p className="text-green-600">FID: 499579</p>
                 </div>
