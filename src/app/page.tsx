@@ -177,8 +177,13 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
 
   // Debug: Log the featured artists data
   useEffect(() => {
-    // Removed debugging logs
-  }, [currentMonth]);
+    console.log('=== CALENDAR DEBUG ===');
+    console.log('Featured artists data:', featuredArtists);
+    console.log('Current month:', currentMonth.toISOString().split('T')[0]);
+    console.log('Current month name:', currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
+    console.log('Profile pictures loaded:', Object.keys(profilePictures));
+    console.log('=====================');
+  }, [currentMonth, profilePictures]);
 
   // Fetch profile pictures from Neynar API
   useEffect(() => {
@@ -227,7 +232,9 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
     const d = new Date(date);
     const day = d.getDay();
     const diff = d.getDate() - day;
-    return new Date(d.setDate(diff));
+    const weekStart = new Date(d.setDate(diff));
+    console.log(`Week start calculation: ${formatDate(date)} (day ${day}) -> ${formatDate(weekStart)}`);
+    return weekStart;
   };
 
   const getArtistForWeek = (weekStart: Date) => {
@@ -241,6 +248,12 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
 
   const { daysInMonth, startingDay } = getDaysInMonth(currentMonth);
   const days = [];
+  
+  console.log('Calendar generation:', {
+    daysInMonth,
+    startingDay,
+    currentMonth: currentMonth.toISOString().split('T')[0]
+  });
   
   // Add empty cells for days before the first day of the month
   for (let i = 0; i < startingDay; i++) {
