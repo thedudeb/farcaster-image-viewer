@@ -87,8 +87,14 @@ export async function GET(request: NextRequest) {
     `;
 
     // Process epoch statistics
-    const epochStats: { [epochId: number]: any } = {};
-    epochStatsResult.rows.forEach((row: any) => {
+    const epochStats: { [epochId: number]: {
+      opens: number;
+      completions: number;
+      completionRate: number;
+      avgTimeSpent: number;
+      dropoffPoints: { imageIndex: number; count: number }[];
+    } } = {};
+    epochStatsResult.rows.forEach((row: { epoch_id: number; opens: string; completions: string; avg_time_seconds: string | null }) => {
       const opens = parseInt(row.opens) || 0;
       const completions = parseInt(row.completions) || 0;
       const completionRate = opens > 0 ? (completions / opens) * 100 : 0;
@@ -97,13 +103,13 @@ export async function GET(request: NextRequest) {
         opens,
         completions,
         completionRate,
-        avgTimeSpent: parseFloat(row.avg_time_seconds) * 1000 || 0, // Convert to milliseconds
+        avgTimeSpent: parseFloat(row.avg_time_seconds || '0') * 1000 || 0, // Convert to milliseconds
         dropoffPoints: []
       };
     });
 
     // Add drop-off points to epoch stats
-    dropoffResult.rows.forEach((row: any) => {
+    dropoffResult.rows.forEach((row: { epoch_id: number; image_index: number; drop_offs: string }) => {
       if (epochStats[row.epoch_id]) {
         epochStats[row.epoch_id].dropoffPoints.push({
           imageIndex: row.image_index,
@@ -113,19 +119,19 @@ export async function GET(request: NextRequest) {
     });
 
     // Sort drop-off points by count
-    Object.values(epochStats).forEach((epoch: any) => {
-      epoch.dropoffPoints.sort((a: any, b: any) => b.count - a.count);
+    Object.values(epochStats).forEach((epoch) => {
+      epoch.dropoffPoints.sort((a, b) => b.count - a.count);
     });
 
     // Process session statistics
     const sessionStats = {
       totalSessions: parseInt(sessionStatsResult.rows[0]?.total_sessions) || 0,
       totalUsers: parseInt(sessionStatsResult.rows[0]?.total_users) || 0,
-      avgSessionDuration: parseFloat(sessionStatsResult.rows[0]?.avg_session_duration) * 1000 || 0 // Convert to milliseconds
+      avgSessionDuration: parseFloat(sessionStatsResult.rows[0]?.avg_session_duration || '0') * 1000 || 0 // Convert to milliseconds
     };
 
     // Process recent activity
-    const recentActivity = recentActivityResult.rows.map((row: any) => ({
+    const recentActivity = recentActivityResult.rows.map((row: { timestamp: string; event_type: string; epoch_id: number | null; user_id: string | null }) => ({
       timestamp: row.timestamp,
       eventType: row.event_type,
       epochId: row.epoch_id,

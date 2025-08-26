@@ -168,16 +168,19 @@ const ZoomableImage = ({
   );
 };
 
+// Featured artists data with actual dates and FIDs
+const FEATURED_ARTISTS = {
+  '2025-08-17': { name: 'Greywash', epoch: 5, fid: 1075107, username: 'greywash' }, // Aug 21-27
+  '2025-08-24': { name: 'dwn2earth', epoch: 6, fid: 288204, username: 'dwn2earth' }, // Aug 27-Sep 2
+  '2025-09-02': { name: 'Chronist', epoch: 7, fid: 499579, username: 'chronist' }, // Sep 2-9
+};
+
 // Calendar component for featured artists
 const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [profilePictures, setProfilePictures] = useState<Record<number, string>>({});
   
   // Featured artists data with actual dates and FIDs
-  const featuredArtists = {
-    '2025-08-17': { name: 'Greywash', epoch: 5, fid: 1075107, username: 'greywash' }, // Aug 21-27
-    '2025-08-24': { name: 'dwn2earth', epoch: 6, fid: 288204, username: 'dwn2earth' }, // Aug 27-Sep 2
-    '2025-09-02': { name: 'Chronist', epoch: 7, fid: 499579, username: 'chronist' }, // Sep 2-9
-  };
+  const featuredArtists = FEATURED_ARTISTS;
 
   // Handle artist profile click using Farcaster Frame SDK
   const handleArtistClick = async (artist: { name: string; fid: number; username: string; epoch: number }) => {
@@ -272,9 +275,11 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                   title="View Greywash's Farcaster profile"
                 >
                   {profilePictures[1075107] ? (
-                    <img 
+                    <Image 
                       src={profilePictures[1075107]} 
                       alt="Greywash"
+                      width={64}
+                      height={64}
                       className="w-16 h-16 rounded-full object-cover border-3 border-purple-300"
                       onError={(e) => {
                         console.log('Profile picture failed to load for: Greywash');
@@ -313,9 +318,11 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                   title="View dwn2earth's Farcaster profile"
                 >
                   {profilePictures[288204] ? (
-                    <img 
+                    <Image 
                       src={profilePictures[288204]} 
                       alt="dwn2earth"
+                      width={64}
+                      height={64}
                       className="w-16 h-16 rounded-full object-cover border-3 border-blue-300"
                       onError={(e) => {
                         console.log('Profile picture failed to load for: dwn2earth');
@@ -354,9 +361,11 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                   title="View Chronist's Farcaster profile"
                 >
                   {profilePictures[499579] ? (
-                    <img 
+                    <Image 
                       src={profilePictures[499579]} 
                       alt="Chronist"
+                      width={64}
+                      height={64}
                       className="w-16 h-16 rounded-full object-cover border-3 border-green-300"
                       onError={(e) => {
                         console.log('Profile picture failed to load for: Chronist');

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useParams } from 'next/navigation';
 
@@ -28,11 +28,7 @@ export default function ArtistAnalyticsPage() {
   const [data, setData] = useState<ArtistAnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchArtistAnalytics();
-  }, [epochId]);
-
-  const fetchArtistAnalytics = async () => {
+  const fetchArtistAnalytics = useCallback(async () => {
     try {
       const response = await fetch(`/api/analytics/artist/${epochId}`);
       if (response.ok) {
@@ -44,7 +40,11 @@ export default function ArtistAnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [epochId]);
+
+  useEffect(() => {
+    fetchArtistAnalytics();
+  }, [fetchArtistAnalytics]);
 
   if (loading) {
     return (

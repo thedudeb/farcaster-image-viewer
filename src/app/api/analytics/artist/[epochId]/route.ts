@@ -75,12 +75,12 @@ export async function GET(
     const totalUsers = parseInt(row?.total_users) || 0;
     const avgTimeSpent = parseFloat(row?.avg_time_seconds) * 1000 || 0; // Convert to milliseconds
 
-    const dropoffPoints = dropoffResult.rows.map((row: any) => ({
+    const dropoffPoints = dropoffResult.rows.map((row: { image_index: number; drop_offs: string }) => ({
       imageIndex: row.image_index,
       count: parseInt(row.drop_offs)
     }));
 
-    const recentActivity = recentActivityResult.rows.map((row: any) => ({
+    const recentActivity = recentActivityResult.rows.map((row: { timestamp: string; event_type: string; user_id: string | null }) => ({
       timestamp: row.timestamp,
       eventType: row.event_type,
       userId: row.user_id
