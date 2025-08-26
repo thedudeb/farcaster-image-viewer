@@ -1132,6 +1132,7 @@ export default function Home() {
           onClose={() => {
             setMenuOpen(false)
             setShowTapRightOverlay(false)
+            setShowMenuButton(false)
           }} 
           onEpochChange={handleEpochChange}
           currentEpoch={currentEpoch}
