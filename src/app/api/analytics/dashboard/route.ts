@@ -6,7 +6,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const timeRange = searchParams.get('timeRange') || '7d';
     
-    // Calculate time filter based on range
+    console.log('Dashboard API: Fetching analytics for timeRange:', timeRange);
+
+    // Calculate time filter based on timeRange
     const now = new Date();
     let timeFilter: Date;
     
@@ -20,6 +22,8 @@ export async function GET(request: NextRequest) {
       default: // 7d
         timeFilter = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     }
+
+    console.log('Dashboard API: Time filter:', timeFilter.toISOString());
 
     // Get epoch statistics
     const epochStatsResult = await sql`
@@ -40,6 +44,19 @@ export async function GET(request: NextRequest) {
       GROUP BY epoch_id
       ORDER BY epoch_id
     `;
+
+    console.log('Dashboard API: Epoch stats result rows:', epochStatsResult.rows.length);
+    console.log('Dashboard API: Epoch stats data:', epochStatsResult.rows);
+
+    // Check if there are any analytics events at all
+    const totalEventsResult = await sql`
+      SELECT COUNT(*) as total_events, 
+             MIN(timestamp) as earliest_event,
+             MAX(timestamp) as latest_event
+      FROM analytics_events
+    `;
+    
+    console.log('Dashboard API: Total events in database:', totalEventsResult.rows[0]);
 
     // Get drop-off points
     const dropoffResult = await sql`
