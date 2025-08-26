@@ -94,26 +94,26 @@ export async function GET(request: NextRequest) {
       avgTimeSpent: number;
       dropoffPoints: { imageIndex: number; count: number }[];
     } } = {};
-    epochStatsResult.rows.forEach((row: { epoch_id: number; opens: string; completions: string; avg_time_seconds: string | null }) => {
-      const opens = parseInt(row.opens) || 0;
-      const completions = parseInt(row.completions) || 0;
+    epochStatsResult.rows.forEach((row) => {
+      const opens = parseInt(row.opens as string) || 0;
+      const completions = parseInt(row.completions as string) || 0;
       const completionRate = opens > 0 ? (completions / opens) * 100 : 0;
       
-      epochStats[row.epoch_id] = {
+      epochStats[row.epoch_id as number] = {
         opens,
         completions,
         completionRate,
-        avgTimeSpent: parseFloat(row.avg_time_seconds || '0') * 1000 || 0, // Convert to milliseconds
+        avgTimeSpent: parseFloat(row.avg_time_seconds as string || '0') * 1000 || 0, // Convert to milliseconds
         dropoffPoints: []
       };
     });
 
     // Add drop-off points to epoch stats
-    dropoffResult.rows.forEach((row: { epoch_id: number; image_index: number; drop_offs: string }) => {
-      if (epochStats[row.epoch_id]) {
-        epochStats[row.epoch_id].dropoffPoints.push({
-          imageIndex: row.image_index,
-          count: parseInt(row.drop_offs)
+    dropoffResult.rows.forEach((row) => {
+      if (epochStats[row.epoch_id as number]) {
+        epochStats[row.epoch_id as number].dropoffPoints.push({
+          imageIndex: row.image_index as number,
+          count: parseInt(row.drop_offs as string)
         });
       }
     });
@@ -125,17 +125,17 @@ export async function GET(request: NextRequest) {
 
     // Process session statistics
     const sessionStats = {
-      totalSessions: parseInt(sessionStatsResult.rows[0]?.total_sessions) || 0,
-      totalUsers: parseInt(sessionStatsResult.rows[0]?.total_users) || 0,
-      avgSessionDuration: parseFloat(sessionStatsResult.rows[0]?.avg_session_duration || '0') * 1000 || 0 // Convert to milliseconds
+      totalSessions: parseInt(sessionStatsResult.rows[0]?.total_sessions as string) || 0,
+      totalUsers: parseInt(sessionStatsResult.rows[0]?.total_users as string) || 0,
+      avgSessionDuration: parseFloat(sessionStatsResult.rows[0]?.avg_session_duration as string || '0') * 1000 || 0 // Convert to milliseconds
     };
 
     // Process recent activity
-    const recentActivity = recentActivityResult.rows.map((row: { timestamp: string; event_type: string; epoch_id: number | null; user_id: string | null }) => ({
-      timestamp: row.timestamp,
-      eventType: row.event_type,
-      epochId: row.epoch_id,
-      userId: row.user_id
+    const recentActivity = recentActivityResult.rows.map((row) => ({
+      timestamp: row.timestamp as string,
+      eventType: row.event_type as string,
+      epochId: row.epoch_id as number | null,
+      userId: row.user_id as string | null
     }));
 
     return NextResponse.json({
