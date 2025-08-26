@@ -33,6 +33,7 @@ export const trackEvent = async (eventType: string, data: Record<string, unknown
     // Create a cache key to prevent duplicate calls
     const cacheKey = `${eventType}-${JSON.stringify(data)}`;
     if (analyticsCache.has(cacheKey)) {
+      console.log('Analytics: Skipping duplicate event:', eventType, data);
       return; // Skip if already tracked
     }
     analyticsCache.add(cacheKey);
@@ -56,14 +57,22 @@ export const trackEvent = async (eventType: string, data: Record<string, unknown
       ...data
     };
 
+    console.log('Analytics: Sending event:', payload);
+
     // Send to analytics endpoint
-    await fetch('/api/analytics/track', {
+    const response = await fetch('/api/analytics/track', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
     });
+
+    if (response.ok) {
+      console.log('Analytics: Event sent successfully:', eventType);
+    } else {
+      console.error('Analytics: Failed to send event:', eventType, response.status);
+    }
   } catch (error) {
     console.error('Analytics tracking failed:', error);
   }

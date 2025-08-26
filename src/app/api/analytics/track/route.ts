@@ -13,6 +13,8 @@ export async function POST(request: NextRequest) {
       sessionId 
     } = body;
 
+    console.log('Analytics API: Received event:', { eventType, epochId, imageIndex, userId, sessionId });
+
     const userAgent = request.headers.get('user-agent') || undefined;
     const ipAddress = request.headers.get('x-forwarded-for') || 
                      request.headers.get('x-real-ip') || 
@@ -30,6 +32,8 @@ export async function POST(request: NextRequest) {
       userAgent,
       ipAddress,
       additionalData: { timestamp }
+    }).then(() => {
+      console.log('Analytics API: Event inserted successfully:', eventType);
     }).catch(error => {
       console.error('Analytics insert error:', error);
     });
@@ -41,6 +45,8 @@ export async function POST(request: NextRequest) {
         userId,
         userAgent,
         ipAddress
+      }).then(() => {
+        console.log('Analytics API: Session updated successfully:', sessionId);
       }).catch(error => {
         console.error('Session upsert error:', error);
       });
@@ -53,6 +59,8 @@ export async function POST(request: NextRequest) {
         userId,
         sessionId,
         totalImages: imageIndex || 0
+      }).then(() => {
+        console.log('Analytics API: Epoch completion recorded:', epochId);
       }).catch(error => {
         console.error('Epoch completion error:', error);
       });
