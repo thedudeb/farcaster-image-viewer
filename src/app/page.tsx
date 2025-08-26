@@ -9,9 +9,14 @@ import {
   trackEpochCompletion, 
   trackEpochSwitch, 
   trackMenuOpen, 
+  trackImageShare,
   trackSessionStart,
-  clearAnalyticsCache
-} from './lib/analytics'
+  trackSessionEnd,
+  trackCalendarOpen,
+  trackCalendarArtistClick,
+  clearAnalyticsCache,
+  resetSessionState
+} from './lib/analytics';
 import * as frame from '@farcaster/frame-sdk'
 
 // ZoomableImage component for pinch-to-zoom functionality
@@ -175,7 +180,7 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
   };
 
   // Handle artist profile click using Farcaster Frame SDK
-  const handleArtistClick = async (artist: { name: string; fid: number; username: string }) => {
+  const handleArtistClick = async (artist: { name: string; fid: number; username: string; epoch: number }) => {
     try {
       // Import the frame SDK
       const frame = await import('@farcaster/frame-sdk');
@@ -184,6 +189,7 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
         // Use the official viewProfile method with FID
         if (frame.sdk.actions.viewProfile) {
           await frame.sdk.actions.viewProfile({ fid: artist.fid });
+          trackCalendarArtistClick(artist.name, artist.epoch);
         } else {
           // Fallback to openUrl with farcaster:// scheme
           const profileUrl = `farcaster://profile/${artist.username}`;
@@ -588,8 +594,12 @@ export default function Home() {
   const [currentEpoch, setCurrentEpoch] = useState(5)
   const [index, setIndex] = useState<number | null>(1)
   
-  // Track session start only once
+  // Track app load time
   useEffect(() => {
+    const loadTime = performance.now();
+    console.log('App load time:', loadTime.toFixed(2) + 'ms');
+    
+    // Track session start
     trackSessionStart();
     
     // Start preloading epoch 7 images immediately when app loads
@@ -598,11 +608,16 @@ export default function Home() {
       console.error('Failed to preload epoch 7:', error);
     });
     
-    // Performance monitoring
-    if (typeof window !== 'undefined' && 'performance' in window) {
-      const loadTime = performance.now();
-      console.log(`App load time: ${loadTime.toFixed(2)}ms`);
-    }
+    // Track when user leaves the app
+    const handleBeforeUnload = () => {
+      trackSessionEnd();
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, []);
   
   const [showIndicator, setShowIndicator] = useState(true)
@@ -1072,7 +1087,10 @@ export default function Home() {
       {/* Calendar Button */}
       {showMenuButton && (
         <button
-          onClick={() => setCalendarOpen(true)}
+          onClick={() => {
+            setCalendarOpen(true);
+            trackCalendarOpen();
+          }}
           className={`absolute top-4 right-16 z-10 bg-black/30 text-white p-2 rounded-lg hover:bg-black/50 transition-all duration-300`}
         >
           <svg 

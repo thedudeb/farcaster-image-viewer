@@ -19,6 +19,14 @@ const getUserId = () => {
 // Simple cache to prevent duplicate analytics calls
 const analyticsCache = new Set<string>();
 
+// Session tracking for epoch visits and progress
+const sessionState = {
+  visitedEpochs: new Set<number>(),
+  currentEpoch: null as number | null,
+  currentImageIndex: null as number | null,
+  sessionStartTime: Date.now()
+};
+
 // Track analytics event
 export const trackEvent = async (eventType: string, data: Record<string, unknown> = {}) => {
   try {
@@ -63,6 +71,16 @@ export const trackEvent = async (eventType: string, data: Record<string, unknown
 
 // Track when user views an image
 export const trackImageView = (epochId: number, imageIndex: number) => {
+  // Update session state
+  sessionState.currentEpoch = epochId;
+  sessionState.currentImageIndex = imageIndex;
+  
+  // Track first visit to epoch
+  if (!sessionState.visitedEpochs.has(epochId)) {
+    sessionState.visitedEpochs.add(epochId);
+    trackEpochOpen(epochId);
+  }
+  
   trackEvent('image_view', { epochId, imageIndex });
 };
 
@@ -73,7 +91,22 @@ export const trackEpochCompletion = (epochId: number, totalImages: number) => {
 
 // Track when user switches epochs
 export const trackEpochSwitch = (fromEpochId: number, toEpochId: number) => {
+  // Track leaving the previous epoch
+  if (fromEpochId && sessionState.currentImageIndex) {
+    trackEpochLeave(fromEpochId, sessionState.currentImageIndex, 'epoch_switch');
+  }
+  
   trackEvent('epoch_switch', { fromEpochId, toEpochId });
+};
+
+// Track when user opens an epoch for the first time in a session
+export const trackEpochOpen = (epochId: number) => {
+  trackEvent('epoch_open', { epochId });
+};
+
+// Track when user leaves an epoch (switches to different epoch or closes app)
+export const trackEpochLeave = (epochId: number, lastImageIndex: number, reason: 'epoch_switch' | 'app_close' | 'menu_close') => {
+  trackEvent('epoch_leave', { epochId, lastImageIndex, reason });
 };
 
 // Track when user opens overlay menu
@@ -101,7 +134,40 @@ export const trackSessionStart = () => {
   trackEvent('session_start');
 };
 
+// Track app session end (when user closes or navigates away)
+export const trackSessionEnd = (lastEpochId?: number, lastImageIndex?: number) => {
+  // Track leaving the current epoch if we have session state
+  if (sessionState.currentEpoch && sessionState.currentImageIndex) {
+    trackEpochLeave(sessionState.currentEpoch, sessionState.currentImageIndex, 'app_close');
+  }
+  
+  trackEvent('session_end', { 
+    lastEpochId: lastEpochId || sessionState.currentEpoch, 
+    lastImageIndex: lastImageIndex || sessionState.currentImageIndex,
+    sessionDuration: Date.now() - sessionState.sessionStartTime,
+    visitedEpochs: Array.from(sessionState.visitedEpochs)
+  });
+};
+
+// Track calendar opens
+export const trackCalendarOpen = () => {
+  trackEvent('calendar_open');
+};
+
+// Track calendar artist profile clicks
+export const trackCalendarArtistClick = (artistName: string, epochId: number) => {
+  trackEvent('calendar_artist_click', { artistName, epochId });
+};
+
 // Clear analytics cache (useful when switching epochs)
 export const clearAnalyticsCache = () => {
   analyticsCache.clear();
+};
+
+// Reset session state (useful when starting a new session)
+export const resetSessionState = () => {
+  sessionState.visitedEpochs.clear();
+  sessionState.currentEpoch = null;
+  sessionState.currentImageIndex = null;
+  sessionState.sessionStartTime = Date.now();
 };
