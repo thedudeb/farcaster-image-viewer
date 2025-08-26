@@ -9,10 +9,11 @@ const EPOCH_ARTISTS = {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { epochId: string } }
+  { params }: { params: Promise<{ epochId: string }> }
 ) {
   try {
-    const epochId = parseInt(params.epochId);
+    const { epochId: epochIdParam } = await params;
+    const epochId = parseInt(epochIdParam);
     const artistName = EPOCH_ARTISTS[epochId as keyof typeof EPOCH_ARTISTS];
     
     if (!artistName) {

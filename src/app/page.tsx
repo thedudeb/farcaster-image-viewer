@@ -212,32 +212,32 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
   };
 
   // Fetch profile pictures from Neynar API
-  useEffect(() => {
-    const fetchProfilePictures = async () => {
-      try {
-        const fids = Object.values(featuredArtists).map(artist => artist.fid);
-        const uniqueFids = [...new Set(fids)];
+  const fetchProfilePictures = useCallback(async () => {
+    try {
+      const fids = Object.values(featuredArtists).map(artist => artist.fid);
+      console.log('Fetching profile pictures for FIDs:', fids);
+      
+      const response = await fetch('/api/artists/recent');
+      if (response.ok) {
+        const data = await response.json();
+        const pictures: Record<number, string> = {};
         
-        const response = await fetch('/api/artists/recent');
-        if (response.ok) {
-          const data = await response.json();
-          const pictures: Record<number, string> = {};
-          
-          data.artists?.forEach((artist: { fid: number; pfp: string }) => {
-            pictures[artist.fid] = artist.pfp;
-          });
-          
-          setProfilePictures(pictures);
-        } else {
-          console.error('Failed to fetch artists:', response.status, await response.text());
-        }
-      } catch (error) {
-        console.error('Failed to fetch profile pictures:', error);
+        data.artists?.forEach((artist: { fid: number; pfp: string }) => {
+          pictures[artist.fid] = artist.pfp;
+        });
+        
+        setProfilePictures(pictures);
+      } else {
+        console.error('Failed to fetch artists:', response.status, await response.text());
       }
-    };
+    } catch (error) {
+      console.error('Failed to fetch profile pictures:', error);
+    }
+  }, [featuredArtists]);
 
+  useEffect(() => {
     fetchProfilePictures();
-  }, []);
+  }, [fetchProfilePictures]);
 
   if (!isOpen) return null;
 
