@@ -49,7 +49,7 @@ const EPOCH_ARTISTS = {
 
 const EPOCHS = [
   { id: 5, name: 'Epoch 5', totalImages: 6, locked: false },
-  { id: 6, name: 'Epoch 6', totalImages: 10, locked: true },
+  { id: 6, name: 'Epoch 6', totalImages: 10, locked: false },
   { id: 7, name: 'Epoch 7', totalImages: 45, locked: true },
 ];
 
@@ -63,9 +63,6 @@ const EPOCHS_1_TO_4 = [
 export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps) {
   const [profilePictures, setProfilePictures] = useState<Record<number, string>>({});
   const [loadingPictures, setLoadingPictures] = useState(true);
-  const [epoch6Taps, setEpoch6Taps] = useState(0);
-  const [epoch6Unlocked, setEpoch6Unlocked] = useState(false);
-  const [unlockAnimation, setUnlockAnimation] = useState(false);
   const [showEpoch1To4Submenu, setShowEpoch1To4Submenu] = useState(false);
 
   // Fetch profile pictures from Neynar API
@@ -107,29 +104,7 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
     onEpochChange(epochId);
   };
 
-  const handleEpoch6Tap = () => {
-    if (epoch6Unlocked) return; // Already unlocked
-    
-    const newTapCount = epoch6Taps + 1;
-    setEpoch6Taps(newTapCount);
-    
-    if (newTapCount >= 5) {
-      // Trigger unlock animation
-      setUnlockAnimation(true);
-      
-      // Unlock after animation starts
-      setTimeout(() => {
-        setEpoch6Unlocked(true);
-        setUnlockAnimation(false);
-        setEpoch6Taps(0);
-      }, 500);
-    }
-    
-    // Reset tap count after 3 seconds if not completed
-    setTimeout(() => {
-      setEpoch6Taps(0);
-    }, 3000);
-  };
+
 
   const handleArtistClick = async (e: React.MouseEvent, artist: typeof EPOCH_ARTISTS[1]) => {
     e.stopPropagation(); // Prevent epoch selection when clicking artist
@@ -351,32 +326,19 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                    <button
                      key={epoch.id}
                      onClick={() => {
-                       if (epoch.id === 6 && !epoch6Unlocked) {
-                         handleEpoch6Tap();
-                       } else if (!epoch.locked || (epoch.id === 6 && epoch6Unlocked)) {
+                       if (!epoch.locked) {
                          handleEpochSelect(epoch.id);
                        }
                      }}
                      className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
-                       epoch.id === 6 && unlockAnimation
-                         ? 'bg-green-600 text-white scale-105 shadow-lg'
-                         : epoch.locked
+                       epoch.locked
                          ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
                          : currentEpoch === epoch.id
                          ? 'bg-blue-600 text-white'
                          : 'text-gray-300 hover:bg-gray-800'
                      }`}
                    >
-                     {/* Progress bar for Epoch 6 easter egg */}
-                     {epoch.id === 6 && !epoch6Unlocked && epoch6Taps > 0 && (
-                       <div 
-                         className="absolute inset-0 bg-green-600 transition-all duration-300 ease-out"
-                         style={{ 
-                           width: `${(epoch6Taps / 5) * 100}%`,
-                           zIndex: 1
-                         }}
-                       />
-                     )}
+
                      <div className="relative z-10">
                        <div className="flex items-center justify-between">
                          <div className="flex items-center gap-3">
@@ -443,19 +405,9 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                            </div>
                          </div>
                          
-                         {epoch.locked && epoch.id !== 6 && (
+                         {epoch.locked && (
                            <span className="text-gray-500">
                              🔒
-                           </span>
-                         )}
-                         {epoch.id === 6 && !epoch6Unlocked && (
-                           <span className={`text-gray-500 transition-all duration-300 ${unlockAnimation ? 'scale-125 text-green-400' : ''}`}>
-                             🔒
-                           </span>
-                         )}
-                         {epoch.id === 6 && epoch6Unlocked && (
-                           <span className="text-green-400 animate-pulse">
-                             🔓
                            </span>
                          )}
                        </div>
