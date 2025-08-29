@@ -696,6 +696,17 @@ export default function Home() {
       setPerformanceMode('enhanced');
     }
     
+    // First-time user detection
+    const isFirstTime = !localStorage.getItem('farcaster-image-viewer-visited');
+    if (isFirstTime) {
+      console.log('🎉 First-time user detected - showing tutorial');
+      // Small delay to ensure everything is loaded
+      setTimeout(() => {
+        setShowFirstTimeOverlay(true);
+        setCurrentTutorialStep(0);
+      }, 1000);
+    }
+    
     // Track session start
     trackSessionStart();
     
@@ -759,6 +770,8 @@ export default function Home() {
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [performanceMode, setPerformanceMode] = useState<string>('standard')
   const [epochLoading, setEpochLoading] = useState(false)
+  const [showFirstTimeOverlay, setShowFirstTimeOverlay] = useState(false)
+  const [currentTutorialStep, setCurrentTutorialStep] = useState(0)
   const touchStartX = useRef<number | null>(null)
   const [nextImage, setNextImage] = useState<string | null>(null)
   const [currentImage, setCurrentImage] = useState<string | null>(null)
@@ -1259,6 +1272,63 @@ export default function Home() {
 
   const imageSrc = index ? getImageSrc(currentEpoch, index) : ''
 
+  // Tutorial steps for first-time users
+  const tutorialSteps = [
+    {
+      title: "Welcome to the Farcaster Image Viewer! 👋",
+      description: "Explore amazing art collections from different epochs. Let's get you started!",
+      position: "center",
+      highlight: null
+    },
+    {
+      title: "Navigate Images",
+      description: "Tap the left or right side of the screen to move between images. Try it now!",
+      position: "center",
+      highlight: "navigation"
+    },
+    {
+      title: "Menu & Epochs",
+      description: "Tap the top-left menu button to switch between different art collections (epochs).",
+      position: "top-left",
+      highlight: "menu"
+    },
+    {
+      title: "Share Images",
+      description: "Tap the top-right share button to share your favorite images on Farcaster.",
+      position: "top-right",
+      highlight: "share"
+    },
+    {
+      title: "Zoom & Explore",
+      description: "Pinch to zoom on images for a closer look at the details.",
+      position: "center",
+      highlight: "zoom"
+    },
+    {
+      title: "You're All Set! 🎉",
+      description: "Enjoy exploring the art collections. Each epoch features different artists and styles.",
+      position: "center",
+      highlight: null
+    }
+  ];
+
+  const handleTutorialNext = () => {
+    if (currentTutorialStep < tutorialSteps.length - 1) {
+      setCurrentTutorialStep(currentTutorialStep + 1);
+    } else {
+      // Tutorial complete
+      setShowFirstTimeOverlay(false);
+      localStorage.setItem('farcaster-image-viewer-visited', 'true');
+      console.log('✅ Tutorial completed - user marked as visited');
+    }
+  };
+
+  const handleTutorialSkip = () => {
+    setShowFirstTimeOverlay(false);
+    localStorage.setItem('farcaster-image-viewer-visited', 'true');
+    console.log('⏭️ Tutorial skipped - user marked as visited');
+  };
+
   return (
     <div
       className="w-screen h-screen bg-black flex items-center justify-center relative"
@@ -1435,6 +1505,73 @@ export default function Home() {
         isOpen={calendarOpen}
         onClose={() => setCalendarOpen(false)}
       />
+
+      {/* First-Time User Tutorial Overlay */}
+      {showFirstTimeOverlay && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
+          <div className="relative max-w-md mx-4 bg-white rounded-2xl p-6 shadow-2xl">
+            {/* Progress indicator */}
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex space-x-1">
+                {tutorialSteps.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      index <= currentTutorialStep ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={handleTutorialSkip}
+                className="text-gray-500 hover:text-gray-700 text-sm font-medium"
+              >
+                Skip
+              </button>
+            </div>
+
+            {/* Tutorial content */}
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
+                {tutorialSteps[currentTutorialStep].title}
+              </h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                {tutorialSteps[currentTutorialStep].description}
+              </p>
+
+              {/* Highlight specific UI elements */}
+              {tutorialSteps[currentTutorialStep].highlight === 'menu' && (
+                <div className="absolute top-4 left-4 w-16 h-16 bg-blue-500/20 border-2 border-blue-500 rounded-lg animate-pulse" />
+              )}
+              {tutorialSteps[currentTutorialStep].highlight === 'share' && (
+                <div className="absolute top-4 right-4 w-16 h-16 bg-green-500/20 border-2 border-green-500 rounded-lg animate-pulse" />
+              )}
+              {tutorialSteps[currentTutorialStep].highlight === 'navigation' && (
+                <div className="absolute inset-0 border-4 border-blue-500/30 rounded-lg animate-pulse" />
+              )}
+              {tutorialSteps[currentTutorialStep].highlight === 'zoom' && (
+                <div className="absolute inset-0 border-4 border-purple-500/30 rounded-lg animate-pulse" />
+              )}
+
+              {/* Navigation buttons */}
+              <div className="flex justify-between items-center">
+                <button
+                  onClick={handleTutorialSkip}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+                >
+                  Skip Tutorial
+                </button>
+                <button
+                  onClick={handleTutorialNext}
+                  className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium transition-colors"
+                >
+                  {currentTutorialStep === tutorialSteps.length - 1 ? 'Get Started!' : 'Next'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
