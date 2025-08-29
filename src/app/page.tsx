@@ -715,7 +715,6 @@ export default function Home() {
   const [hasTapped, setHasTapped] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [epochLoading, setEpochLoading] = useState(false)
-  const [hapticsDebug, setHapticsDebug] = useState<string[]>([])
   const touchStartX = useRef<number | null>(null)
   const [nextImage, setNextImage] = useState<string | null>(null)
   const [currentImage, setCurrentImage] = useState<string | null>(null)
@@ -724,141 +723,50 @@ export default function Home() {
   // Track viewed images to avoid duplicate analytics
   const viewedImages = useRef<Set<string>>(new Set())
   
-    // Haptic feedback helper function using new Mini App SDK
+      // Haptic feedback helper function using new Mini App SDK
   const triggerHapticFeedback = async () => {
-    const debugLog = (message: string) => {
-      console.log(message);
-      setHapticsDebug(prev => [...prev.slice(-4), message]); // Keep last 5 messages
-    };
-    
-    debugLog('🔔 Triggering haptic feedback...');
-    
-    // Check if we're in a Farcaster client context
-    const isInFarcasterClient = window.location.href.includes('farcaster') || 
-                                window.location.href.includes('warpcast') ||
-                                window.location.href.includes('tba') ||
-                                'farcaster' in window ||
-                                'warpcast' in window ||
-                                'TBA' in window ||
-                                'tba' in window;
-    
-    debugLog(`🔍 Client context: ${isInFarcasterClient ? 'YES' : 'NO'}`);
-    debugLog(`🔍 URL: ${window.location.href}`);
-    
     try {
-      // 1. Try Farcaster Mini App SDK haptic feedback (primary method)
-      try {
-        debugLog(`🔍 SDK check: ${!!sdk ? 'YES' : 'NO'}, Haptics: ${!!sdk?.haptics ? 'YES' : 'NO'}`);
-        
-        if (sdk && sdk.haptics) {
-          debugLog('✅ Mini App SDK haptics available!');
+      // Use Farcaster Mini App SDK haptic feedback
+      if (sdk && sdk.haptics) {
+        // Check capabilities and use the best available haptic type
+        try {
+          const capabilities = await sdk.getCapabilities();
           
-          // Check capabilities first
-          try {
-            const capabilities = await sdk.getCapabilities();
-            debugLog(`📋 Capabilities: ${capabilities.join(', ')}`);
-            
-            // Check for haptic capabilities
-            const supportsHaptics = {
-              impact: capabilities.includes('haptics.impactOccurred'),
-              notification: capabilities.includes('haptics.notificationOccurred'),
-              selection: capabilities.includes('haptics.selectionChanged')
-            };
-            
-            debugLog(`🔍 Haptic support: impact=${supportsHaptics.impact}, notification=${supportsHaptics.notification}, selection=${supportsHaptics.selection}`);
-            
-            // Try impact haptics first (most common for navigation)
-            if (supportsHaptics.impact) {
-              debugLog('🎯 Trying impact haptics...');
-              await sdk.haptics.impactOccurred('medium');
-              debugLog('✅ Impact haptics triggered successfully!');
-              return;
-            }
-            
-            // Try notification haptics as fallback
-            if (supportsHaptics.notification) {
-              debugLog('🎯 Trying notification haptics...');
-              await sdk.haptics.notificationOccurred('success');
-              debugLog('✅ Notification haptics triggered successfully!');
-              return;
-            }
-            
-            // Try selection haptics as last resort
-            if (supportsHaptics.selection) {
-              debugLog('🎯 Trying selection haptics...');
-              await sdk.haptics.selectionChanged();
-              debugLog('✅ Selection haptics triggered successfully!');
-              return;
-            }
-            
-            debugLog('❌ No haptic capabilities supported');
-          } catch (capabilitiesError) {
-            debugLog(`❌ Capabilities check failed: ${capabilitiesError}`);
+          // Try impact haptics first (most common for navigation)
+          if (capabilities.includes('haptics.impactOccurred')) {
+            await sdk.haptics.impactOccurred('medium');
+            return;
           }
-        } else {
-          debugLog('❌ Mini App SDK haptics not available');
+          
+          // Try notification haptics as fallback
+          if (capabilities.includes('haptics.notificationOccurred')) {
+            await sdk.haptics.notificationOccurred('success');
+            return;
+          }
+          
+          // Try selection haptics as last resort
+          if (capabilities.includes('haptics.selectionChanged')) {
+            await sdk.haptics.selectionChanged();
+            return;
+          }
+        } catch (error) {
+          console.log('Haptics capabilities check failed:', error);
         }
-      } catch (sdkError) {
-        debugLog(`❌ Mini App SDK error: ${sdkError}`);
       }
       
-      // 2. Try TBA-specific haptic feedback (fallback)
-      try {
-        console.log('🔍 Checking TBA haptic feedback...');
-        
-        // Check for TBA in multiple possible locations
-        const tbaObjects = [
-          'TBA' in window ? (window as { TBA: unknown }).TBA : undefined,
-          'tba' in window ? (window as { tba: unknown }).tba : undefined,
-          'farcaster' in window ? (window as { farcaster: unknown }).farcaster : undefined,
-          'warpcast' in window ? (window as { warpcast: unknown }).warpcast : undefined,
-          'client' in window ? (window as { client: unknown }).client : undefined
-        ];
-        
-        debugLog(`🔍 TBA objects: TBA=${!!tbaObjects[0]}, tba=${!!tbaObjects[1]}, farcaster=${!!tbaObjects[2]}, warpcast=${!!tbaObjects[3]}, client=${!!tbaObjects[4]}`);
-        
-                 // Check each object for haptic methods
-         for (let i = 0; i < tbaObjects.length; i++) {
-           const obj = tbaObjects[i];
-           if (obj && typeof obj === 'object') {
-             debugLog(`🔍 Object ${i} keys: ${Object.keys(obj).join(', ')}`);
-             
-             // Look for haptic methods in this object
-             const hapticMethods = ['hapticFeedback', 'haptic', 'vibrate', 'feedback'];
-             for (const method of hapticMethods) {
-               if (method in obj && typeof (obj as Record<string, unknown>)[method] === 'function') {
-                 debugLog(`🎯 Found haptic method ${method} in object ${i}`);
-                 try {
-                   if (method === 'vibrate') {
-                     ((obj as Record<string, unknown>)[method] as (duration: number) => void)(50);
-                   } else {
-                     ((obj as Record<string, unknown>)[method] as (type: string) => void)('medium');
-                   }
-                   debugLog(`✅ TBA haptic feedback triggered via ${method}`);
-                   return;
-                 } catch (error) {
-                   debugLog(`❌ TBA method ${method} failed: ${error}`);
-                 }
-               }
-             }
-           }
-         }
-         
-         debugLog('❌ TBA haptic feedback not available');
-       } catch (tbaError) {
-         debugLog(`❌ TBA error: ${tbaError}`);
+             // Fallback to TBA if available
+       if ('TBA' in window && (window as { TBA: { hapticFeedback?: (type: string) => void } }).TBA?.hapticFeedback) {
+         (window as { TBA: { hapticFeedback: (type: string) => void } }).TBA.hapticFeedback('medium');
+         return;
        }
       
-             // 3. Try navigator.vibrate as final fallback
-       if ("vibrate" in navigator && navigator.vibrate) {
-         debugLog('✅ Using navigator.vibrate fallback');
-         navigator.vibrate(50);
-       } else {
-         debugLog('❌ No haptic feedback methods available at all');
-       }
-     } catch (error) {
-       debugLog(`💥 Haptic feedback error: ${error}`);
-     }
+      // Final fallback to navigator.vibrate for web
+      if ("vibrate" in navigator && navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+    } catch (error) {
+      console.log('Haptic feedback error:', error);
+    }
   };
   
   // Debug tap right overlay state changes
@@ -1280,37 +1188,7 @@ export default function Home() {
         </button>
       )}
 
-      {/* Haptics Test Button - Temporary for debugging */}
-      {showMenuButton && (
-        <button
-          onClick={() => {
-            console.log('🧪 Manual haptics test triggered');
-            triggerHapticFeedback();
-          }}
-          className={`absolute top-4 right-32 z-10 bg-red-500/80 text-white p-2 rounded-lg hover:bg-red-600/80 transition-all duration-300`}
-          title="Test Haptics"
-        >
-          🔔
-        </button>
-      )}
 
-      {/* Haptics Debug Display */}
-      {hapticsDebug.length > 0 && (
-        <div className="absolute top-16 left-4 z-20 bg-black/90 text-white p-3 rounded-lg max-w-sm text-xs font-mono">
-          <div className="mb-2 text-yellow-400 font-bold">🔔 Haptics Debug</div>
-          {hapticsDebug.map((message, index) => (
-            <div key={index} className="mb-1 text-gray-300">
-              {message}
-            </div>
-          ))}
-          <button
-            onClick={() => setHapticsDebug([])}
-            className="mt-2 text-gray-400 hover:text-white text-xs"
-          >
-            Clear
-          </button>
-        </div>
-      )}
 
       {index && (
         <div className="relative w-full h-full">
