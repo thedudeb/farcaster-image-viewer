@@ -724,7 +724,7 @@ export default function Home() {
   // Track viewed images to avoid duplicate analytics
   const viewedImages = useRef<Set<string>>(new Set())
   
-  // Haptic feedback helper function using new Mini App SDK
+    // Haptic feedback helper function using new Mini App SDK
   const triggerHapticFeedback = async () => {
     const debugLog = (message: string) => {
       console.log(message);
@@ -747,49 +747,60 @@ export default function Home() {
     
     try {
       // 1. Try Farcaster Mini App SDK haptic feedback (primary method)
-              try {
-          debugLog(`🔍 SDK check: ${!!sdk ? 'YES' : 'NO'}, Actions: ${!!sdk?.actions ? 'YES' : 'NO'}`);
+      try {
+        debugLog(`🔍 SDK check: ${!!sdk ? 'YES' : 'NO'}, Haptics: ${!!sdk?.haptics ? 'YES' : 'NO'}`);
+        
+        if (sdk && sdk.haptics) {
+          debugLog('✅ Mini App SDK haptics available!');
           
-          if (sdk && sdk.actions) {
-            debugLog('✅ Mini App SDK available, checking for haptic methods...');
-            debugLog(`📋 Available actions: ${Object.keys(sdk.actions).join(', ')}`);
-            debugLog(`🔍 Actions count: ${Object.keys(sdk.actions).length}`);
-          
-                     // Try multiple possible haptic method names
-           const hapticMethods = [
-             'hapticFeedback',
-             'vibrate', 
-             'triggerHaptic',
-             'haptic',
-             'feedback'
-           ];
-           
-           for (const method of hapticMethods) {
-             if (method in sdk.actions && typeof sdk.actions[method as keyof typeof sdk.actions] === 'function') {
-               debugLog(`🎯 Found haptic method: ${method}`);
-               
-               try {
-                 if (method === 'vibrate') {
-                   await (sdk.actions[method as keyof typeof sdk.actions] as (duration: number) => Promise<void>)(50);
-                 } else {
-                   await (sdk.actions[method as keyof typeof sdk.actions] as (type: string) => Promise<void>)('medium');
-                 }
-                 debugLog(`✅ Haptic feedback triggered via ${method}`);
-                 return;
-               } catch (methodError) {
-                 debugLog(`❌ Method ${method} failed: ${methodError}`);
-                 continue;
-               }
-             }
-           }
-           
-           debugLog('❌ No working haptic methods found in Mini App SDK');
-         } else {
-           debugLog('❌ Mini App SDK not available or actions missing');
-         }
-       } catch (sdkError) {
-         debugLog(`❌ Mini App SDK error: ${sdkError}`);
-       }
+          // Check capabilities first
+          try {
+            const capabilities = await sdk.getCapabilities();
+            debugLog(`📋 Capabilities: ${capabilities.join(', ')}`);
+            
+            // Check for haptic capabilities
+            const supportsHaptics = {
+              impact: capabilities.includes('haptics.impactOccurred'),
+              notification: capabilities.includes('haptics.notificationOccurred'),
+              selection: capabilities.includes('haptics.selectionChanged')
+            };
+            
+            debugLog(`🔍 Haptic support: impact=${supportsHaptics.impact}, notification=${supportsHaptics.notification}, selection=${supportsHaptics.selection}`);
+            
+            // Try impact haptics first (most common for navigation)
+            if (supportsHaptics.impact) {
+              debugLog('🎯 Trying impact haptics...');
+              await sdk.haptics.impactOccurred('medium');
+              debugLog('✅ Impact haptics triggered successfully!');
+              return;
+            }
+            
+            // Try notification haptics as fallback
+            if (supportsHaptics.notification) {
+              debugLog('🎯 Trying notification haptics...');
+              await sdk.haptics.notificationOccurred('success');
+              debugLog('✅ Notification haptics triggered successfully!');
+              return;
+            }
+            
+            // Try selection haptics as last resort
+            if (supportsHaptics.selection) {
+              debugLog('🎯 Trying selection haptics...');
+              await sdk.haptics.selectionChanged();
+              debugLog('✅ Selection haptics triggered successfully!');
+              return;
+            }
+            
+            debugLog('❌ No haptic capabilities supported');
+          } catch (capabilitiesError) {
+            debugLog(`❌ Capabilities check failed: ${capabilitiesError}`);
+          }
+        } else {
+          debugLog('❌ Mini App SDK haptics not available');
+        }
+      } catch (sdkError) {
+        debugLog(`❌ Mini App SDK error: ${sdkError}`);
+      }
       
       // 2. Try TBA-specific haptic feedback (fallback)
       try {
