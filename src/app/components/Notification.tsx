@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { sdk } from '@farcaster/miniapp-sdk';
 import { trackArtistProfileClick } from '../lib/analytics';
 
 interface NotificationProps {
@@ -43,28 +44,27 @@ export default function Notification({ message, duration = 6000, type, artistPro
               try {
                 console.log('Profile button clicked, artistProfile:', artistProfile);
                   
-                  // Import the frame SDK
-                  const frame = await import('@farcaster/frame-sdk');
-                  console.log('Frame SDK loaded:', frame);
+                  // Use the new Mini App SDK
+                  console.log('Mini App SDK loaded:', sdk);
                   
-                  if (frame.sdk && frame.sdk.actions) {
-                    console.log('Frame SDK actions available:', Object.keys(frame.sdk.actions));
+                  if (sdk && sdk.actions) {
+                    console.log('Mini App SDK actions available:', Object.keys(sdk.actions));
                     
                     // Use the official viewProfile method with FID to minimize app and show profile
-                    if (frame.sdk.actions.viewProfile) {
+                    if (sdk.actions.viewProfile) {
                       console.log('Using viewProfile method with FID 1075107');
-                      await frame.sdk.actions.viewProfile({ fid: 1075107 });
+                      await sdk.actions.viewProfile({ fid: 1075107 });
                       console.log('Successfully opened profile with viewProfile');
                     } else {
                       console.log('viewProfile not available, using openUrl fallback');
                       // Fallback to openUrl with farcaster:// scheme
                       const mainClientUrl = artistProfile.replace('https://warpcast.com', 'farcaster://');
-                      await frame.sdk.actions.openUrl(mainClientUrl);
+                      await sdk.actions.openUrl(mainClientUrl);
                       console.log('Successfully opened with openUrl');
                     }
                     
                   } else {
-                    console.log('Frame SDK not available, falling back to window.open');
+                    console.log('Mini App SDK not available, falling back to window.open');
                     window.open(artistProfile, '_blank');
                   }
                 } catch (err) {

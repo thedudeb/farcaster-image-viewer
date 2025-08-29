@@ -17,7 +17,7 @@ import {
   clearAnalyticsCache,
   resetSessionState
 } from './lib/analytics';
-import * as frame from '@farcaster/frame-sdk'
+import { sdk } from '@farcaster/miniapp-sdk'
 
 // ZoomableImage component for pinch-to-zoom functionality
 const ZoomableImage = ({ 
@@ -182,21 +182,19 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
   // Featured artists data with actual dates and FIDs
   const featuredArtists = FEATURED_ARTISTS;
 
-  // Handle artist profile click using Farcaster Frame SDK
+  // Handle artist profile click using Farcaster Mini App SDK
   const handleArtistClick = async (artist: { name: string; fid: number; username: string; epoch: number }) => {
     try {
-      // Import the frame SDK
-      const frame = await import('@farcaster/frame-sdk');
-      
-      if (frame.sdk && frame.sdk.actions) {
+      // Use the new Mini App SDK
+      if (sdk && sdk.actions) {
         // Use the official viewProfile method with FID
-        if (frame.sdk.actions.viewProfile) {
-          await frame.sdk.actions.viewProfile({ fid: artist.fid });
+        if (sdk.actions.viewProfile) {
+          await sdk.actions.viewProfile({ fid: artist.fid });
           trackCalendarArtistClick(artist.name, artist.epoch);
         } else {
           // Fallback to openUrl with farcaster:// scheme
           const profileUrl = `farcaster://profile/${artist.username}`;
-          await frame.sdk.actions.openUrl(profileUrl);
+          await sdk.actions.openUrl(profileUrl);
         }
       } else {
         // Fallback to web URL
@@ -208,7 +206,7 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
       // Final fallback
       const profileUrl = `https://warpcast.com/${artist.username}`;
       window.open(profileUrl, '_blank');
-    }
+      }
   };
 
   // Fetch profile pictures from Neynar API
@@ -660,6 +658,21 @@ export default function Home() {
     // Track session start
     trackSessionStart();
     
+    // Initialize Mini App and hide splash screen
+    const initializeMiniApp = async () => {
+      try {
+        if (sdk && sdk.actions && sdk.actions.ready) {
+          console.log('Initializing Mini App...');
+          await sdk.actions.ready();
+          console.log('Mini App ready - splash screen hidden');
+        }
+      } catch (error) {
+        console.error('Failed to initialize Mini App:', error);
+      }
+    };
+    
+    initializeMiniApp();
+    
     // Start preloading epoch 7 images immediately when app loads
     // This happens during the mini app loading screen
     epochPreloader.preloadEpoch(7).catch(error => {
@@ -695,44 +708,40 @@ export default function Home() {
   // Track viewed images to avoid duplicate analytics
   const viewedImages = useRef<Set<string>>(new Set())
   
-  // Haptic feedback helper function
+  // Haptic feedback helper function using new Mini App SDK
   const triggerHapticFeedback = async () => {
     console.log('Triggering haptic feedback...');
     try {
-      // Try multiple approaches for haptic feedback
-      
-      // 1. Try Farcaster SDK haptic feedback (if available)
+      // 1. Try Farcaster Mini App SDK haptic feedback (primary method)
       try {
-        const frame = await import('@farcaster/frame-sdk');
-        if (frame.sdk && frame.sdk.actions) {
-          console.log('Farcaster SDK available, checking for haptic methods...');
-          console.log('Available actions:', Object.keys(frame.sdk.actions));
+        if (sdk && sdk.actions) {
+          console.log('Mini App SDK available, checking for haptic methods...');
+          console.log('Available actions:', Object.keys(sdk.actions));
           
-          // Check if there are any haptic-related methods (using type assertion for exploration)
-          const actions = frame.sdk.actions as Record<string, unknown>;
-          if ('hapticFeedback' in actions && typeof actions.hapticFeedback === 'function') {
-            console.log('Using Farcaster SDK hapticFeedback');
-            await (actions.hapticFeedback as (type: string) => Promise<void>)('medium');
+          // Check for haptic feedback methods in the new SDK
+          if ('hapticFeedback' in sdk.actions && typeof sdk.actions.hapticFeedback === 'function') {
+            console.log('Using Mini App SDK hapticFeedback');
+            await sdk.actions.hapticFeedback('medium');
             return;
           }
           
-          if ('vibrate' in actions && typeof actions.vibrate === 'function') {
-            console.log('Using Farcaster SDK vibrate');
-            await (actions.vibrate as (duration: number) => Promise<void>)(50);
+          if ('vibrate' in sdk.actions && typeof sdk.actions.vibrate === 'function') {
+            console.log('Using Mini App SDK vibrate');
+            await sdk.actions.vibrate(50);
             return;
           }
           
-          if ('triggerHaptic' in actions && typeof actions.triggerHaptic === 'function') {
-            console.log('Using Farcaster SDK triggerHaptic');
-            await (actions.triggerHaptic as (type: string) => Promise<void>)('medium');
+          if ('triggerHaptic' in sdk.actions && typeof sdk.actions.triggerHaptic === 'function') {
+            console.log('Using Mini App SDK triggerHaptic');
+            await sdk.actions.triggerHaptic('medium');
             return;
           }
         }
       } catch (sdkError) {
-        console.log('Farcaster SDK haptic methods not available:', sdkError);
+        console.log('Mini App SDK haptic methods not available:', sdkError);
       }
       
-      // 2. Try TBA-specific haptic feedback
+      // 2. Try TBA-specific haptic feedback (fallback)
       try {
         const windowWithTBA = window as typeof window & {
           TBA?: { hapticFeedback?: (type: string) => void };
@@ -754,7 +763,7 @@ export default function Home() {
         console.log('TBA haptic feedback not available:', tbaError);
       }
       
-      // 3. Try navigator.vibrate as fallback
+      // 3. Try navigator.vibrate as final fallback
       if ("vibrate" in navigator && navigator.vibrate) {
         console.log('Using navigator.vibrate fallback');
         navigator.vibrate(50);
@@ -1103,7 +1112,7 @@ export default function Home() {
     const composeUrl = `https://warpcast.com/~/compose?text=Check out this dope image from Epoch ${currentEpoch} on @0ffline viewer&embeds[]=${encodeURIComponent(imageUrl)}&embeds[]=${encodeURIComponent(appUrl)}`;
 
     try {
-      await frame.sdk.actions.openUrl(composeUrl);
+      await sdk.actions.openUrl(composeUrl);
     } catch (err) {
       window.open(composeUrl, '_blank');
     }

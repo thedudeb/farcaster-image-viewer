@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { sdk } from '@farcaster/miniapp-sdk';
 import { trackCurateRequest, trackArtistProfileClick } from '../lib/analytics';
 
 interface MenuProps {
@@ -112,30 +113,28 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
     // Track artist profile click
     trackArtistProfileClick(`@${artist.username}`);
     
-    try {
-      // Import the frame SDK
-      const frame = await import('@farcaster/frame-sdk');
-      
-      if (frame.sdk && frame.sdk.actions) {
-        // Use the official viewProfile method with FID
-        if (frame.sdk.actions.viewProfile) {
-          await frame.sdk.actions.viewProfile({ fid: artist.fid });
+          try {
+        // Use the new Mini App SDK
+        if (sdk && sdk.actions) {
+          // Use the official viewProfile method with FID
+          if (sdk.actions.viewProfile) {
+            await sdk.actions.viewProfile({ fid: artist.fid });
+          } else {
+            // Fallback to openUrl with farcaster:// scheme
+            const profileUrl = `farcaster://profile/${artist.username}`;
+            await sdk.actions.openUrl(profileUrl);
+          }
         } else {
-          // Fallback to openUrl with farcaster:// scheme
-          const profileUrl = `farcaster://profile/${artist.username}`;
-          await frame.sdk.actions.openUrl(profileUrl);
+          // Fallback to web URL
+          const profileUrl = `https://warpcast.com/${artist.username}`;
+          window.open(profileUrl, '_blank');
         }
-      } else {
-        // Fallback to web URL
+      } catch (err) {
+        console.error('Error opening artist profile:', err);
+        // Final fallback
         const profileUrl = `https://warpcast.com/${artist.username}`;
         window.open(profileUrl, '_blank');
       }
-    } catch (err) {
-      console.error('Error opening artist profile:', err);
-      // Final fallback
-      const profileUrl = `https://warpcast.com/${artist.username}`;
-      window.open(profileUrl, '_blank');
-    }
   };
 
   return (
@@ -449,16 +448,14 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
             const composeUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(`@thedude ${randomMessage}`)}&embeds[]=${encodeURIComponent(window.location.origin)}`;
             
             try {
-              // Import the frame SDK
-              const frame = await import('@farcaster/frame-sdk');
-              
-                              if (frame.sdk && frame.sdk.actions) {
-                  // Use the standard openUrl method with the compose URL
-                  console.log('Opening cast composer with curation request');
-                  await frame.sdk.actions.openUrl(composeUrl);
-                  console.log('Successfully opened cast composer');
-                } else {
-                console.log('Frame SDK not available, falling back to window.open');
+              // Use the new Mini App SDK
+              if (sdk && sdk.actions) {
+                // Use the standard openUrl method with the compose URL
+                console.log('Opening cast composer with curation request');
+                await sdk.actions.openUrl(composeUrl);
+                console.log('Successfully opened cast composer');
+              } else {
+                console.log('Mini App SDK not available, falling back to window.open');
                 window.open(composeUrl, '_blank');
               }
             } catch (err) {
