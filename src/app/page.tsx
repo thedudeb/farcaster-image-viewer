@@ -715,6 +715,7 @@ export default function Home() {
   const [hasTapped, setHasTapped] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [epochLoading, setEpochLoading] = useState(false)
+  const [hapticsDebug, setHapticsDebug] = useState<string[]>([])
   const touchStartX = useRef<number | null>(null)
   const [nextImage, setNextImage] = useState<string | null>(null)
   const [currentImage, setCurrentImage] = useState<string | null>(null)
@@ -725,7 +726,12 @@ export default function Home() {
   
   // Haptic feedback helper function using new Mini App SDK
   const triggerHapticFeedback = async () => {
-    console.log('🔔 Triggering haptic feedback...');
+    const debugLog = (message: string) => {
+      console.log(message);
+      setHapticsDebug(prev => [...prev.slice(-4), message]); // Keep last 5 messages
+    };
+    
+    debugLog('🔔 Triggering haptic feedback...');
     
     // Check if we're in a Farcaster client context
     const isInFarcasterClient = window.location.href.includes('farcaster') || 
@@ -736,57 +742,54 @@ export default function Home() {
                                 'TBA' in window ||
                                 'tba' in window;
     
-    console.log('🔍 Client context check:', { 
-      isInFarcasterClient,
-      url: window.location.href,
-      userAgent: navigator.userAgent
-    });
+    debugLog(`🔍 Client context: ${isInFarcasterClient ? 'YES' : 'NO'}`);
+    debugLog(`🔍 URL: ${window.location.href}`);
     
     try {
       // 1. Try Farcaster Mini App SDK haptic feedback (primary method)
-      try {
-        console.log('🔍 Checking Mini App SDK...', { sdk: !!sdk, actions: !!sdk?.actions });
-        
-        if (sdk && sdk.actions) {
-          console.log('✅ Mini App SDK available, checking for haptic methods...');
-          console.log('📋 Available actions:', Object.keys(sdk.actions));
-          console.log('🔍 Detailed actions check:', sdk.actions);
+              try {
+          debugLog(`🔍 SDK check: ${!!sdk ? 'YES' : 'NO'}, Actions: ${!!sdk?.actions ? 'YES' : 'NO'}`);
           
-          // Try multiple possible haptic method names
-          const hapticMethods = [
-            'hapticFeedback',
-            'vibrate', 
-            'triggerHaptic',
-            'haptic',
-            'feedback'
-          ];
+          if (sdk && sdk.actions) {
+            debugLog('✅ Mini App SDK available, checking for haptic methods...');
+            debugLog(`📋 Available actions: ${Object.keys(sdk.actions).join(', ')}`);
+            debugLog(`🔍 Actions count: ${Object.keys(sdk.actions).length}`);
           
-          for (const method of hapticMethods) {
-            if (method in sdk.actions && typeof sdk.actions[method as keyof typeof sdk.actions] === 'function') {
-              console.log(`🎯 Found haptic method: ${method}`);
-              
-                             try {
+                     // Try multiple possible haptic method names
+           const hapticMethods = [
+             'hapticFeedback',
+             'vibrate', 
+             'triggerHaptic',
+             'haptic',
+             'feedback'
+           ];
+           
+           for (const method of hapticMethods) {
+             if (method in sdk.actions && typeof sdk.actions[method as keyof typeof sdk.actions] === 'function') {
+               debugLog(`🎯 Found haptic method: ${method}`);
+               
+               try {
                  if (method === 'vibrate') {
                    await (sdk.actions[method as keyof typeof sdk.actions] as (duration: number) => Promise<void>)(50);
                  } else {
                    await (sdk.actions[method as keyof typeof sdk.actions] as (type: string) => Promise<void>)('medium');
                  }
-                 console.log(`✅ Haptic feedback triggered via ${method}`);
+                 debugLog(`✅ Haptic feedback triggered via ${method}`);
                  return;
                } catch (methodError) {
-                 console.log(`❌ Method ${method} failed:`, methodError);
+                 debugLog(`❌ Method ${method} failed: ${methodError}`);
                  continue;
                }
-            }
-          }
-          
-          console.log('❌ No working haptic methods found in Mini App SDK');
-        } else {
-          console.log('❌ Mini App SDK not available or actions missing');
-        }
-      } catch (sdkError) {
-        console.log('❌ Mini App SDK haptic methods error:', sdkError);
-      }
+             }
+           }
+           
+           debugLog('❌ No working haptic methods found in Mini App SDK');
+         } else {
+           debugLog('❌ Mini App SDK not available or actions missing');
+         }
+       } catch (sdkError) {
+         debugLog(`❌ Mini App SDK error: ${sdkError}`);
+       }
       
       // 2. Try TBA-specific haptic feedback (fallback)
       try {
@@ -801,56 +804,50 @@ export default function Home() {
           'client' in window ? (window as { client: unknown }).client : undefined
         ];
         
-        console.log('🔍 TBA objects found:', { 
-          TBA: !!tbaObjects[0], 
-          tba: !!tbaObjects[1],
-          farcaster: !!tbaObjects[2],
-          warpcast: !!tbaObjects[3],
-          client: !!tbaObjects[4]
-        });
+        debugLog(`🔍 TBA objects: TBA=${!!tbaObjects[0]}, tba=${!!tbaObjects[1]}, farcaster=${!!tbaObjects[2]}, warpcast=${!!tbaObjects[3]}, client=${!!tbaObjects[4]}`);
         
-        // Check each object for haptic methods
-        for (let i = 0; i < tbaObjects.length; i++) {
-          const obj = tbaObjects[i];
-          if (obj && typeof obj === 'object') {
-            console.log(`🔍 Checking object ${i}:`, Object.keys(obj));
-            
-            // Look for haptic methods in this object
-            const hapticMethods = ['hapticFeedback', 'haptic', 'vibrate', 'feedback'];
-            for (const method of hapticMethods) {
-              if (method in obj && typeof (obj as Record<string, unknown>)[method] === 'function') {
-                console.log(`🎯 Found haptic method ${method} in object ${i}`);
-                try {
-                  if (method === 'vibrate') {
-                    ((obj as Record<string, unknown>)[method] as (duration: number) => void)(50);
-                  } else {
-                    ((obj as Record<string, unknown>)[method] as (type: string) => void)('medium');
-                  }
-                  console.log(`✅ TBA haptic feedback triggered via ${method}`);
-                  return;
-                } catch (error) {
-                  console.log(`❌ TBA method ${method} failed:`, error);
-                }
-              }
-            }
-          }
-        }
-        
-        console.log('❌ TBA haptic feedback not available');
-      } catch (tbaError) {
-        console.log('❌ TBA haptic feedback error:', tbaError);
-      }
+                 // Check each object for haptic methods
+         for (let i = 0; i < tbaObjects.length; i++) {
+           const obj = tbaObjects[i];
+           if (obj && typeof obj === 'object') {
+             debugLog(`🔍 Object ${i} keys: ${Object.keys(obj).join(', ')}`);
+             
+             // Look for haptic methods in this object
+             const hapticMethods = ['hapticFeedback', 'haptic', 'vibrate', 'feedback'];
+             for (const method of hapticMethods) {
+               if (method in obj && typeof (obj as Record<string, unknown>)[method] === 'function') {
+                 debugLog(`🎯 Found haptic method ${method} in object ${i}`);
+                 try {
+                   if (method === 'vibrate') {
+                     ((obj as Record<string, unknown>)[method] as (duration: number) => void)(50);
+                   } else {
+                     ((obj as Record<string, unknown>)[method] as (type: string) => void)('medium');
+                   }
+                   debugLog(`✅ TBA haptic feedback triggered via ${method}`);
+                   return;
+                 } catch (error) {
+                   debugLog(`❌ TBA method ${method} failed: ${error}`);
+                 }
+               }
+             }
+           }
+         }
+         
+         debugLog('❌ TBA haptic feedback not available');
+       } catch (tbaError) {
+         debugLog(`❌ TBA error: ${tbaError}`);
+       }
       
-      // 3. Try navigator.vibrate as final fallback
-      if ("vibrate" in navigator && navigator.vibrate) {
-        console.log('✅ Using navigator.vibrate fallback');
-        navigator.vibrate(50);
-      } else {
-        console.log('❌ No haptic feedback methods available at all');
-      }
-    } catch (error) {
-      console.log('💥 Haptic feedback error:', error);
-    }
+             // 3. Try navigator.vibrate as final fallback
+       if ("vibrate" in navigator && navigator.vibrate) {
+         debugLog('✅ Using navigator.vibrate fallback');
+         navigator.vibrate(50);
+       } else {
+         debugLog('❌ No haptic feedback methods available at all');
+       }
+     } catch (error) {
+       debugLog(`💥 Haptic feedback error: ${error}`);
+     }
   };
   
   // Debug tap right overlay state changes
@@ -1284,6 +1281,24 @@ export default function Home() {
         >
           🔔
         </button>
+      )}
+
+      {/* Haptics Debug Display */}
+      {hapticsDebug.length > 0 && (
+        <div className="absolute top-16 left-4 z-20 bg-black/90 text-white p-3 rounded-lg max-w-sm text-xs font-mono">
+          <div className="mb-2 text-yellow-400 font-bold">🔔 Haptics Debug</div>
+          {hapticsDebug.map((message, index) => (
+            <div key={index} className="mb-1 text-gray-300">
+              {message}
+            </div>
+          ))}
+          <button
+            onClick={() => setHapticsDebug([])}
+            className="mt-2 text-gray-400 hover:text-white text-xs"
+          >
+            Clear
+          </button>
+        </div>
       )}
 
       {index && (
