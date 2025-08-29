@@ -441,15 +441,26 @@ class EpochPreloader {
 
     const extension = epochId === 5 ? 'jpeg' : epochId === 6 ? 'png' : epochId === 7 ? 'jpg' : 'jpg';
     
-    // Progressive loading: load current + next few images first, then the rest
-    const currentImageIndex = 1; // Start with first image
-    const priorityImages = this.getPriorityImageIndices(currentImageIndex, epochData.totalImages);
-    
-    // Load priority images first (current + next 3)
-    await this.loadPriorityImages(epochId, priorityImages, extension);
-    
-    // Then load the rest in background
-    this.loadRemainingImages(epochId, priorityImages, epochData.totalImages, extension);
+    // Special optimization for Epoch 6 (PNG files are larger)
+    if (epochId === 6) {
+      console.log('Optimizing Epoch 6 loading (PNG files detected)');
+      // Load only first 3 images initially for faster perceived performance
+      const priorityImages = [1, 2, 3];
+      await this.loadPriorityImages(epochId, priorityImages, extension);
+      
+      // Load remaining images in smaller batches to avoid overwhelming
+      this.loadRemainingImagesInBatches(epochId, priorityImages, epochData.totalImages, extension);
+    } else {
+      // Progressive loading: load current + next few images first, then the rest
+      const currentImageIndex = 1; // Start with first image
+      const priorityImages = this.getPriorityImageIndices(currentImageIndex, epochData.totalImages);
+      
+      // Load priority images first
+      await this.loadPriorityImages(epochId, priorityImages, extension);
+      
+      // Then load the rest in background
+      this.loadRemainingImages(epochId, priorityImages, epochData.totalImages, extension);
+    }
     
     this.loadedEpochs.add(epochId);
     this.loadingEpochs.delete(epochId);
@@ -459,15 +470,18 @@ class EpochPreloader {
   private getPriorityImageIndices(currentIndex: number, totalImages: number): number[] {
     const priority = [currentIndex];
     
-    // Add next 5 images for ultra-smooth navigation
-    for (let i = 1; i <= 5; i++) {
+    // For PNG epochs (like Epoch 6), load fewer priority images to avoid overwhelming
+    const maxPriorityImages = totalImages > 50 ? 3 : 5; // Reduce for larger collections
+    
+    // Add next few images for smooth navigation
+    for (let i = 1; i <= maxPriorityImages; i++) {
       const nextIndex = currentIndex + i;
       if (nextIndex <= totalImages) {
         priority.push(nextIndex);
       }
     }
     
-    // Add previous 2 images if available
+    // Add previous 1-2 images if available
     for (let i = 1; i <= 2; i++) {
       const prevIndex = currentIndex - i;
       if (prevIndex >= 1) {
@@ -500,6 +514,36 @@ class EpochPreloader {
     }
   }
 
+  private loadRemainingImagesInBatches(epochId: number, priorityIndices: number[], totalImages: number, extension: string): void {
+    // For PNG epochs, load remaining images in smaller batches to avoid overwhelming
+    const batchSize = 3; // Load 3 images at a time
+    const remainingIndices: number[] = [];
+    
+    for (let i = 1; i <= totalImages; i++) {
+      if (!priorityIndices.includes(i)) {
+        remainingIndices.push(i);
+      }
+    }
+    
+    // Load in batches with delays to prevent overwhelming
+    const loadBatch = (startIndex: number) => {
+      const batch = remainingIndices.slice(startIndex, startIndex + batchSize);
+      if (batch.length === 0) return;
+      
+      batch.forEach(index => {
+        this.loadSingleImage(epochId, index, extension, false);
+      });
+      
+      // Schedule next batch with a small delay
+      if (startIndex + batchSize < remainingIndices.length) {
+        setTimeout(() => loadBatch(startIndex + batchSize), 100);
+      }
+    };
+    
+    // Start loading batches
+    loadBatch(0);
+  }
+
   private async loadSingleImage(epochId: number, imageIndex: number, extension: string, isPriority: boolean): Promise<void> {
     const imageSrc = `/images/epoch${epochId}/${imageIndex}.${extension}`;
     const cacheKey = `${epochId}-${imageIndex}`;
@@ -518,6 +562,15 @@ class EpochPreloader {
     const loadingPromise = new Promise<void>((resolve) => {
       const img = new window.Image();
       
+      // Optimize loading for different file types
+      if (extension === 'png') {
+        // PNG files are larger, use more aggressive optimization
+        img.decoding = 'async';
+        img.loading = isPriority ? 'eager' : 'lazy';
+      } else {
+        img.loading = isPriority ? 'eager' : 'lazy';
+      }
+      
       img.onload = () => {
         this.imageCache.set(cacheKey, img);
         this.loadingQueue.delete(cacheKey);
@@ -530,11 +583,6 @@ class EpochPreloader {
         this.loadingQueue.delete(cacheKey);
         resolve(); // Don't fail the whole epoch for one bad image
       };
-      
-      // Set loading priority
-      if (isPriority) {
-        img.loading = 'eager';
-      }
       
       img.src = imageSrc;
     });
@@ -586,12 +634,13 @@ class EpochPreloader {
 
   // Manage cache size to prevent memory issues
   private manageCacheSize(): void {
-    const maxCacheSize = 200; // Reduced from 500 to improve performance
+    // For PNG epochs, use smaller cache to prevent memory issues
+    const maxCacheSize = this.loadedEpochs.has(6) ? 100 : 200; // Smaller cache for PNG epochs
     if (this.imageCache.size > maxCacheSize) {
       // Remove oldest entries (simple FIFO)
       const keysToRemove = Array.from(this.imageCache.keys()).slice(0, this.imageCache.size - maxCacheSize);
       keysToRemove.forEach(key => this.imageCache.delete(key));
-      console.log(`Cleared ${keysToRemove.length} cached images to manage memory`);
+      console.log(`Cleared ${keysToRemove.length} cached images to manage memory (max: ${maxCacheSize})`);
     }
   }
 }
@@ -637,6 +686,7 @@ export default function Home() {
   const [showGreywashTapRight, setShowGreywashTapRight] = useState(false)
   const [hasTapped, setHasTapped] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
+  const [epochLoading, setEpochLoading] = useState(false)
   const touchStartX = useRef<number | null>(null)
   const [nextImage, setNextImage] = useState<string | null>(null)
   const [currentImage, setCurrentImage] = useState<string | null>(null)
@@ -966,6 +1016,12 @@ export default function Home() {
   const handleEpochChange = async (epochId: number) => {
     console.log('Epoch change started:', { from: currentEpoch, to: epochId })
     const previousEpoch = currentEpoch;
+    
+    // Show loading state for Epoch 6 (PNG files are larger)
+    if (epochId === 6) {
+      setEpochLoading(true);
+    }
+    
     setCurrentEpoch(epochId);
     setIndex(1);
     setImageKey(prev => prev + 1);
@@ -999,8 +1055,16 @@ export default function Home() {
     }
     
     // Start preloading the new epoch silently in background
-    epochPreloader.preloadEpoch(epochId).catch(error => {
+    epochPreloader.preloadEpoch(epochId).then(() => {
+      // Hide loading state when epoch is ready
+      if (epochId === 6) {
+        setEpochLoading(false);
+      }
+    }).catch(error => {
       console.error('Failed to preload epoch:', error);
+      if (epochId === 6) {
+        setEpochLoading(false);
+      }
     });
     
     try {
@@ -1131,6 +1195,17 @@ export default function Home() {
             onLoadStart={() => {}} // Removed onLoadStart
             priority
           />
+          
+          {/* Loading indicator for Epoch 6 */}
+          {epochLoading && currentEpoch === 6 && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
+              <div className="text-white text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                <p className="text-lg">Loading Epoch 6...</p>
+                <p className="text-sm text-gray-300 mt-2">PNG files are larger, please wait</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
