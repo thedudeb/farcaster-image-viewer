@@ -712,6 +712,7 @@ export default function Home() {
   const [showMenuButton, setShowMenuButton] = useState(true)
   const [showTapRightOverlay, setShowTapRightOverlay] = useState(false)
   const [showGreywashTapRight, setShowGreywashTapRight] = useState(false)
+  const [showChronistTapRight, setShowChronistTapRight] = useState(false)
   const [hasTapped, setHasTapped] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [epochLoading, setEpochLoading] = useState(false)
@@ -833,6 +834,7 @@ export default function Home() {
         setImageKey(prev => prev + 1)
         setShowTapRightOverlay(false); // Hide tap right overlay when navigating
         setShowGreywashTapRight(false); // Hide Greywash tap right overlay when navigating
+        setShowChronistTapRight(false); // Hide Chronist tap right overlay when navigating
       } else if (e.key === 'ArrowRight') {
         setIndex((prev) => {
           if (!prev) return 1;
@@ -842,6 +844,7 @@ export default function Home() {
         setImageKey(prev => prev + 1)
         setShowTapRightOverlay(false); // Hide tap right overlay when navigating
         setShowGreywashTapRight(false); // Hide Greywash tap right overlay when navigating
+        setShowChronistTapRight(false); // Hide Chronist tap right overlay when navigating
       }
     };
 
@@ -866,8 +869,8 @@ export default function Home() {
 
   // Show tap right overlay when new epoch is loaded
   useEffect(() => {
-    // Don't show regular tap right overlay for Epoch 5 (it has its own special overlay)
-    if (currentEpoch === 5) {
+    // Don't show regular tap right overlay for Epoch 5 or 6 (they have their own special overlays)
+    if (currentEpoch === 5 || currentEpoch === 6) {
       return;
     }
     
@@ -898,9 +901,41 @@ export default function Home() {
         
         // Show Greywash tap right overlay for 9 seconds after notification
         setShowTapRightOverlay(false); // Hide regular overlay first
+        setShowGreywashTapRight(false); // Hide Chronist overlay first
         setShowGreywashTapRight(true);
         const tapRightTimer = setTimeout(() => {
           setShowGreywashTapRight(false);
+        }, 9000);
+        
+        return () => clearTimeout(tapRightTimer);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [currentEpoch]);
+
+  // Show Epoch 6 disclaimer on first load and start loading epoch
+  useEffect(() => {
+    if (currentEpoch === 6) {
+      // Start loading Epoch 6 immediately when notification appears
+      epochPreloader.preloadEpoch(6);
+      
+      // Small delay to ensure the component is fully mounted
+      const timer = setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('showNotification', { 
+          detail: {
+            message: `This epoch was created and curated by another amazing artist, @Chronist`,
+            type: 'epoch6-notice',
+            artistProfile: 'https://warpcast.com/chronist'
+          } 
+        }));
+        
+        // Show Chronist tap right overlay for 9 seconds after notification
+        setShowTapRightOverlay(false); // Hide regular overlay first
+        setShowGreywashTapRight(false); // Hide Greywash overlay first
+        setShowChronistTapRight(true);
+        const tapRightTimer = setTimeout(() => {
+          setShowChronistTapRight(false);
         }, 9000);
         
         return () => clearTimeout(tapRightTimer);
@@ -979,6 +1014,7 @@ export default function Home() {
       setImageKey(prev => prev + 1);
       setShowTapRightOverlay(false); // Hide tap right overlay when navigating
       setShowGreywashTapRight(false); // Hide Greywash tap right overlay when navigating
+      setShowChronistTapRight(false); // Hide Chronist tap right overlay when navigating
       triggerHapticFeedback();
     } else {
       setIndex((prev) => {
@@ -989,6 +1025,7 @@ export default function Home() {
       setImageKey(prev => prev + 1);
       setShowTapRightOverlay(false); // Hide tap right overlay when navigating
       setShowGreywashTapRight(false); // Hide Greywash tap right overlay when navigating
+      setShowChronistTapRight(false); // Hide Chronist tap right overlay when navigating
       triggerHapticFeedback();
     }
   }
@@ -999,6 +1036,7 @@ export default function Home() {
     setMenuOpen(true)
     setShowTapRightOverlay(false) // Don't show tap right overlay when menu is open
     setShowGreywashTapRight(false) // Ensure Greywash overlay is hidden when regular menu is opened
+    setShowChronistTapRight(false) // Ensure Chronist overlay is hidden when regular menu is opened
     trackMenuOpen()
     console.log('Menu button clicked - states set')
   }
@@ -1033,6 +1071,7 @@ export default function Home() {
     setMenuOpen(false);
     setShowMenuButton(false);
     setShowGreywashTapRight(false);
+    setShowChronistTapRight(false);
     console.log('Epoch change - states reset')
     
     // Clear viewed images for new epoch
@@ -1053,6 +1092,17 @@ export default function Home() {
           message: `This epoch was created and curated by another amazing artist, @Greywash`,
           type: 'epoch5-notice',
           artistProfile: 'https://warpcast.com/greywash' // Replace with actual Farcaster profile URL
+        } 
+      }));
+    }
+    
+    // Show special notification for Epoch 6-Chronist
+    if (epochId === 6) {
+      window.dispatchEvent(new CustomEvent('showNotification', { 
+        detail: { 
+          message: `This epoch was created and curated by another amazing artist, @Chronist`,
+          type: 'epoch6-notice',
+          artistProfile: 'https://warpcast.com/chronist' // Replace with actual Farcaster profile URL
         } 
       }));
     }
@@ -1272,11 +1322,22 @@ export default function Home() {
         </div>
       )}
 
+      {/* Chronist Epoch 6 Tap Right Overlay */}
+      {showChronistTapRight && (
+        <div
+          className="absolute bottom-[10%] left-1/2 transform -translate-x-1/2 text-white text-sm select-none pointer-events-none transition-opacity duration-500 opacity-100"
+        >
+          <p>tap right</p>
+        </div>
+      )}
+
       {menuOpen && (
         <Menu 
           onClose={() => {
             setMenuOpen(false)
             setShowTapRightOverlay(false)
+            setShowGreywashTapRight(false)
+            setShowChronistTapRight(false)
             setShowMenuButton(false)
           }} 
           onEpochChange={handleEpochChange}

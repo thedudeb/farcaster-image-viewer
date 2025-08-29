@@ -14,8 +14,8 @@ export default function Notification({ message, duration = 6000, type, artistPro
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // For Epoch 5 notice, don't auto-hide - wait for user interaction
-    if (type !== 'epoch5-notice') {
+    // For Epoch 5 and 6 notices, don't auto-hide - wait for user interaction
+    if (type !== 'epoch5-notice' && type !== 'epoch6-notice') {
       const timer = setTimeout(() => {
         setIsVisible(false);
         onClose?.();
@@ -27,8 +27,8 @@ export default function Notification({ message, duration = 6000, type, artistPro
 
   if (!isVisible) return null;
 
-  // Special styling for Epoch 5 notice
-  if (type === 'epoch5-notice') {
+  // Special styling for Epoch 5 and 6 notices
+  if (type === 'epoch5-notice' || type === 'epoch6-notice') {
     return (
       <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-black/90 text-white px-6 py-4 rounded-lg shadow-lg transition-opacity duration-300 max-w-md text-center">
         <div className="mb-3">
@@ -38,8 +38,9 @@ export default function Notification({ message, duration = 6000, type, artistPro
           {artistProfile && (
             <button
                           onClick={async () => {
-              // Track artist profile click
-              trackArtistProfileClick('@Greywash');
+              // Track artist profile click based on type
+              const artistName = type === 'epoch5-notice' ? '@Greywash' : '@Chronist';
+              trackArtistProfileClick(artistName);
               
               try {
                 console.log('Profile button clicked, artistProfile:', artistProfile);
@@ -52,8 +53,9 @@ export default function Notification({ message, duration = 6000, type, artistPro
                     
                     // Use the official viewProfile method with FID to minimize app and show profile
                     if (sdk.actions.viewProfile) {
-                      console.log('Using viewProfile method with FID 1075107');
-                      await sdk.actions.viewProfile({ fid: 1075107 });
+                      const fid = type === 'epoch5-notice' ? 1075107 : 499579; // Greywash: 1075107, Chronist: 499579
+                      console.log(`Using viewProfile method with FID ${fid}`);
+                      await sdk.actions.viewProfile({ fid });
                       console.log('Successfully opened profile with viewProfile');
                     } else {
                       console.log('viewProfile not available, using openUrl fallback');
