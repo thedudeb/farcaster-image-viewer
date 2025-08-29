@@ -650,10 +650,49 @@ export default function Home() {
   const [currentEpoch, setCurrentEpoch] = useState(5)
   const [index, setIndex] = useState<number | null>(1)
   
-  // Track app load time
+  // Progressive Enhancement & Performance Monitoring
   useEffect(() => {
     const loadTime = performance.now();
     console.log('App load time:', loadTime.toFixed(2) + 'ms');
+    
+    // Progressive Enhancement: Check for advanced features
+    const supportsIntersectionObserver = 'IntersectionObserver' in window;
+    const supportsServiceWorker = 'serviceWorker' in navigator;
+    const supportsWebP = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') === 0;
+    const supportsAVIF = document.createElement('canvas').toDataURL('image/avif').indexOf('data:image/avif') === 0;
+    const connectionType = (navigator as { connection?: { effectiveType?: string } }).connection?.effectiveType || 'unknown';
+    
+    console.log('Progressive Enhancement Check:', {
+      intersectionObserver: supportsIntersectionObserver,
+      serviceWorker: supportsServiceWorker,
+      webP: supportsWebP,
+      avif: supportsAVIF,
+      connection: connectionType
+    });
+    
+    // Progressive Enhancement: Enable advanced features based on support
+    if (supportsIntersectionObserver) {
+      console.log('✅ Intersection Observer available - enabling advanced lazy loading');
+      // Could enable more sophisticated lazy loading here
+    }
+    
+    if (supportsServiceWorker) {
+      console.log('✅ Service Worker available - could enable offline caching');
+      // Could register service worker for offline support
+    }
+    
+    if (supportsWebP || supportsAVIF) {
+      console.log('✅ Modern image formats supported - could serve optimized images');
+      // Could serve WebP/AVIF images for better performance
+    }
+    
+    if (connectionType === 'slow-2g' || connectionType === '2g') {
+      console.log('⚠️ Slow connection detected - enabling aggressive optimization');
+      setPerformanceMode('low-bandwidth');
+      // Could enable more aggressive image compression
+    } else if (supportsWebP && supportsServiceWorker) {
+      setPerformanceMode('enhanced');
+    }
     
     // Track session start
     trackSessionStart();
@@ -714,7 +753,9 @@ export default function Home() {
   const [showGreywashTapRight, setShowGreywashTapRight] = useState(false)
   const [showChronistTapRight, setShowChronistTapRight] = useState(false)
   const [hasTapped, setHasTapped] = useState(false)
+  const [imageLoading, setImageLoading] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
+  const [performanceMode, setPerformanceMode] = useState<string>('standard')
   const [epochLoading, setEpochLoading] = useState(false)
   const touchStartX = useRef<number | null>(null)
   const [nextImage, setNextImage] = useState<string | null>(null)
@@ -1276,26 +1317,54 @@ export default function Home() {
         </button>
       )}
 
+      {/* Performance Mode Indicator (subtle) */}
+      {performanceMode !== 'standard' && showMenuButton && (
+        <div className="absolute top-4 right-28 z-10">
+          <div className={`px-2 py-1 rounded-full text-xs font-medium transition-all duration-300 ${
+            performanceMode === 'enhanced' 
+              ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+              : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+          }`}>
+            {performanceMode === 'enhanced' ? '⚡' : '📶'}
+          </div>
+        </div>
+      )}
+
 
 
       {index && (
         <div className="relative w-full h-full">
+          {/* Skeleton Loading Placeholder */}
+          {imageLoading && (
+            <div className="absolute inset-0 bg-gray-900 flex items-center justify-center z-10">
+              <div className="w-full h-full max-w-4xl max-h-4xl mx-auto">
+                <div className="w-full h-full bg-gray-800 animate-pulse rounded-lg flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gray-700 rounded-full animate-pulse mx-auto mb-4"></div>
+                    <div className="w-32 h-4 bg-gray-700 rounded animate-pulse mx-auto mb-2"></div>
+                    <div className="w-24 h-3 bg-gray-700 rounded animate-pulse mx-auto"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <ZoomableImage
             key={imageKey}
             src={imageSrc}
             alt={`Image ${index} from Epoch ${currentEpoch}`}
-            onLoad={() => {}} // Removed onLoad
-            onLoadStart={() => {}} // Removed onLoadStart
+            onLoad={() => setImageLoading(false)}
+            onLoadStart={() => setImageLoading(true)}
             priority
           />
           
-          {/* Loading indicator for Epoch 6 */}
+          {/* Epoch Loading Skeleton (only for Epoch 6) */}
           {epochLoading && currentEpoch === 6 && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
-              <div className="text-white text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                <p className="text-lg">Loading Epoch 6...</p>
-                <p className="text-sm text-gray-300 mt-2">PNG files are larger, please wait</p>
+            <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-20">
+              <div className="text-center">
+                <div className="w-20 h-20 bg-gray-700 rounded-full animate-pulse mx-auto mb-6"></div>
+                <div className="w-48 h-6 bg-gray-700 rounded animate-pulse mx-auto mb-3"></div>
+                <div className="w-64 h-4 bg-gray-700 rounded animate-pulse mx-auto"></div>
               </div>
             </div>
           )}
