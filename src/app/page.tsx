@@ -661,13 +661,28 @@ export default function Home() {
     // Initialize Mini App and hide splash screen
     const initializeMiniApp = async () => {
       try {
+        console.log('🔍 Checking SDK availability...', { 
+          sdk: !!sdk, 
+          actions: !!sdk?.actions, 
+          ready: !!sdk?.actions?.ready 
+        });
+        
         if (sdk && sdk.actions && sdk.actions.ready) {
-          console.log('Initializing Mini App...');
+          console.log('✅ Initializing Mini App...');
           await sdk.actions.ready();
-          console.log('Mini App ready - splash screen hidden');
+          console.log('✅ Mini App ready - splash screen hidden');
+          
+          // Log all available actions after initialization
+          console.log('📋 All available SDK actions:', Object.keys(sdk.actions));
+        } else {
+          console.log('❌ SDK not ready for initialization:', { 
+            sdk: !!sdk, 
+            actions: !!sdk?.actions, 
+            ready: !!sdk?.actions?.ready 
+          });
         }
       } catch (error) {
-        console.error('Failed to initialize Mini App:', error);
+        console.error('❌ Failed to initialize Mini App:', error);
       }
     };
     
@@ -710,68 +725,95 @@ export default function Home() {
   
   // Haptic feedback helper function using new Mini App SDK
   const triggerHapticFeedback = async () => {
-    console.log('Triggering haptic feedback...');
+    console.log('🔔 Triggering haptic feedback...');
+    
     try {
       // 1. Try Farcaster Mini App SDK haptic feedback (primary method)
       try {
+        console.log('🔍 Checking Mini App SDK...', { sdk: !!sdk, actions: !!sdk?.actions });
+        
         if (sdk && sdk.actions) {
-          console.log('Mini App SDK available, checking for haptic methods...');
-          console.log('Available actions:', Object.keys(sdk.actions));
+          console.log('✅ Mini App SDK available, checking for haptic methods...');
+          console.log('📋 Available actions:', Object.keys(sdk.actions));
           
-          // Check for haptic feedback methods in the new SDK
-          if ('hapticFeedback' in sdk.actions && typeof sdk.actions.hapticFeedback === 'function') {
-            console.log('Using Mini App SDK hapticFeedback');
-            await sdk.actions.hapticFeedback('medium');
-            return;
+          // Try multiple possible haptic method names
+          const hapticMethods = [
+            'hapticFeedback',
+            'vibrate', 
+            'triggerHaptic',
+            'haptic',
+            'feedback'
+          ];
+          
+          for (const method of hapticMethods) {
+            if (method in sdk.actions && typeof sdk.actions[method as keyof typeof sdk.actions] === 'function') {
+              console.log(`🎯 Found haptic method: ${method}`);
+              
+                             try {
+                 if (method === 'vibrate') {
+                   await (sdk.actions[method as keyof typeof sdk.actions] as (duration: number) => Promise<void>)(50);
+                 } else {
+                   await (sdk.actions[method as keyof typeof sdk.actions] as (type: string) => Promise<void>)('medium');
+                 }
+                 console.log(`✅ Haptic feedback triggered via ${method}`);
+                 return;
+               } catch (methodError) {
+                 console.log(`❌ Method ${method} failed:`, methodError);
+                 continue;
+               }
+            }
           }
           
-          if ('vibrate' in sdk.actions && typeof sdk.actions.vibrate === 'function') {
-            console.log('Using Mini App SDK vibrate');
-            await sdk.actions.vibrate(50);
-            return;
-          }
-          
-          if ('triggerHaptic' in sdk.actions && typeof sdk.actions.triggerHaptic === 'function') {
-            console.log('Using Mini App SDK triggerHaptic');
-            await sdk.actions.triggerHaptic('medium');
-            return;
-          }
+          console.log('❌ No working haptic methods found in Mini App SDK');
+        } else {
+          console.log('❌ Mini App SDK not available or actions missing');
         }
       } catch (sdkError) {
-        console.log('Mini App SDK haptic methods not available:', sdkError);
+        console.log('❌ Mini App SDK haptic methods error:', sdkError);
       }
       
       // 2. Try TBA-specific haptic feedback (fallback)
       try {
+        console.log('🔍 Checking TBA haptic feedback...');
+        
         const windowWithTBA = window as typeof window & {
           TBA?: { hapticFeedback?: (type: string) => void };
           tba?: { hapticFeedback?: (type: string) => void };
         };
         
+        console.log('🔍 TBA objects found:', { 
+          TBA: !!windowWithTBA.TBA, 
+          tba: !!windowWithTBA.tba,
+          TBAHaptic: !!windowWithTBA.TBA?.hapticFeedback,
+          tbaHaptic: !!windowWithTBA.tba?.hapticFeedback
+        });
+        
         if (typeof window !== 'undefined' && windowWithTBA.TBA?.hapticFeedback) {
-          console.log('Using TBA hapticFeedback');
+          console.log('✅ Using TBA hapticFeedback');
           windowWithTBA.TBA.hapticFeedback('medium');
           return;
         }
         
         if (typeof window !== 'undefined' && windowWithTBA.tba?.hapticFeedback) {
-          console.log('Using tba hapticFeedback');
+          console.log('✅ Using tba hapticFeedback');
           windowWithTBA.tba.hapticFeedback('medium');
           return;
         }
+        
+        console.log('❌ TBA haptic feedback not available');
       } catch (tbaError) {
-        console.log('TBA haptic feedback not available:', tbaError);
+        console.log('❌ TBA haptic feedback error:', tbaError);
       }
       
       // 3. Try navigator.vibrate as final fallback
       if ("vibrate" in navigator && navigator.vibrate) {
-        console.log('Using navigator.vibrate fallback');
+        console.log('✅ Using navigator.vibrate fallback');
         navigator.vibrate(50);
       } else {
-        console.log('No haptic feedback methods available');
+        console.log('❌ No haptic feedback methods available at all');
       }
     } catch (error) {
-      console.log('Haptic feedback error:', error);
+      console.log('💥 Haptic feedback error:', error);
     }
   };
   
@@ -1191,6 +1233,20 @@ export default function Home() {
             <line x1="8" y1="2" x2="8" y2="6"/>
             <line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
+        </button>
+      )}
+
+      {/* Haptics Test Button - Temporary for debugging */}
+      {showMenuButton && (
+        <button
+          onClick={() => {
+            console.log('🧪 Manual haptics test triggered');
+            triggerHapticFeedback();
+          }}
+          className={`absolute top-4 right-32 z-10 bg-red-500/80 text-white p-2 rounded-lg hover:bg-red-600/80 transition-all duration-300`}
+          title="Test Haptics"
+        >
+          🔔
         </button>
       )}
 
