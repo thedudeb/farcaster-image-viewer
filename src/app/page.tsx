@@ -924,9 +924,9 @@ export default function Home() {
       const timer = setTimeout(() => {
         window.dispatchEvent(new CustomEvent('showNotification', { 
           detail: {
-            message: `This epoch was created and curated by another amazing artist, @Chronist`,
+            message: `This epoch was created and curated by another amazing artist, @dwn2earth`,
             type: 'epoch6-notice',
-            artistProfile: 'https://warpcast.com/chronist'
+            artistProfile: 'https://warpcast.com/dwn2earth'
           } 
         }));
         
@@ -1096,13 +1096,13 @@ export default function Home() {
       }));
     }
     
-    // Show special notification for Epoch 6-Chronist
+    // Show special notification for Epoch 6-dwn2earth
     if (epochId === 6) {
       window.dispatchEvent(new CustomEvent('showNotification', { 
         detail: { 
-          message: `This epoch was created and curated by another amazing artist, @Chronist`,
+          message: `This epoch was created and curated by another amazing artist, @dwn2earth`,
           type: 'epoch6-notice',
-          artistProfile: 'https://warpcast.com/chronist' // Replace with actual Farcaster profile URL
+          artistProfile: 'https://warpcast.com/dwn2earth' // Replace with actual Farcaster profile URL
         } 
       }));
     }
@@ -1322,7 +1322,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Chronist Epoch 6 Tap Right Overlay */}
+      {/* dwn2earth Epoch 6 Tap Right Overlay */}
       {showChronistTapRight && (
         <div
           className="absolute bottom-[10%] left-1/2 transform -translate-x-1/2 text-white text-sm select-none pointer-events-none transition-opacity duration-500 opacity-100"
