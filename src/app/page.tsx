@@ -1101,14 +1101,52 @@ export default function Home() {
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!index) return;
+    
     const imageUrl = `${window.location.origin}/images/epoch${currentEpoch}/${index}.jpg`;
     const appUrl = window.location.origin;
-    const composeUrl = `https://warpcast.com/~/compose?text=Check out this dope image from Epoch ${currentEpoch} on @0ffline viewer&embeds[]=${encodeURIComponent(imageUrl)}&embeds[]=${encodeURIComponent(appUrl)}`;
+    const shareText = `Check out this dope image from Epoch ${currentEpoch} on @0ffline viewer`;
+    
+    // Detect which client we're running in
+    const isInFarcaster = window.location.href.includes('farcaster') || 
+                          window.location.href.includes('warpcast') ||
+                          'farcaster' in window ||
+                          'warpcast' in window;
+    
+    const isInTBA = window.location.href.includes('tba') ||
+                    'TBA' in window ||
+                    'tba' in window;
+    
+    let shareUrl: string;
+    
+    if (isInFarcaster) {
+      // Use Farcaster compose URL
+      shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(imageUrl)}&embeds[]=${encodeURIComponent(appUrl)}`;
+    } else if (isInTBA) {
+      // Use TBA compose URL (if available) or fallback to Farcaster
+      shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(imageUrl)}&embeds[]=${encodeURIComponent(appUrl)}`;
+    } else {
+      // Web browser - use Farcaster compose as default
+      shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(imageUrl)}&embeds[]=${encodeURIComponent(appUrl)}`;
+    }
 
     try {
-      await sdk.actions.openUrl(composeUrl);
+      // Try to use the client's native share if available
+      if (sdk && sdk.actions && sdk.actions.openUrl) {
+        await sdk.actions.openUrl(shareUrl);
+      } else if (navigator.share && isInTBA) {
+        // Use native share API for TBA if available
+        await navigator.share({
+          title: `Epoch ${currentEpoch} Image`,
+          text: shareText,
+          url: appUrl
+        });
+      } else {
+        // Fallback to opening URL
+        window.open(shareUrl, '_blank');
+      }
     } catch (err) {
-      window.open(composeUrl, '_blank');
+      console.log('Share failed, falling back to window.open:', err);
+      window.open(shareUrl, '_blank');
     }
   };
 
