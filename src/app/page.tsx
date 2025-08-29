@@ -437,11 +437,12 @@ class EpochPreloader {
       return;
     }
 
-    const extension = epochId === 5 ? 'jpeg' : epochId === 6 ? 'png' : epochId === 7 ? 'jpg' : 'jpg';
+    // Use WebP extension for all epochs (we now have WebP versions)
+    const extension = 'webp';
     
-    // Special optimization for Epoch 6 (PNG files are larger)
+    // Special optimization for Epoch 6 (now WebP files are much smaller!)
     if (epochId === 6) {
-      console.log('Optimizing Epoch 6 loading (PNG files detected)');
+      console.log('Optimizing Epoch 6 loading (WebP files are much smaller now!)');
       // Load only first 3 images initially for faster perceived performance
       const priorityImages = [1, 2, 3];
       await this.loadPriorityImages(epochId, priorityImages, extension);
@@ -594,7 +595,8 @@ class EpochPreloader {
     const epochData = EPOCHS.find(e => e.id === epochId);
     if (!epochData) return;
 
-    const extension = epochId === 5 ? 'jpeg' : epochId === 6 ? 'png' : epochId === 7 ? 'jpg' : 'jpg';
+    // Use WebP extension for all epochs (we now have WebP versions)
+    const extension = 'webp';
     const promises: Promise<void>[] = [];
 
     for (let i = startIndex; i <= endIndex; i++) {
@@ -1241,7 +1243,21 @@ export default function Home() {
     }
   };
 
-  const imageSrc = index ? `/images/epoch${currentEpoch}/${index}.${currentEpoch === 5 ? 'jpeg' : currentEpoch === 6 ? 'png' : 'jpg'}` : ''
+  // Progressive enhancement: Use WebP when supported, fallback to original format
+  const getImageSrc = (epochId: number, imageIndex: number) => {
+    const basePath = `/images/epoch${epochId}/${imageIndex}`;
+    const originalExt = epochId === 5 ? 'jpeg' : epochId === 6 ? 'png' : 'jpg';
+    
+    // Check if WebP is supported (from our progressive enhancement detection)
+    if (performanceMode === 'enhanced' || performanceMode === 'low-bandwidth') {
+      return `${basePath}.webp`;
+    }
+    
+    // Fallback to original format
+    return `${basePath}.${originalExt}`;
+  };
+
+  const imageSrc = index ? getImageSrc(currentEpoch, index) : ''
 
   return (
     <div
