@@ -727,6 +727,21 @@ export default function Home() {
   const triggerHapticFeedback = async () => {
     console.log('🔔 Triggering haptic feedback...');
     
+    // Check if we're in a Farcaster client context
+    const isInFarcasterClient = window.location.href.includes('farcaster') || 
+                                window.location.href.includes('warpcast') ||
+                                window.location.href.includes('tba') ||
+                                'farcaster' in window ||
+                                'warpcast' in window ||
+                                'TBA' in window ||
+                                'tba' in window;
+    
+    console.log('🔍 Client context check:', { 
+      isInFarcasterClient,
+      url: window.location.href,
+      userAgent: navigator.userAgent
+    });
+    
     try {
       // 1. Try Farcaster Mini App SDK haptic feedback (primary method)
       try {
@@ -735,6 +750,7 @@ export default function Home() {
         if (sdk && sdk.actions) {
           console.log('✅ Mini App SDK available, checking for haptic methods...');
           console.log('📋 Available actions:', Object.keys(sdk.actions));
+          console.log('🔍 Detailed actions check:', sdk.actions);
           
           // Try multiple possible haptic method names
           const hapticMethods = [
@@ -776,28 +792,48 @@ export default function Home() {
       try {
         console.log('🔍 Checking TBA haptic feedback...');
         
-        const windowWithTBA = window as typeof window & {
-          TBA?: { hapticFeedback?: (type: string) => void };
-          tba?: { hapticFeedback?: (type: string) => void };
-        };
+        // Check for TBA in multiple possible locations
+        const tbaObjects = [
+          'TBA' in window ? (window as { TBA: unknown }).TBA : undefined,
+          'tba' in window ? (window as { tba: unknown }).tba : undefined,
+          'farcaster' in window ? (window as { farcaster: unknown }).farcaster : undefined,
+          'warpcast' in window ? (window as { warpcast: unknown }).warpcast : undefined,
+          'client' in window ? (window as { client: unknown }).client : undefined
+        ];
         
         console.log('🔍 TBA objects found:', { 
-          TBA: !!windowWithTBA.TBA, 
-          tba: !!windowWithTBA.tba,
-          TBAHaptic: !!windowWithTBA.TBA?.hapticFeedback,
-          tbaHaptic: !!windowWithTBA.tba?.hapticFeedback
+          TBA: !!tbaObjects[0], 
+          tba: !!tbaObjects[1],
+          farcaster: !!tbaObjects[2],
+          warpcast: !!tbaObjects[3],
+          client: !!tbaObjects[4]
         });
         
-        if (typeof window !== 'undefined' && windowWithTBA.TBA?.hapticFeedback) {
-          console.log('✅ Using TBA hapticFeedback');
-          windowWithTBA.TBA.hapticFeedback('medium');
-          return;
-        }
-        
-        if (typeof window !== 'undefined' && windowWithTBA.tba?.hapticFeedback) {
-          console.log('✅ Using tba hapticFeedback');
-          windowWithTBA.tba.hapticFeedback('medium');
-          return;
+        // Check each object for haptic methods
+        for (let i = 0; i < tbaObjects.length; i++) {
+          const obj = tbaObjects[i];
+          if (obj && typeof obj === 'object') {
+            console.log(`🔍 Checking object ${i}:`, Object.keys(obj));
+            
+            // Look for haptic methods in this object
+            const hapticMethods = ['hapticFeedback', 'haptic', 'vibrate', 'feedback'];
+            for (const method of hapticMethods) {
+              if (method in obj && typeof (obj as Record<string, unknown>)[method] === 'function') {
+                console.log(`🎯 Found haptic method ${method} in object ${i}`);
+                try {
+                  if (method === 'vibrate') {
+                    ((obj as Record<string, unknown>)[method] as (duration: number) => void)(50);
+                  } else {
+                    ((obj as Record<string, unknown>)[method] as (type: string) => void)('medium');
+                  }
+                  console.log(`✅ TBA haptic feedback triggered via ${method}`);
+                  return;
+                } catch (error) {
+                  console.log(`❌ TBA method ${method} failed:`, error);
+                }
+              }
+            }
+          }
         }
         
         console.log('❌ TBA haptic feedback not available');
