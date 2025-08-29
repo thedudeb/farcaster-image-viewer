@@ -40,8 +40,8 @@ export async function POST(request: NextRequest) {
       console.log('Analytics API: Event inserted successfully:', eventType);
     }).catch(error => {
       console.error('Analytics API: Insert error details:', {
-        error: error.message,
-        stack: error.stack,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
         eventType,
         epochId,
         imageIndex
@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
         console.log('Analytics API: Session updated successfully:', sessionId);
       }).catch(error => {
         console.error('Analytics API: Session upsert error details:', {
-          error: error.message,
-          stack: error.stack,
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
           sessionId
         });
       });
@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
         console.log('Analytics API: Epoch completion recorded:', epochId);
       }).catch(error => {
         console.error('Analytics API: Epoch completion error details:', {
-          error: error.message,
-          stack: error.stack,
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
           epochId
         });
       });
@@ -97,8 +97,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Analytics API: Top-level error details:', {
-      error: error.message,
-      stack: error.stack
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
     });
     // Don't fail the request, just log the error
     return NextResponse.json({ success: false, error: 'Analytics tracking failed' }, { status: 200 });

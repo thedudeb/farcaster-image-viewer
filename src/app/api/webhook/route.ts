@@ -27,19 +27,19 @@ export async function POST(request: NextRequest) {
       case "VerifyJsonFarcasterSignature.InvalidEventDataError":
         // The request data is invalid
         return Response.json(
-          { success: false, error: error.message },
+          { success: false, error: error.message || 'Invalid data error' },
           { status: 400 }
         );
       case "VerifyJsonFarcasterSignature.InvalidAppKeyError":
         // The app key is invalid
         return Response.json(
-          { success: false, error: error.message },
+          { success: false, error: error.message || 'Invalid app key error' },
           { status: 401 }
         );
       case "VerifyJsonFarcasterSignature.VerifyAppKeyError":
         // Internal error verifying the app key (caller may want to try again)
         return Response.json(
-          { success: false, error: error.message },
+          { success: false, error: error.message || 'Verify app key error' },
           { status: 500 }
         );
     }
