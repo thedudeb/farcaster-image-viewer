@@ -1282,7 +1282,7 @@ export default function Home() {
     },
     {
       title: "Navigate Images",
-      description: "Tap the left or right side of the screen to move between images. Try it now!",
+      description: "Tap the left or right side of the screen to move between images.",
       position: "center",
       highlight: "navigation"
     },
@@ -1508,8 +1508,8 @@ export default function Home() {
 
       {/* First-Time User Tutorial Overlay */}
       {showFirstTimeOverlay && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
-          <div className="relative max-w-md mx-4 bg-white rounded-2xl p-6 shadow-2xl">
+                <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center pointer-events-none">
+          <div className="relative max-w-md mx-4 bg-white rounded-2xl p-6 shadow-2xl pointer-events-auto">
             {/* Progress indicator */}
             <div className="flex justify-between items-center mb-4">
               <div className="flex space-x-1">
