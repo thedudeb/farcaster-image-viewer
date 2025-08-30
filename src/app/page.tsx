@@ -696,18 +696,7 @@ export default function Home() {
       setPerformanceMode('enhanced');
     }
     
-    // First-time user detection (LOCAL TESTING ONLY)
-    const isFirstTime = !localStorage.getItem('farcaster-image-viewer-visited');
-    console.log('🔍 Checking first-time status:', { isFirstTime, localStorage: localStorage.getItem('farcaster-image-viewer-visited') });
-    if (isFirstTime) {
-      console.log('🎉 First-time user detected - showing tutorial (LOCAL TEST)');
-      // Small delay to ensure everything is loaded
-      setTimeout(() => {
-        console.log('⏰ Tutorial timeout triggered, setting overlay to true');
-        setShowFirstTimeOverlay(true);
-        setCurrentTutorialStep(0);
-      }, 1000);
-    }
+
     
 
     
@@ -774,11 +763,7 @@ export default function Home() {
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [performanceMode, setPerformanceMode] = useState<string>('standard')
   const [epochLoading, setEpochLoading] = useState(false)
-  const [showFirstTimeOverlay, setShowFirstTimeOverlay] = useState(false)
-  const [currentTutorialStep, setCurrentTutorialStep] = useState(0)
-  
-  // Debug log for tutorial state
-  console.log('🎭 Tutorial state:', { showFirstTimeOverlay, currentTutorialStep });
+
 
   const touchStartX = useRef<number | null>(null)
   const [nextImage, setNextImage] = useState<string | null>(null)
@@ -1280,71 +1265,14 @@ export default function Home() {
 
   const imageSrc = index ? getImageSrc(currentEpoch, index) : ''
 
-  // Tutorial steps for first-time users (LOCAL TESTING)
-  const tutorialSteps = [
-    {
-      title: "Welcome to the Farcaster Image Viewer! 👋",
-      description: "Explore amazing art collections from different epochs. Let's get you started!",
-      position: "center",
-      highlight: null
-    },
-    {
-      title: "Navigate Images",
-      description: "Tap the left or right side of the screen to move between images.",
-      position: "center",
-      highlight: "navigation"
-    },
-    {
-      title: "Menu & Epochs",
-      description: "Tap the top-left menu button to switch between different art collections (epochs).",
-      position: "top-left",
-      highlight: "menu"
-    },
-    {
-      title: "Share Images",
-      description: "Tap the top-right share button to share your favorite images on Farcaster.",
-      position: "top-right",
-      highlight: "share"
-    },
-    {
-      title: "Zoom & Explore",
-      description: "Pinch to zoom on images for a closer look at the details.",
-      position: "center",
-      highlight: "zoom"
-    },
-    {
-      title: "You're All Set! 🎉",
-      description: "Enjoy exploring the art collections. Each epoch features different artists and styles.",
-      position: "center",
-      highlight: null
-    }
-  ];
 
-  const handleTutorialNext = () => {
-    console.log('🎯 handleTutorialNext called - current step:', currentTutorialStep);
-    if (currentTutorialStep < tutorialSteps.length - 1) {
-      setCurrentTutorialStep(currentTutorialStep + 1);
-      console.log('📈 Moving to step:', currentTutorialStep + 1);
-    } else {
-      // Tutorial complete
-      setShowFirstTimeOverlay(false);
-      localStorage.setItem('farcaster-image-viewer-visited', 'true');
-      console.log('✅ Tutorial completed - user marked as visited (LOCAL TEST)');
-    }
-  };
-
-  const handleTutorialSkip = () => {
-    setShowFirstTimeOverlay(false);
-    localStorage.setItem('farcaster-image-viewer-visited', 'true');
-    console.log('⏭️ Tutorial skipped - user marked as visited (LOCAL TEST)');
-  };
 
   return (
     <div
       className="w-screen h-screen bg-black flex items-center justify-center relative"
-      onClick={showFirstTimeOverlay ? undefined : handleTap}
-      onTouchStart={showFirstTimeOverlay ? undefined : handleTouchStart}
-      onTouchEnd={showFirstTimeOverlay ? undefined : handleTouchEnd}
+      onClick={handleTap}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Menu Button */}
       {showMenuButton && (
@@ -1426,23 +1354,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Tutorial Test Button (LOCAL TESTING ONLY) */}
-      {showMenuButton && (
-        <button
-          onClick={() => {
-            console.log('🧪 Tutorial test button clicked!');
-            localStorage.removeItem('farcaster-image-viewer-visited');
-            console.log('🗑️ Removed localStorage item');
-            setShowFirstTimeOverlay(true);
-            setCurrentTutorialStep(0);
-            console.log('🎭 Set tutorial overlay to true, step to 0');
-          }}
-          className="absolute top-4 right-40 z-10 bg-purple-500 text-white p-3 rounded-lg hover:bg-purple-600 transition-all duration-300 text-lg font-bold"
-          title="Test Tutorial (Local Only)"
-        >
-          🧪 TEST
-        </button>
-      )}
+
 
 
 
@@ -1534,95 +1446,7 @@ export default function Home() {
         onClose={() => setCalendarOpen(false)}
       />
 
-      {/* First-Time User Tutorial Overlay (LOCAL TESTING) */}
-      {showFirstTimeOverlay && (
-        <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center"
-          onClick={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchEnd={(e) => e.stopPropagation()}
-        >
-          <div className="relative max-w-md mx-4 bg-white/70 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-purple-200/50 z-[10000]">
-            {/* Progress indicator */}
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex space-x-1">
-                {tutorialSteps.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`w-3 h-3 rounded-full transition-all duration-500 ${
-                      index <= currentTutorialStep 
-                        ? 'bg-gradient-to-r from-purple-500 to-purple-600 shadow-lg shadow-purple-500/30' 
-                        : 'bg-gray-300/50'
-                    }`}
-                  />
-                ))}
-              </div>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleTutorialSkip();
-                }}
-                className="text-purple-400/80 hover:text-purple-600 text-sm font-medium transition-colors"
-              >
-                Skip
-              </button>
-            </div>
 
-            {/* Tutorial content */}
-            <div className="text-center">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent mb-4">
-                {tutorialSteps[currentTutorialStep].title}
-              </h3>
-              <p className="text-gray-700/90 mb-8 leading-relaxed text-lg">
-                {tutorialSteps[currentTutorialStep].description}
-              </p>
-
-              {/* Highlight specific UI elements */}
-              {tutorialSteps[currentTutorialStep].highlight === 'menu' && (
-                <div className="absolute top-4 left-4 w-16 h-16 bg-purple-500/20 border-2 border-purple-400 rounded-lg animate-pulse shadow-lg shadow-purple-500/30" />
-              )}
-              {tutorialSteps[currentTutorialStep].highlight === 'share' && (
-                <div className="absolute top-4 right-4 w-16 h-16 bg-purple-500/20 border-2 border-purple-400 rounded-lg animate-pulse shadow-lg shadow-purple-500/30" />
-              )}
-              {tutorialSteps[currentTutorialStep].highlight === 'navigation' && (
-                <div className="absolute inset-0 border-4 border-purple-400/50 rounded-3xl animate-pulse shadow-lg shadow-purple-500/20" />
-              )}
-              {tutorialSteps[currentTutorialStep].highlight === 'zoom' && (
-                <div className="absolute inset-0 border-4 border-purple-400/50 rounded-3xl animate-pulse shadow-lg shadow-purple-500/20" />
-              )}
-
-              {/* Navigation buttons */}
-              <div className="flex justify-between items-center gap-4">
-                <button
-                  onClick={(e) => {
-                    console.log('⏭️ Skip button clicked');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleTutorialSkip();
-                  }}
-                  className="px-6 py-3 text-purple-500/80 hover:text-purple-700 font-medium cursor-pointer select-none z-[10001] relative transition-all duration-300 hover:bg-purple-50/50 rounded-xl"
-                  style={{ userSelect: 'none' }}
-                >
-                  Skip Tutorial
-                </button>
-                <button
-                  onClick={(e) => {
-                    console.log('🖱️ Next button clicked');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleTutorialNext();
-                  }}
-                  className="px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 font-semibold transition-all duration-300 cursor-pointer select-none z-[10001] relative shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transform hover:scale-[1.02]"
-                  style={{ userSelect: 'none' }}
-                >
-                  {currentTutorialStep === tutorialSteps.length - 1 ? 'Get Started! ✨' : 'Next →'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       
     </div>
   )
