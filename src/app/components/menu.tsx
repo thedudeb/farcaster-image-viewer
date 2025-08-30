@@ -48,10 +48,31 @@ const EPOCH_ARTISTS = {
   },
 };
 
+// Calculate unlock timestamp: 7 days from now (same calculation as in main page)
+const EPOCH_7_UNLOCK_TIME = Date.now() + (7 * 24 * 60 * 60 * 1000);
+
+// FOR TESTING: Uncomment the line below to test with a 30-second countdown
+// const EPOCH_7_UNLOCK_TIME = Date.now() + (30 * 1000); // 30 seconds for testing
+
 const EPOCHS = [
   { id: 5, name: 'Epoch 5', totalImages: 6, locked: false },
   { id: 6, name: 'Epoch 6', totalImages: 10, locked: false },
-  { id: 7, name: 'Epoch 7', totalImages: 45, locked: true },
+  { 
+    id: 7, 
+    name: 'Epoch 7', 
+    totalImages: 45, 
+    locked: true,
+    unlockTime: EPOCH_7_UNLOCK_TIME,
+    unlockDate: new Date(EPOCH_7_UNLOCK_TIME).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    })
+  },
 ];
 
 const EPOCHS_1_TO_4 = [
@@ -61,8 +82,28 @@ const EPOCHS_1_TO_4 = [
   { id: 4, name: 'Epoch 4', totalImages: 0, locked: true },
 ];
 
+// Utility functions for countdown timer
+const isEpochUnlocked = (epoch: typeof EPOCHS[0]): boolean => {
+  if (!epoch.locked) return true;
+  if (!epoch.unlockTime) return false;
+  return Date.now() >= epoch.unlockTime;
+};
+
+const getTimeUntilUnlock = (unlockTime: number): { days: number; hours: number; minutes: number; seconds: number } => {
+  const timeRemaining = unlockTime - Date.now();
+  if (timeRemaining <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  
+  const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+  
+  return { days, hours, minutes, seconds };
+};
+
 export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps) {
   const [profilePictures, setProfilePictures] = useState<Record<number, string>>({});
+  const [countdownTimers, setCountdownTimers] = useState<Record<number, { days: number; hours: number; minutes: number; seconds: number }>>({});
   const [loadingPictures, setLoadingPictures] = useState(true);
   const [showEpoch1To4Submenu, setShowEpoch1To4Submenu] = useState(false);
 
@@ -99,6 +140,29 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
     };
 
     fetchProfilePictures();
+  }, []);
+
+  // Countdown timer for locked epochs
+  useEffect(() => {
+    const updateCountdowns = () => {
+      const newCountdownTimers: Record<number, { days: number; hours: number; minutes: number; seconds: number }> = {};
+      
+      EPOCHS.forEach(epoch => {
+        if (epoch.locked && epoch.unlockTime && !isEpochUnlocked(epoch)) {
+          newCountdownTimers[epoch.id] = getTimeUntilUnlock(epoch.unlockTime);
+        }
+      });
+      
+      setCountdownTimers(newCountdownTimers);
+    };
+    
+    // Update immediately
+    updateCountdowns();
+    
+    // Then update every second
+    const interval = setInterval(updateCountdowns, 1000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const handleEpochSelect = (epochId: number) => {
@@ -320,17 +384,19 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                              {/* Other epochs */}
                {EPOCHS.map((epoch) => {
                  const artist = EPOCH_ARTISTS[epoch.id as keyof typeof EPOCH_ARTISTS];
+                 const isUnlocked = isEpochUnlocked(epoch);
+                 const countdown = countdownTimers[epoch.id];
                  
                  return (
                    <button
                      key={epoch.id}
                      onClick={() => {
-                       if (!epoch.locked) {
+                       if (isUnlocked) {
                          handleEpochSelect(epoch.id);
                        }
                      }}
                      className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
-                       epoch.locked
+                       !isUnlocked
                          ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
                          : currentEpoch === epoch.id
                          ? 'bg-blue-600 text-white'
@@ -398,16 +464,28 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                              <span className="font-medium">
                                {epoch.name}
                              </span>
-                             <span className={`text-sm ${epoch.locked ? 'text-gray-500' : 'opacity-75'}`}>
-                               by @{artist?.username} {!epoch.locked && `• ${epoch.totalImages} images`}
+                             <span className={`text-sm ${!isUnlocked ? 'text-gray-500' : 'opacity-75'}`}>
+                               by @{artist?.username} {isUnlocked && `• ${epoch.totalImages} images`}
                              </span>
+                             {/* Countdown timer for locked epochs */}
+                             {!isUnlocked && countdown && (
+                               <span className="text-xs mt-1 text-orange-400 font-mono">
+                                 Unlocks in: {countdown.days}d {countdown.hours}h {countdown.minutes}m {countdown.seconds}s
+                               </span>
+                             )}
+                             {!isUnlocked && epoch.unlockDate && (
+                               <span className="text-xs mt-1 opacity-60">
+                                 {epoch.unlockDate}
+                               </span>
+                             )}
                            </div>
                          </div>
                          
-                         {epoch.locked && (
-                           <span className="text-gray-500">
-                             🔒
-                           </span>
+                         {!isUnlocked && (
+                           <div className="flex flex-col items-center text-gray-500">
+                             <span className="text-lg">🔒</span>
+                             <span className="text-xs mt-1">Locked</span>
+                           </div>
                          )}
                        </div>
                      </div>

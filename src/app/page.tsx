@@ -178,6 +178,7 @@ const FEATURED_ARTISTS = {
 // Calendar component for featured artists
 const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [profilePictures, setProfilePictures] = useState<Record<number, string>>({});
+  const [chronistCountdown, setChronistCountdown] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
   
   // Featured artists data with actual dates and FIDs
   const featuredArtists = FEATURED_ARTISTS;
@@ -236,6 +237,28 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
   useEffect(() => {
     fetchProfilePictures();
   }, [fetchProfilePictures]);
+
+  // Countdown timer for Chronist's epoch unlock
+  useEffect(() => {
+    const updateChronistCountdown = () => {
+      const epoch7 = EPOCHS.find(e => e.id === 7);
+      if (epoch7?.unlockTime && !isEpochUnlocked(epoch7)) {
+        const countdown = getTimeUntilUnlock(epoch7.unlockTime);
+        setChronistCountdown(countdown);
+      } else if (epoch7 && isEpochUnlocked(epoch7)) {
+        setChronistCountdown(null); // Epoch is unlocked
+      }
+    };
+    
+    // Only run when calendar is open to save resources
+    if (isOpen) {
+      updateChronistCountdown();
+      
+      const interval = setInterval(updateChronistCountdown, 1000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -376,13 +399,34 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
                     </div>
                   )}
                 </div>
-                <div 
-                  className="cursor-pointer hover:text-green-700 transition-colors"
+                                <div
+                  className="cursor-pointer hover:text-green-700 transition-colors flex-1"
                   onClick={() => handleArtistClick(featuredArtists['2025-09-02'])}
                   title="View Chronist's Farcaster profile"
                 >
                   <h4 className="text-lg font-bold text-green-900">Chronist</h4>
                   <p className="text-sm text-green-600">FID: 499579</p>
+                  
+                  {/* Countdown Timer for Epoch 7 */}
+                  {chronistCountdown && (
+                    <div className="mt-2 bg-green-100 rounded-lg p-3 border border-green-200">
+                      <p className="text-xs font-medium text-green-700 mb-1">Epoch 7 unlocks in:</p>
+                      <div className="font-mono text-sm text-green-800 font-bold">
+                        {chronistCountdown.days}d {chronistCountdown.hours}h {chronistCountdown.minutes}m {chronistCountdown.seconds}s
+                      </div>
+                      <p className="text-xs text-green-600 mt-1">
+                        {EPOCHS.find(e => e.id === 7)?.unlockDate}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Show "Available Now!" when unlocked */}
+                  {!chronistCountdown && (
+                    <div className="mt-2 bg-green-200 rounded-lg p-3 border border-green-300">
+                      <p className="text-sm font-bold text-green-800">🎉 Epoch 7 Available Now!</p>
+                      <p className="text-xs text-green-600">45 images ready to explore</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -393,6 +437,12 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
   );
 };
 
+// Calculate unlock timestamp: 7 days from now
+const EPOCH_7_UNLOCK_TIME = Date.now() + (7 * 24 * 60 * 60 * 1000); // 7 days in milliseconds
+
+// FOR TESTING: Uncomment the line below to test with a 30-second countdown
+// const EPOCH_7_UNLOCK_TIME = Date.now() + (30 * 1000); // 30 seconds for testing
+
 const EPOCHS = [
   { id: 1, name: 'Epoch 1', totalImages: 77 },
   { id: 2, name: 'Epoch 2', totalImages: 106 },
@@ -400,8 +450,45 @@ const EPOCHS = [
   { id: 4, name: 'Epoch 4', totalImages: 0, locked: true },
   { id: 5, name: 'Epoch 5', totalImages: 6, locked: false },
   { id: 6, name: 'Epoch 6', totalImages: 10, locked: false },
-  { id: 7, name: 'Epoch 7', totalImages: 45, locked: true, artist: 'Chronist', fid: 499579 },
+  { 
+    id: 7, 
+    name: 'Epoch 7', 
+    totalImages: 45, 
+    locked: true, 
+    artist: 'Chronist', 
+    fid: 499579,
+    unlockTime: EPOCH_7_UNLOCK_TIME,
+    unlockDate: new Date(EPOCH_7_UNLOCK_TIME).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    })
+  },
 ];
+
+// Utility function to check if an epoch should be unlocked
+const isEpochUnlocked = (epoch: typeof EPOCHS[0]): boolean => {
+  if (!epoch.locked) return true;
+  if (!epoch.unlockTime) return false;
+  return Date.now() >= epoch.unlockTime;
+};
+
+// Utility function to get time remaining until unlock
+const getTimeUntilUnlock = (unlockTime: number): { days: number; hours: number; minutes: number; seconds: number } => {
+  const timeRemaining = unlockTime - Date.now();
+  if (timeRemaining <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  
+  const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+  
+  return { days, hours, minutes, seconds };
+};
 
 // Debounce function for analytics
 const debounce = <T extends (...args: unknown[]) => void>(func: T, wait: number) => {
@@ -440,15 +527,21 @@ class EpochPreloader {
     // Use WebP extension for all epochs (we now have WebP versions)
     const extension = 'webp';
     
-    // Special optimization for Epoch 6 (now WebP files are much smaller!)
+    // Special optimization for Epoch 6 (WebP files are much smaller - 67KB vs 2.8MB!)
     if (epochId === 6) {
-      console.log('Optimizing Epoch 6 loading (WebP files are much smaller now!)');
-      // Load only first 3 images initially for faster perceived performance
-      const priorityImages = [1, 2, 3];
+      console.log('🚀 Epoch 6 aggressive loading: WebP files are 95% smaller!');
+      // Load first 5 images immediately since they're so small (only ~300KB total)
+      const priorityImages = [1, 2, 3, 4, 5];
       await this.loadPriorityImages(epochId, priorityImages, extension);
       
-      // Load remaining images in smaller batches to avoid overwhelming
-      this.loadRemainingImagesInBatches(epochId, priorityImages, epochData.totalImages, extension);
+      // Load remaining 5 images quickly in one batch
+      const remainingImages = Array.from({ length: epochData.totalImages - 5 }, (_, i) => i + 6);
+      if (remainingImages.length > 0) {
+        // Load all remaining at once since they're tiny WebP files
+        setTimeout(() => {
+          this.loadPriorityImages(epochId, remainingImages, extension);
+        }, 100); // Very short delay
+      }
     } else {
       // Progressive loading: load current + next few images first, then the rest
       const currentImageIndex = 1; // Start with first image
@@ -651,6 +744,8 @@ const epochPreloader = new EpochPreloader();
 export default function Home() {
   const [currentEpoch, setCurrentEpoch] = useState(6)
   const [index, setIndex] = useState<number | null>(1)
+  const [lockedEpochs, setLockedEpochs] = useState<Set<number>>(new Set([7])) // Track locked epochs
+  const [countdownTimers, setCountdownTimers] = useState<Record<number, { days: number; hours: number; minutes: number; seconds: number }>>({}) // Countdown timers
   
   // Progressive Enhancement & Performance Monitoring
   useEffect(() => {
@@ -749,6 +844,48 @@ export default function Home() {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
+  }, []);
+
+  // Epoch unlock timer - check every second for countdown and unlock status
+  useEffect(() => {
+    const checkEpochUnlocks = () => {
+      const newCountdownTimers: Record<number, { days: number; hours: number; minutes: number; seconds: number }> = {};
+      const newLockedEpochs = new Set<number>();
+      
+      EPOCHS.forEach(epoch => {
+        if (epoch.locked && epoch.unlockTime) {
+          const isUnlocked = isEpochUnlocked(epoch);
+          
+          if (isUnlocked) {
+            console.log(`🎉 Epoch ${epoch.id} (${epoch.name}) has been unlocked!`);
+            // Show unlock notification
+            window.dispatchEvent(new CustomEvent('showNotification', { 
+              detail: { 
+                message: `🎉 ${epoch.name} by ${epoch.artist} is now available!`,
+                type: 'epoch-unlock',
+                duration: 5000
+              } 
+            }));
+          } else {
+            newLockedEpochs.add(epoch.id);
+            newCountdownTimers[epoch.id] = getTimeUntilUnlock(epoch.unlockTime);
+          }
+        } else if (epoch.locked) {
+          newLockedEpochs.add(epoch.id);
+        }
+      });
+      
+      setLockedEpochs(newLockedEpochs);
+      setCountdownTimers(newCountdownTimers);
+    };
+    
+    // Check immediately
+    checkEpochUnlocks();
+    
+    // Then check every second
+    const interval = setInterval(checkEpochUnlocks, 1000);
+    
+    return () => clearInterval(interval);
   }, []);
   
   const [showIndicator, setShowIndicator] = useState(true)
@@ -1001,13 +1138,13 @@ export default function Home() {
     const currentEpochData = EPOCHS.find(e => e.id === currentEpoch)
     const totalImages = currentEpochData?.totalImages || 0
     
-    // Only track epoch completion if this is the last image
-    if (index === totalImages) {
-      trackEpochCompletion(currentEpoch, totalImages);
-    }
+    // Temporarily disable analytics in development to avoid DB connection delays
+    // if (index === totalImages) {
+    //   trackEpochCompletion(currentEpoch, totalImages);
+    // }
     
-    // Debounced analytics tracking instead of immediate
-    debouncedTrackImageView(currentEpoch, index)
+    // Temporarily disable analytics in development to avoid DB connection delays
+    // debouncedTrackImageView(currentEpoch, index)
     
     // Only update image key when actually needed
     setImageKey(prev => prev + 1)
@@ -1254,13 +1391,9 @@ export default function Home() {
     const basePath = `/images/epoch${epochId}/${imageIndex}`;
     const originalExt = epochId === 5 ? 'jpeg' : epochId === 6 ? 'png' : 'jpg';
     
-    // Check if WebP is supported (from our progressive enhancement detection)
-    if (performanceMode === 'enhanced' || performanceMode === 'low-bandwidth') {
-      return `${basePath}.webp`;
-    }
-    
-    // Fallback to original format
-    return `${basePath}.${originalExt}`;
+    // Always use WebP for better performance (all images have been converted)
+    // This matches the preloader behavior for consistency
+    return `${basePath}.webp`;
   };
 
   const imageSrc = index ? getImageSrc(currentEpoch, index) : ''
