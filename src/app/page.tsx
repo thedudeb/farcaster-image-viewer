@@ -829,6 +829,16 @@ export default function Home() {
     
     initializeMiniApp();
     
+    // Check if this is a first-time user
+    const isFirstTime = !localStorage.getItem('farcaster-image-viewer-visited');
+    if (isFirstTime) {
+      console.log('🎉 First-time user detected - showing tutorial');
+      // Small delay to ensure everything is loaded
+      setTimeout(() => {
+        setShowTutorial(true);
+      }, 2000); // Give more time for everything to load
+    }
+    
     // Start preloading epoch 7 images immediately when app loads
     // This happens during the mini app loading screen
     epochPreloader.preloadEpoch(7).catch(error => {
@@ -901,6 +911,9 @@ export default function Home() {
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [performanceMode, setPerformanceMode] = useState<string>('standard')
   const [epochLoading, setEpochLoading] = useState(false)
+  
+  // Tutorial state
+  const [showTutorial, setShowTutorial] = useState(false)
 
 
   const touchStartX = useRef<number | null>(null)
@@ -1170,6 +1183,11 @@ export default function Home() {
   }
 
   const handleTap = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Don't handle navigation during tutorial
+    if (showTutorial) {
+      return;
+    }
+
     const { clientX, clientY, currentTarget } = e
     const isLeft = clientX < currentTarget.clientWidth / 2
     const isTopLeft = clientX < currentTarget.clientWidth / 2 && clientY < currentTarget.clientHeight * 0.2;
@@ -1219,6 +1237,12 @@ export default function Home() {
 
   const handleMenuButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent the tap from triggering navigation
+    
+    // Don't open menu during tutorial
+    if (showTutorial) {
+      return;
+    }
+    
     console.log('Menu button clicked - setting states...')
     setMenuOpen(true)
     setShowTapRightOverlay(false) // Don't show tap right overlay when menu is open
@@ -1399,7 +1423,12 @@ export default function Home() {
 
   const imageSrc = index ? getImageSrc(currentEpoch, index) : ''
 
-
+  // Tutorial handlers
+  const handleTutorialComplete = () => {
+    setShowTutorial(false);
+    localStorage.setItem('farcaster-image-viewer-visited', 'true');
+    console.log('✅ Tutorial completed - user marked as visited');
+  };
 
   return (
     <div
@@ -1486,6 +1515,19 @@ export default function Home() {
             {performanceMode === 'enhanced' ? '⚡' : '📶'}
           </div>
         </div>
+      )}
+
+      {/* Development Tutorial Trigger (only in development) */}
+      {process.env.NODE_ENV === 'development' && showMenuButton && (
+        <button
+          onClick={() => {
+            localStorage.removeItem('farcaster-image-viewer-visited');
+            setShowTutorial(true);
+          }}
+          className="absolute bottom-4 left-4 z-10 bg-purple-500/80 text-white px-3 py-2 rounded-lg text-xs font-medium hover:bg-purple-600/80 transition-colors"
+        >
+          Test Tutorial
+        </button>
       )}
 
 
@@ -1580,6 +1622,78 @@ export default function Home() {
         onClose={() => setCalendarOpen(false)}
       />
 
+      {/* Single Tutorial Overlay */}
+      {showTutorial && (
+        <div className="fixed inset-0 bg-black/80 z-[100] pointer-events-auto">
+          {/* Welcome Message */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-20">
+            <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-gray-200 max-w-md mx-4">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'var(--font-amatic-sc)' }}>
+                Welcome to the Gallery! 🎨
+              </h2>
+              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
+                Discover amazing digital art collections from talented artists. Here&apos;s everything you need to know!
+              </p>
+              <button
+                onClick={handleTutorialComplete}
+                className="px-8 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 font-medium transition-all duration-200 transform hover:scale-105 shadow-lg"
+              >
+                Let&apos;s Explore! 🚀
+              </button>
+            </div>
+          </div>
+
+          {/* Navigation Arrow */}
+          <div className="absolute top-1/2 left-8 transform -translate-y-1/2 z-10">
+            <div className="text-white text-center">
+              <div className="text-2xl mb-2">👆</div>
+              <div className="text-sm font-medium" style={{ fontFamily: 'var(--font-amatic-sc)' }}>
+                Tap left/right to navigate
+              </div>
+            </div>
+          </div>
+
+          {/* Menu Button Arrow */}
+          <div className="absolute top-16 left-20 z-10">
+            <div className="text-white text-center">
+              <div className="text-2xl mb-2">👈</div>
+              <div className="text-sm font-medium" style={{ fontFamily: 'var(--font-amatic-sc)' }}>
+                Menu & Epochs
+              </div>
+            </div>
+          </div>
+
+          {/* Share Button Arrow */}
+          <div className="absolute top-16 right-20 z-10">
+            <div className="text-white text-center">
+              <div className="text-2xl mb-2">👉</div>
+              <div className="text-sm font-medium" style={{ fontFamily: 'var(--font-amatic-sc)' }}>
+                Share on Farcaster
+              </div>
+            </div>
+          </div>
+
+          {/* Zoom Arrow */}
+          <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-10">
+            <div className="text-white text-center">
+              <div className="text-2xl mb-2">🤏</div>
+              <div className="text-sm font-medium" style={{ fontFamily: 'var(--font-amatic-sc)' }}>
+                Pinch to zoom
+              </div>
+            </div>
+          </div>
+
+          {/* Curation Arrow */}
+          <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 z-10">
+            <div className="text-white text-center">
+              <div className="text-2xl mb-2">💫</div>
+              <div className="text-sm font-medium" style={{ fontFamily: 'var(--font-amatic-sc)' }}>
+                Want to be featured? Request an epoch in the menu!
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       
     </div>

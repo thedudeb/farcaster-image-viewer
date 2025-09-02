@@ -497,12 +497,12 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
            )}
          </div>
         
-        {/* Separator and Request a Curate Button - only show in main menu */}
+        {/* Separator and Request an Epoch Button - only show in main menu */}
         {!showEpoch1To4Submenu && (
           <>
             <div className="border-t border-gray-700 my-4"></div>
             
-            {/* Request a Curate Button */}
+            {/* Request an Epoch Button */}
             <button
           onClick={async () => {
             // Track the curate request
@@ -545,7 +545,7 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
           }}
           className="w-full text-center px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors duration-200"
         >
-          Request a Curate
+          Request an Epoch
         </button>
           </>
         )}
