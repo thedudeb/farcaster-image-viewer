@@ -531,17 +531,17 @@ class EpochPreloader {
     // Special optimization for Epoch 6 (WebP files are much smaller - 67KB vs 2.8MB!)
     if (epochId === 6) {
       console.log('🚀 Epoch 6 aggressive loading: WebP files are 95% smaller!');
-      // Load first 5 images immediately since they're so small (only ~300KB total)
-      const priorityImages = [1, 2, 3, 4, 5];
+      // Load first 8 images immediately since they're so small (only ~500KB total)
+      const priorityImages = [1, 2, 3, 4, 5, 6, 7, 8];
       await this.loadPriorityImages(epochId, priorityImages, extension);
       
-      // Load remaining 5 images quickly in one batch
-      const remainingImages = Array.from({ length: epochData.totalImages - 5 }, (_, i) => i + 6);
+      // Load remaining images quickly in one batch
+      const remainingImages = Array.from({ length: epochData.totalImages - 8 }, (_, i) => i + 9);
       if (remainingImages.length > 0) {
         // Load all remaining at once since they're tiny WebP files
         setTimeout(() => {
           this.loadPriorityImages(epochId, remainingImages, extension);
-        }, 100); // Very short delay
+        }, 50); // Even shorter delay for instant feel
       }
     } else {
       // Progressive loading: load current + next few images first, then the rest
@@ -563,8 +563,8 @@ class EpochPreloader {
   private getPriorityImageIndices(currentIndex: number, totalImages: number): number[] {
     const priority = [currentIndex];
     
-    // For PNG epochs (like Epoch 6), load fewer priority images to avoid overwhelming
-    const maxPriorityImages = totalImages > 50 ? 3 : 5; // Reduce for larger collections
+    // More aggressive priority loading for smoother navigation
+    const maxPriorityImages = totalImages > 50 ? 6 : 8; // Increased for better experience
     
     // Add next few images for smooth navigation
     for (let i = 1; i <= maxPriorityImages; i++) {
@@ -574,8 +574,8 @@ class EpochPreloader {
       }
     }
     
-    // Add previous 1-2 images if available
-    for (let i = 1; i <= 2; i++) {
+    // Add previous 2-3 images if available for backward navigation
+    for (let i = 1; i <= 3; i++) {
       const prevIndex = currentIndex - i;
       if (prevIndex >= 1) {
         priority.unshift(prevIndex);
@@ -684,7 +684,7 @@ class EpochPreloader {
     return loadingPromise;
   }
 
-  // Preload specific image range (for navigation)
+  // Preload specific image range (for navigation) - enhanced for instant loading
   async preloadImageRange(epochId: number, startIndex: number, endIndex: number): Promise<void> {
     const epochData = EPOCHS.find(e => e.id === epochId);
     if (!epochData) return;
@@ -701,8 +701,50 @@ class EpochPreloader {
 
     try {
       await Promise.all(promises);
+      console.log(`🚀 Preloaded images ${startIndex}-${endIndex} for epoch ${epochId}`);
     } catch (error) {
       console.error(`Failed to preload image range for epoch ${epochId}:`, error);
+    }
+  }
+
+  // Predictive preloading for smooth navigation
+  async preloadPredictive(epochId: number, currentIndex: number, direction: 'forward' | 'backward'): Promise<void> {
+    const epochData = EPOCHS.find(e => e.id === epochId);
+    if (!epochData) return;
+
+    const extension = 'webp';
+    const imagesToPreload: number[] = [];
+
+    if (direction === 'forward') {
+      // Preload next 4-5 images for forward navigation
+      for (let i = 1; i <= 5; i++) {
+        const nextIndex = currentIndex + i;
+        if (nextIndex <= epochData.totalImages) {
+          imagesToPreload.push(nextIndex);
+        }
+      }
+    } else {
+      // Preload previous 3-4 images for backward navigation
+      for (let i = 1; i <= 4; i++) {
+        const prevIndex = currentIndex - i;
+        if (prevIndex >= 1) {
+          imagesToPreload.push(prevIndex);
+        }
+      }
+    }
+
+    if (imagesToPreload.length > 0) {
+      // Load these images with highest priority
+      const promises = imagesToPreload.map(index => 
+        this.loadSingleImage(epochId, index, extension, true)
+      );
+      
+      try {
+        await Promise.all(promises);
+        console.log(`🎯 Predictive preload: ${direction} ${imagesToPreload.length} images for epoch ${epochId}`);
+      } catch (error) {
+        console.error(`Failed predictive preload for epoch ${epochId}:`, error);
+      }
     }
   }
 
@@ -1029,6 +1071,14 @@ export default function Home() {
         setIndex((prev) => {
           if (!prev) return 1;
           const newIndex = prev === 1 ? totalImages : prev - 1;
+          
+          // Predictive preloading for backward navigation
+          if (newIndex !== prev) {
+            setTimeout(() => {
+              epochPreloader.preloadPredictive(currentEpoch, newIndex, 'backward');
+            }, 0);
+          }
+          
           return newIndex;
         });
         setImageKey(prev => prev + 1)
@@ -1039,6 +1089,14 @@ export default function Home() {
         setIndex((prev) => {
           if (!prev) return 1;
           const newIndex = prev === totalImages ? 1 : prev + 1;
+          
+          // Predictive preloading for forward navigation
+          if (newIndex !== prev) {
+            setTimeout(() => {
+              epochPreloader.preloadPredictive(currentEpoch, newIndex, 'forward');
+            }, 0);
+          }
+          
           return newIndex;
         });
         setImageKey(prev => prev + 1)
@@ -1214,6 +1272,14 @@ export default function Home() {
       setIndex((prev) => {
         if (!prev) return 1;
         const newIndex = prev === 1 ? totalImages : prev - 1;
+        
+        // Predictive preloading for backward navigation
+        if (newIndex !== prev) {
+          setTimeout(() => {
+            epochPreloader.preloadPredictive(currentEpoch, newIndex, 'backward');
+          }, 0);
+        }
+        
         return newIndex;
       });
       setImageKey(prev => prev + 1);
@@ -1225,6 +1291,14 @@ export default function Home() {
       setIndex((prev) => {
         if (!prev) return 1;
         const newIndex = prev === totalImages ? 1 : prev + 1;
+        
+        // Predictive preloading for forward navigation
+        if (newIndex !== prev) {
+          setTimeout(() => {
+            epochPreloader.preloadPredictive(currentEpoch, newIndex, 'forward');
+          }, 0);
+        }
+        
         return newIndex;
       });
       setImageKey(prev => prev + 1);
@@ -1340,22 +1414,60 @@ export default function Home() {
     }
   };
 
-  // Preload nearby images when navigating
+  // Preload nearby images when navigating - enhanced for smoother experience
   const preloadNearbyImages = useCallback((epochId: number, currentIndex: number) => {
     const epochData = EPOCHS.find(e => e.id === epochId);
     if (!epochData) return;
 
-    const startIndex = Math.max(1, currentIndex - 3);
-    const endIndex = Math.min(epochData.totalImages, currentIndex + 4);
+    // More aggressive preloading: 4 images back, 6 images forward
+    const startIndex = Math.max(1, currentIndex - 4);
+    const endIndex = Math.min(epochData.totalImages, currentIndex + 6);
     
-    // Preload range in background
+    // Preload range in background with high priority
     epochPreloader.preloadImageRange(epochId, startIndex, endIndex);
+    
+    // Also preload the next few images with even higher priority for instant navigation
+    const nextImages = [];
+    for (let i = 1; i <= 3; i++) {
+      const nextIndex = currentIndex + i;
+      if (nextIndex <= epochData.totalImages) {
+        nextImages.push(nextIndex);
+      }
+    }
+    
+    if (nextImages.length > 0) {
+      // Preload next 3 images immediately with highest priority
+      epochPreloader.preloadImageRange(epochId, nextImages[0], nextImages[nextImages.length - 1]);
+    }
+    
+    // Preload previous 2 images for back navigation
+    const prevImages = [];
+    for (let i = 1; i <= 2; i++) {
+      const prevIndex = currentIndex - i;
+      if (prevIndex >= 1) {
+        prevImages.push(prevIndex);
+      }
+    }
+    
+    if (prevImages.length > 0) {
+      epochPreloader.preloadImageRange(epochId, prevImages[0], prevImages[prevImages.length - 1]);
+    }
   }, []);
 
   // Update preloading when index changes
   useEffect(() => {
     if (index && currentEpoch) {
       preloadNearbyImages(currentEpoch, index);
+      
+      // Also trigger aggressive preloading for the current position
+      // This ensures we have a buffer of images ready for instant navigation
+      const epochData = EPOCHS.find(e => e.id === currentEpoch);
+      if (epochData) {
+        // Preload a wider range around current position for ultra-smooth navigation
+        const wideStart = Math.max(1, index - 6);
+        const wideEnd = Math.min(epochData.totalImages, index + 8);
+        epochPreloader.preloadImageRange(currentEpoch, wideStart, wideEnd);
+      }
     }
   }, [index, currentEpoch, preloadNearbyImages]);
 

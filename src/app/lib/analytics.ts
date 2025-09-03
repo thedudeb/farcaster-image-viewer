@@ -29,6 +29,12 @@ const sessionState = {
 
 // Track analytics event
 export const trackEvent = async (eventType: string, data: Record<string, unknown> = {}) => {
+  // Skip analytics in development to avoid database connection issues
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Analytics (dev): Skipping event:', eventType, data);
+    return;
+  }
+
   try {
     // Create a cache key to prevent duplicate calls
     const cacheKey = `${eventType}-${JSON.stringify(data)}`;

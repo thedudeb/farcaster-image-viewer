@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Amatic_SC } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import NotificationWrapper from "./components/NotificationWrapper";
 import "./globals.css";
@@ -12,6 +12,12 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const amaticSC = Amatic_SC({
+  variable: "--font-amatic-sc",
+  subsets: ["latin"],
+  weight: ["400", "700"],
 });
 
 export const revalidate = 300;
@@ -52,7 +58,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${amaticSC.variable} antialiased`}>
         {children}
         <NotificationWrapper />
         <Analytics />
