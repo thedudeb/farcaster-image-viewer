@@ -48,8 +48,9 @@ const EPOCH_ARTISTS = {
   },
 };
 
-// Calculate unlock timestamp: 7 days from now (same calculation as in main page)
-const EPOCH_7_UNLOCK_TIME = Date.now() + (7 * 24 * 60 * 60 * 1000);
+// Set a fixed unlock timestamp for Chronist's epoch (same as main page)
+// September 9th, 2025 at 4:20 PM EST (9:20 PM UTC)
+const EPOCH_7_UNLOCK_TIME = new Date('2025-09-09T21:20:00Z').getTime(); // 4:20 PM EST = 9:20 PM UTC
 
 // FOR TESTING: Uncomment the line below to test with a 30-second countdown
 // const EPOCH_7_UNLOCK_TIME = Date.now() + (30 * 1000); // 30 seconds for testing
