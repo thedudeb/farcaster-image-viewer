@@ -530,18 +530,18 @@ class EpochPreloader {
     
     // Special optimization for Epoch 6 (WebP files are much smaller - 67KB vs 2.8MB!)
     if (epochId === 6) {
-      console.log('🚀 Epoch 6 aggressive loading: WebP files are 95% smaller!');
-      // Load first 8 images immediately since they're so small (only ~500KB total)
-      const priorityImages = [1, 2, 3, 4, 5, 6, 7, 8];
+      console.log('🚀 Epoch 6 ULTRA aggressive loading: WebP files are 95% smaller!');
+      // Load first 15 images immediately since they're so small (only ~1MB total)
+      const priorityImages = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
       await this.loadPriorityImages(epochId, priorityImages, extension);
       
-      // Load remaining images quickly in one batch
-      const remainingImages = Array.from({ length: epochData.totalImages - 8 }, (_, i) => i + 9);
+      // Load remaining images instantly in one batch
+      const remainingImages = Array.from({ length: epochData.totalImages - 15 }, (_, i) => i + 16);
       if (remainingImages.length > 0) {
         // Load all remaining at once since they're tiny WebP files
         setTimeout(() => {
           this.loadPriorityImages(epochId, remainingImages, extension);
-        }, 50); // Even shorter delay for instant feel
+        }, 10); // Almost instant for zero black frames
       }
     } else {
       // Progressive loading: load current + next few images first, then the rest
@@ -563,8 +563,8 @@ class EpochPreloader {
   private getPriorityImageIndices(currentIndex: number, totalImages: number): number[] {
     const priority = [currentIndex];
     
-    // More aggressive priority loading for smoother navigation
-    const maxPriorityImages = totalImages > 50 ? 6 : 8; // Increased for better experience
+    // ULTRA aggressive priority loading for zero black frames
+    const maxPriorityImages = totalImages > 50 ? 12 : 15; // Maximum for instant experience
     
     // Add next few images for smooth navigation
     for (let i = 1; i <= maxPriorityImages; i++) {
@@ -574,8 +574,8 @@ class EpochPreloader {
       }
     }
     
-    // Add previous 2-3 images if available for backward navigation
-    for (let i = 1; i <= 3; i++) {
+    // Add previous 5-6 images if available for instant backward navigation
+    for (let i = 1; i <= 6; i++) {
       const prevIndex = currentIndex - i;
       if (prevIndex >= 1) {
         priority.unshift(prevIndex);
@@ -707,7 +707,7 @@ class EpochPreloader {
     }
   }
 
-  // Predictive preloading for smooth navigation
+  // Predictive preloading for ULTRA smooth navigation - zero black frames
   async preloadPredictive(epochId: number, currentIndex: number, direction: 'forward' | 'backward'): Promise<void> {
     const epochData = EPOCHS.find(e => e.id === epochId);
     if (!epochData) return;
@@ -716,16 +716,16 @@ class EpochPreloader {
     const imagesToPreload: number[] = [];
 
     if (direction === 'forward') {
-      // Preload next 4-5 images for forward navigation
-      for (let i = 1; i <= 5; i++) {
+      // Preload next 10-12 images for instant forward navigation
+      for (let i = 1; i <= 12; i++) {
         const nextIndex = currentIndex + i;
         if (nextIndex <= epochData.totalImages) {
           imagesToPreload.push(nextIndex);
         }
       }
     } else {
-      // Preload previous 3-4 images for backward navigation
-      for (let i = 1; i <= 4; i++) {
+      // Preload previous 8-10 images for instant backward navigation
+      for (let i = 1; i <= 10; i++) {
         const prevIndex = currentIndex - i;
         if (prevIndex >= 1) {
           imagesToPreload.push(prevIndex);
@@ -734,14 +734,14 @@ class EpochPreloader {
     }
 
     if (imagesToPreload.length > 0) {
-      // Load these images with highest priority
+      // Load these images with maximum priority
       const promises = imagesToPreload.map(index => 
         this.loadSingleImage(epochId, index, extension, true)
       );
       
       try {
         await Promise.all(promises);
-        console.log(`🎯 Predictive preload: ${direction} ${imagesToPreload.length} images for epoch ${epochId}`);
+        console.log(`🎯 ULTRA Predictive preload: ${direction} ${imagesToPreload.length} images for epoch ${epochId}`);
       } catch (error) {
         console.error(`Failed predictive preload for epoch ${epochId}:`, error);
       }
@@ -778,6 +778,20 @@ class EpochPreloader {
       keysToRemove.forEach(key => this.imageCache.delete(key));
       console.log(`Cleared ${keysToRemove.length} cached images to manage memory (max: ${maxCacheSize})`);
     }
+  }
+
+  // Keep specific epochs always warm in memory
+  keepEpochWarm(epochId: number): void {
+    const epochData = EPOCHS.find(e => e.id === epochId);
+    if (!epochData || epochData.totalImages === 0) return;
+    
+    // Preload the entire epoch to keep it warm
+    this.preloadImageRange(epochId, 1, epochData.totalImages);
+    
+    // Also preload random sections to ensure coverage
+    const randomStart = Math.floor(Math.random() * epochData.totalImages) + 1;
+    const randomEnd = Math.min(epochData.totalImages, randomStart + 20);
+    this.preloadImageRange(epochId, randomStart, randomEnd);
   }
 }
 
@@ -1184,7 +1198,7 @@ export default function Home() {
           detail: {
             message: `This epoch was created and curated by another amazing artist, @dwn2earth`,
             type: 'epoch6-notice',
-            artistProfile: 'https://warpcast.com/dwn2earth'
+            artistProfile: 'https://warpcast.com/down2earth'
           } 
         }));
         
@@ -1202,6 +1216,31 @@ export default function Home() {
       return () => clearTimeout(timer);
     }
   }, [currentEpoch]);
+
+  // Initialize preloading for the last 3 epochs on app start
+  useEffect(() => {
+    // Immediately start preloading epochs 5, 6, and 7 when the app loads
+    const lastThreeEpochs = [5, 6, 7];
+    
+    console.log('🚀 Initializing ULTRA preloading for last 3 epochs...');
+    
+    lastThreeEpochs.forEach(epochId => {
+      const epochData = EPOCHS.find(e => e.id === epochId);
+      if (epochData && epochData.totalImages > 0) {
+        // Start preloading immediately
+        epochPreloader.preloadEpoch(epochId);
+        
+        // Also preload the entire epoch in chunks for instant access
+        const chunkSize = 25;
+        for (let i = 1; i <= epochData.totalImages; i += chunkSize) {
+          const end = Math.min(epochData.totalImages, i + chunkSize - 1);
+          setTimeout(() => {
+            epochPreloader.preloadImageRange(epochId, i, end);
+          }, (i - 1) * 30); // Very fast staggered loading
+        }
+      }
+    });
+  }, []); // Empty dependency array - runs once on mount
 
   // Optimized image loading and analytics tracking
   useEffect(() => {
@@ -1414,21 +1453,21 @@ export default function Home() {
     }
   };
 
-  // Preload nearby images when navigating - enhanced for smoother experience
+  // Preload nearby images when navigating - ULTRA aggressive for zero black frames
   const preloadNearbyImages = useCallback((epochId: number, currentIndex: number) => {
     const epochData = EPOCHS.find(e => e.id === epochId);
     if (!epochData) return;
 
-    // More aggressive preloading: 4 images back, 6 images forward
-    const startIndex = Math.max(1, currentIndex - 4);
-    const endIndex = Math.min(epochData.totalImages, currentIndex + 6);
+    // ULTRA aggressive preloading: 8 images back, 12 images forward
+    const startIndex = Math.max(1, currentIndex - 8);
+    const endIndex = Math.min(epochData.totalImages, currentIndex + 12);
     
-    // Preload range in background with high priority
+    // Preload wide range in background with highest priority
     epochPreloader.preloadImageRange(epochId, startIndex, endIndex);
     
-    // Also preload the next few images with even higher priority for instant navigation
+    // Preload next 8 images with maximum priority for instant forward navigation
     const nextImages = [];
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 8; i++) {
       const nextIndex = currentIndex + i;
       if (nextIndex <= epochData.totalImages) {
         nextImages.push(nextIndex);
@@ -1436,13 +1475,13 @@ export default function Home() {
     }
     
     if (nextImages.length > 0) {
-      // Preload next 3 images immediately with highest priority
+      // Preload next 8 images immediately with maximum priority
       epochPreloader.preloadImageRange(epochId, nextImages[0], nextImages[nextImages.length - 1]);
     }
     
-    // Preload previous 2 images for back navigation
+    // Preload previous 6 images for instant backward navigation
     const prevImages = [];
-    for (let i = 1; i <= 2; i++) {
+    for (let i = 1; i <= 6; i++) {
       const prevIndex = currentIndex - i;
       if (prevIndex >= 1) {
         prevImages.push(prevIndex);
@@ -1452,6 +1491,22 @@ export default function Home() {
     if (prevImages.length > 0) {
       epochPreloader.preloadImageRange(epochId, prevImages[0], prevImages[prevImages.length - 1]);
     }
+    
+    // Also preload images in the opposite direction to cover all bases
+    const farNextImages: number[] = [];
+    for (let i = 9; i <= 15; i++) {
+      const farNextIndex = currentIndex + i;
+      if (farNextIndex <= epochData.totalImages) {
+        farNextImages.push(farNextIndex);
+      }
+    }
+    
+    if (farNextImages.length > 0) {
+      // Preload far future images in background
+      setTimeout(() => {
+        epochPreloader.preloadImageRange(epochId, farNextImages[0], farNextImages[farNextImages.length - 1]);
+      }, 100);
+    }
   }, []);
 
   // Update preloading when index changes
@@ -1459,17 +1514,103 @@ export default function Home() {
     if (index && currentEpoch) {
       preloadNearbyImages(currentEpoch, index);
       
-      // Also trigger aggressive preloading for the current position
-      // This ensures we have a buffer of images ready for instant navigation
+      // Also trigger ULTRA aggressive preloading for the current position
+      // This ensures we have a massive buffer of images ready for instant navigation
       const epochData = EPOCHS.find(e => e.id === currentEpoch);
       if (epochData) {
-        // Preload a wider range around current position for ultra-smooth navigation
-        const wideStart = Math.max(1, index - 6);
-        const wideEnd = Math.min(epochData.totalImages, index + 8);
+        // Preload a massive range around current position for zero black frames
+        const wideStart = Math.max(1, index - 10);
+        const wideEnd = Math.min(epochData.totalImages, index + 15);
         epochPreloader.preloadImageRange(currentEpoch, wideStart, wideEnd);
+        
+        // Also preload the entire epoch in the background for ultimate smoothness
+        setTimeout(() => {
+          epochPreloader.preloadImageRange(currentEpoch, 1, epochData.totalImages);
+        }, 200);
       }
     }
   }, [index, currentEpoch, preloadNearbyImages]);
+
+  // Continuous background preloading for ultimate smoothness
+  useEffect(() => {
+    if (!currentEpoch) return;
+    
+    const epochData = EPOCHS.find(e => e.id === currentEpoch);
+    if (!epochData) return;
+    
+    // Set up continuous preloading every 2 seconds to ensure all images are ready
+    const preloadInterval = setInterval(() => {
+      if (index) {
+        // Preload a massive range around current position
+        const start = Math.max(1, index - 15);
+        const end = Math.min(epochData.totalImages, index + 20);
+        epochPreloader.preloadImageRange(currentEpoch, start, end);
+        
+        // Also preload random sections of the epoch to ensure coverage
+        const randomStart = Math.floor(Math.random() * epochData.totalImages) + 1;
+        const randomEnd = Math.min(epochData.totalImages, randomStart + 10);
+        epochPreloader.preloadImageRange(currentEpoch, randomStart, randomEnd);
+      }
+    }, 2000);
+    
+    return () => clearInterval(preloadInterval);
+  }, [currentEpoch, index]);
+
+  // Continuous preloading for the last 3 epochs (5, 6, 7) - ALWAYS READY
+  useEffect(() => {
+    // Get the last 3 epochs (5, 6, 7)
+    const lastThreeEpochs = [5, 6, 7];
+    
+    // Function to continuously preload these epochs
+    const continuouslyPreloadLastThreeEpochs = () => {
+      lastThreeEpochs.forEach(epochId => {
+        const epochData = EPOCHS.find(e => e.id === epochId);
+        if (epochData && epochData.totalImages > 0) {
+          // Preload the entire epoch every 3 seconds to ensure it's always ready
+          epochPreloader.preloadImageRange(epochId, 1, epochData.totalImages);
+          
+          // Also preload random sections for better coverage
+          const randomStart = Math.floor(Math.random() * epochData.totalImages) + 1;
+          const randomEnd = Math.min(epochData.totalImages, randomStart + 15);
+          epochPreloader.preloadImageRange(epochId, randomStart, randomEnd);
+        }
+      });
+    };
+    
+    // Start preloading immediately
+    continuouslyPreloadLastThreeEpochs();
+    
+    // Set up continuous preloading every 3 seconds
+    const lastThreeEpochsInterval = setInterval(continuouslyPreloadLastThreeEpochs, 3000);
+    
+    // Also preload them more aggressively every 10 seconds
+    const aggressivePreloadInterval = setInterval(() => {
+      lastThreeEpochs.forEach(epochId => {
+        const epochData = EPOCHS.find(e => e.id === epochId);
+        if (epochData && epochData.totalImages > 0) {
+          // Ultra-aggressive preloading for these key epochs
+          console.log(`🔥 ULTRA preloading epoch ${epochId} - keeping it always ready!`);
+          
+          // Use the keepEpochWarm method for better performance
+          epochPreloader.keepEpochWarm(epochId);
+          
+          // Also preload in chunks for comprehensive coverage
+          const chunkSize = 20;
+          for (let i = 1; i <= epochData.totalImages; i += chunkSize) {
+            const end = Math.min(epochData.totalImages, i + chunkSize - 1);
+            setTimeout(() => {
+              epochPreloader.preloadImageRange(epochId, i, end);
+            }, (i - 1) * 50); // Stagger the loading
+          }
+        }
+      });
+    }, 10000);
+    
+    return () => {
+      clearInterval(lastThreeEpochsInterval);
+      clearInterval(aggressivePreloadInterval);
+    };
+  }, []); // Empty dependency array - runs once on mount and keeps running
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
