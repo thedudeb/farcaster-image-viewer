@@ -64,16 +64,18 @@ const EPOCHS = [
     totalImages: 45, 
     locked: true,
     unlockTime: EPOCH_7_UNLOCK_TIME,
-    unlockDate: new Date(EPOCH_7_UNLOCK_TIME).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      timeZone: 'America/New_York',
-      timeZoneName: 'short'
-    })
+    unlockDate: (() => {
+      const date = new Date(EPOCH_7_UNLOCK_TIME);
+      const dateStr = date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        timeZone: 'America/New_York',
+        timeZoneName: 'short'
+      });
+      return `${dateStr} at 4:20 EST`;
+    })()
   },
 ];
 
