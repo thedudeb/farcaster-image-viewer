@@ -72,6 +72,38 @@ body {
   transform: translateY(-2px) scale(1.02);
 }
 
+/* Enhanced button press animations */
+.button-press {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.button-press:active {
+  transform: scale(0.95) translateY(1px);
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.button-press:hover {
+  transform: scale(1.02) translateY(-1px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Smooth menu button animations */
+.menu-button-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.menu-button-smooth:active {
+  transform: scale(0.96) translateY(2px);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-button-smooth:hover {
+  transform: scale(1.03) translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
 /* Smooth spring animations */
 .spring-bounce {
   animation: springBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -86,12 +118,41 @@ body {
 
 /* Menu slide animations */
 .menu-slide-in {
-  animation: slideInFromLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideInFromLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes slideInFromLeft {
-  0% { transform: translateX(-100%) scale(0.8); opacity: 0; }
-  100% { transform: translateX(0) scale(1); opacity: 1; }
+  0% { 
+    transform: translateX(-100%) scale(0.8) rotateY(-15deg); 
+    opacity: 0; 
+    filter: blur(10px);
+  }
+  50% { 
+    transform: translateX(-20%) scale(0.95) rotateY(-5deg); 
+    opacity: 0.7; 
+    filter: blur(2px);
+  }
+  100% { 
+    transform: translateX(0) scale(1) rotateY(0deg); 
+    opacity: 1; 
+    filter: blur(0px);
+  }
+}
+
+/* Staggered button animations */
+.menu-button-stagger {
+  animation: buttonSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes buttonSlideIn {
+  0% { 
+    transform: translateX(-30px) scale(0.9); 
+    opacity: 0; 
+  }
+  100% { 
+    transform: translateX(0) scale(1); 
+    opacity: 1; 
+  }
 }
 
 /* Toast notification animations */

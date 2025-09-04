@@ -207,14 +207,14 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
 
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex justify-center items-center">
-      <div className="w-96 bg-gray-900 p-4 rounded-lg">
+      <div className="w-96 bg-gray-900 p-4 rounded-lg menu-slide-in shadow-2xl border border-gray-700/50">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-white text-xl font-bold">
             {showEpoch1To4Submenu ? 'Epoch 1-4' : 'Menu'}
           </h2>
           <button
             onClick={showEpoch1To4Submenu ? () => setShowEpoch1To4Submenu(false) : onClose}
-            className="text-white hover:text-gray-300"
+            className="text-white hover:text-gray-300 menu-button-smooth hover:scale-110 hover:rotate-90"
           >
             {showEpoch1To4Submenu ? '←' : '✕'}
           </button>
@@ -228,7 +228,7 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
           
                     {showEpoch1To4Submenu ? (
             // Sub-menu: Show Epochs 1-4
-            EPOCHS_1_TO_4.map((epoch) => {
+            EPOCHS_1_TO_4.map((epoch, index) => {
               const artist = EPOCH_ARTISTS[epoch.id as keyof typeof EPOCH_ARTISTS];
               
               return (
@@ -239,13 +239,14 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                       handleEpochSelect(epoch.id);
                     }
                   }}
-                  className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
+                  className={`w-full text-left px-4 py-3 rounded-lg relative overflow-hidden menu-button-stagger menu-button-smooth ${
                     epoch.locked
                       ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
                       : currentEpoch === epoch.id
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-300 hover:bg-gray-800'
+                      ? 'bg-blue-600 text-white shadow-blue-500/25'
+                      : 'text-gray-300 hover:bg-gray-800 hover:shadow-gray-500/25'
                   }`}
+                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -327,7 +328,8 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
               {/* Epoch 1-4 consolidated option */}
               <button
                 onClick={() => setShowEpoch1To4Submenu(true)}
-                className="w-full text-left px-4 py-3 rounded-lg transition-all duration-300 text-gray-300 hover:bg-gray-800"
+                className="w-full text-left px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 menu-button-stagger menu-button-smooth"
+                style={{ animationDelay: '0.1s' }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -386,7 +388,7 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
               </button>
               
                              {/* Other epochs */}
-               {EPOCHS.map((epoch) => {
+               {EPOCHS.map((epoch, index) => {
                  const artist = EPOCH_ARTISTS[epoch.id as keyof typeof EPOCH_ARTISTS];
                  const isUnlocked = isEpochUnlocked(epoch);
                  const countdown = countdownTimers[epoch.id];
@@ -399,13 +401,14 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                          handleEpochSelect(epoch.id);
                        }
                      }}
-                     className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
+                     className={`w-full text-left px-4 py-3 rounded-lg relative overflow-hidden menu-button-stagger menu-button-smooth ${
                        !isUnlocked
                          ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
                          : currentEpoch === epoch.id
-                         ? 'bg-blue-600 text-white'
-                         : 'text-gray-300 hover:bg-gray-800'
+                         ? 'bg-blue-600 text-white shadow-blue-500/25'
+                         : 'text-gray-300 hover:bg-gray-800 hover:shadow-gray-500/25'
                      }`}
+                     style={{ animationDelay: `${index * 0.1}s` }}
                    >
 
                      <div className="relative z-10">
@@ -546,7 +549,8 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
               window.open(composeUrl, '_blank');
             }
           }}
-          className="w-full text-center px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors duration-200"
+          className="w-full text-center px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium menu-button-stagger menu-button-smooth"
+          style={{ animationDelay: '0.5s' }}
         >
           Request an Epoch
         </button>

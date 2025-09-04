@@ -534,18 +534,9 @@ class EpochPreloader {
     // Special optimization for Epoch 6 (WebP files are much smaller - 67KB vs 2.8MB!)
     if (epochId === 6) {
       console.log('🚀 Epoch 6 ULTRA aggressive loading: WebP files are 95% smaller!');
-      // Load first 15 images immediately since they're so small (only ~1MB total)
-      const priorityImages = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+      // Load all available images immediately since they're so small (only ~1MB total)
+      const priorityImages = Array.from({ length: epochData.totalImages }, (_, i) => i + 1);
       await this.loadPriorityImages(epochId, priorityImages, extension);
-      
-      // Load remaining images instantly in one batch
-      const remainingImages = Array.from({ length: epochData.totalImages - 15 }, (_, i) => i + 16);
-      if (remainingImages.length > 0) {
-        // Load all remaining at once since they're tiny WebP files
-        setTimeout(() => {
-          this.loadPriorityImages(epochId, remainingImages, extension);
-        }, 10); // Almost instant for zero black frames
-      }
     } else {
       // Progressive loading: load current + next few images first, then the rest
       const currentImageIndex = 1; // Start with first image
@@ -1459,11 +1450,16 @@ export default function Home() {
   // Preload nearby images when navigating - ULTRA aggressive for zero black frames
   const preloadNearbyImages = useCallback((epochId: number, currentIndex: number) => {
     const epochData = EPOCHS.find(e => e.id === epochId);
-    if (!epochData) return;
+    if (!epochData || epochData.totalImages === 0) {
+      console.log(`⚠️ Skipping preload for epoch ${epochId}: no data or no images`);
+      return;
+    }
 
     // ULTRA aggressive preloading: 8 images back, 12 images forward
     const startIndex = Math.max(1, currentIndex - 8);
     const endIndex = Math.min(epochData.totalImages, currentIndex + 12);
+    
+    console.log(`🎯 Preloading epoch ${epochId}: images ${startIndex}-${endIndex} (total: ${epochData.totalImages})`);
     
     // Preload wide range in background with highest priority
     epochPreloader.preloadImageRange(epochId, startIndex, endIndex);
@@ -1524,6 +1520,7 @@ export default function Home() {
         // Preload a massive range around current position for zero black frames
         const wideStart = Math.max(1, index - 10);
         const wideEnd = Math.min(epochData.totalImages, index + 15);
+        console.log(`🔄 Continuous preload epoch ${currentEpoch}: images ${wideStart}-${wideEnd} (total: ${epochData.totalImages})`);
         epochPreloader.preloadImageRange(currentEpoch, wideStart, wideEnd);
         
         // Also preload the entire epoch in the background for ultimate smoothness
@@ -1547,6 +1544,7 @@ export default function Home() {
         // Preload a massive range around current position
         const start = Math.max(1, index - 15);
         const end = Math.min(epochData.totalImages, index + 20);
+        console.log(`🔄 Interval preload epoch ${currentEpoch}: images ${start}-${end} (total: ${epochData.totalImages})`);
         epochPreloader.preloadImageRange(currentEpoch, start, end);
         
         // Also preload random sections of the epoch to ensure coverage
