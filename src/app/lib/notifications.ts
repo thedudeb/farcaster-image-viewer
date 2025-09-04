@@ -82,7 +82,7 @@ export class NeynarNotifications {
       }
 
       const data = await response.json();
-      return (data.users || []).map((user: any) => ({
+      return (data.users || []).map((user: NeynarUser) => ({
         fid: user.fid,
         username: user.username,
         display_name: user.display_name,
@@ -126,7 +126,7 @@ export class NeynarNotifications {
   }
 
   // Get trending casts (free tier: 1000 calls/month)
-  async getTrendingCasts(limit: number = 10): Promise<any[]> {
+  async getTrendingCasts(limit: number = 10): Promise<NeynarCast[]> {
     try {
       const response = await fetch(`${this.baseUrl}/farcaster/feed/trending?limit=${limit}`, {
         headers: {
@@ -149,7 +149,7 @@ export class NeynarNotifications {
   }
 
   // Get user's recent casts (free tier: 1000 calls/month)
-  async getUserCasts(fid: number, limit: number = 10): Promise<any[]> {
+  async getUserCasts(fid: number, limit: number = 10): Promise<NeynarCast[]> {
     try {
       const response = await fetch(`${this.baseUrl}/farcaster/feed?fid=${fid}&limit=${limit}`, {
         headers: {
@@ -172,7 +172,7 @@ export class NeynarNotifications {
   }
 
   // Get frame interactions (free tier: 1000 calls/month)
-  async getFrameInteractions(frameUrl: string, limit: number = 10): Promise<any[]> {
+  async getFrameInteractions(frameUrl: string, limit: number = 10): Promise<NeynarFrameInteraction[]> {
     try {
       const response = await fetch(`${this.baseUrl}/farcaster/frame/interactions?frame_url=${encodeURIComponent(frameUrl)}&limit=${limit}`, {
         headers: {

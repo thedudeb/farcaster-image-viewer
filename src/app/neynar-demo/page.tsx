@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { NeynarNotifications } from '@/app/lib/notifications';
 
 interface NeynarUser {
@@ -22,7 +23,7 @@ interface ApiUsage {
 export default function NeynarDemo() {
   const [apiKey, setApiKey] = useState('');
   const [neynar, setNeynar] = useState<NeynarNotifications | null>(null);
-  const [status, setStatus] = useState<any>(null);
+  const [status, setStatus] = useState<{ status: string; estimatedUsage: number } | null>(null);
   const [users, setUsers] = useState<NeynarUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -233,9 +234,11 @@ export default function NeynarDemo() {
                 <div key={user.fid} className="bg-gray-700 p-4 rounded-lg">
                   <div className="flex items-center space-x-3 mb-3">
                     {user.pfp_url && (
-                      <img 
+                      <Image 
                         src={user.pfp_url} 
                         alt={user.display_name}
+                        width={48}
+                        height={48}
                         className="w-12 h-12 rounded-full"
                       />
                     )}
@@ -314,7 +317,7 @@ export default function NeynarDemo() {
           <h2 className="text-2xl font-semibold mb-4 text-blue-200">💎 Free Tier Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-blue-100">
             <div>
-              <h3 className="font-semibold mb-2">✅ What's Included:</h3>
+              <h3 className="font-semibold mb-2">✅ What&apos;s Included:</h3>
               <ul className="space-y-1 text-sm">
                 <li>• 1,000 API calls per month</li>
                 <li>• User lookup by FID</li>

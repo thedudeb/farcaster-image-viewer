@@ -1688,16 +1688,50 @@ export default function Home() {
 
   return (
     <div
-      className="w-screen h-screen bg-black flex items-center justify-center relative"
+      className="w-screen h-screen bg-black flex items-center justify-center relative overflow-hidden"
       onClick={handleTap}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Menu Button */}
+      {/* Parallax Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Floating Particles with Enhanced Movement */}
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-cyan-400/20 rounded-full animate-float animate-glow" 
+             style={{ animationDelay: '0s' }}></div>
+        <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-purple-400/30 rounded-full animate-drift animate-glow" 
+             style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-1/4 left-1/3 w-3 h-3 bg-blue-400/15 rounded-full animate-float animate-glow" 
+             style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-2/3 right-1/4 w-1.5 h-1.5 bg-indigo-400/25 rounded-full animate-drift animate-glow" 
+             style={{ animationDelay: '0.5s' }}></div>
+        <div className="absolute bottom-1/3 right-1/2 w-2.5 h-2.5 bg-cyan-300/20 rounded-full animate-float animate-glow" 
+             style={{ animationDelay: '1.5s' }}></div>
+        <div className="absolute top-1/6 left-1/2 w-1 h-1 bg-pink-400/25 rounded-full animate-drift animate-glow" 
+             style={{ animationDelay: '3s' }}></div>
+        <div className="absolute bottom-1/6 left-1/5 w-2 h-2 bg-emerald-400/20 rounded-full animate-float animate-glow" 
+             style={{ animationDelay: '2.5s' }}></div>
+        
+        {/* Gradient Orbs */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-radial from-cyan-500/10 via-transparent to-transparent rounded-full blur-3xl animate-pulse" 
+             style={{ animationDelay: '0s', animationDuration: '8s' }}></div>
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-radial from-purple-500/10 via-transparent to-transparent rounded-full blur-3xl animate-pulse" 
+             style={{ animationDelay: '2s', animationDuration: '10s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-radial from-blue-500/8 via-transparent to-transparent rounded-full blur-2xl animate-pulse" 
+             style={{ animationDelay: '4s', animationDuration: '12s' }}></div>
+        
+        {/* Geometric Shapes */}
+        <div className="absolute top-1/6 right-1/6 w-8 h-8 border border-cyan-400/20 rotate-45 animate-spin" 
+             style={{ animationDuration: '20s' }}></div>
+        <div className="absolute bottom-1/6 left-1/6 w-6 h-6 border border-purple-400/20 rotate-12 animate-spin" 
+             style={{ animationDuration: '15s', animationDirection: 'reverse' }}></div>
+        <div className="absolute top-3/4 left-1/4 w-4 h-4 bg-gradient-to-br from-blue-400/20 to-cyan-400/20 rotate-45 animate-pulse" 
+             style={{ animationDelay: '3s', animationDuration: '6s' }}></div>
+      </div>
+      {/* Menu Button with Spring Animation */}
       {showMenuButton && (
         <button
           onClick={handleMenuButtonClick}
-          className={`absolute top-4 left-4 z-10 bg-black/30 text-white p-2 rounded-lg hover:bg-black/50 transition-all duration-300`}
+          className={`absolute top-4 left-4 z-10 bg-black/30 text-white p-2 rounded-lg hover:bg-black/50 transition-all duration-300 spring-bounce hover:scale-110 hover:shadow-lg hover:shadow-cyan-500/25`}
         >
           <Image
             src="/new-menu-icon.png"
