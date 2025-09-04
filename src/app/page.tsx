@@ -1294,32 +1294,6 @@ export default function Home() {
     const currentEpochData = EPOCHS.find(e => e.id === currentEpoch)
     const totalImages = currentEpochData?.totalImages || 0
 
-    // Chronist easter egg: increment tap counter on any tap
-    const newTapCount = chronistTapCount + 1;
-    setChronistTapCount(newTapCount);
-    
-    // Show unlock UI on 5th tap
-    if (newTapCount === 5) {
-      setShowChronistUnlockUI(true);
-    }
-    
-    // Unlock Chronist epoch on 7th tap
-    if (newTapCount === 7 && !chronistEpochUnlocked) {
-      setChronistEpochUnlocked(true);
-      setShowChronistUnlockUI(false);
-      
-      // Show unlock notification
-      window.dispatchEvent(new CustomEvent('showNotification', { 
-        detail: { 
-          message: `🎉 Chronist's Epoch 7 unlocked! You found the easter egg!`,
-          type: 'chronist-unlock',
-          duration: 5000
-        } 
-      }));
-      
-      // Reset tap counter
-      setChronistTapCount(0);
-    }
 
     // If menu is open, only handle right taps to close menu
     if (menuOpen) {
@@ -1720,6 +1694,35 @@ export default function Home() {
     console.log('✅ Tutorial completed - user marked as visited');
   };
 
+  // Chronist easter egg handler
+  const handleChronistEasterEgg = () => {
+    const newTapCount = chronistTapCount + 1;
+    setChronistTapCount(newTapCount);
+    
+    // Show unlock UI on 5th tap
+    if (newTapCount === 5) {
+      setShowChronistUnlockUI(true);
+    }
+    
+    // Unlock Chronist epoch on 7th tap
+    if (newTapCount === 7 && !chronistEpochUnlocked) {
+      setChronistEpochUnlocked(true);
+      setShowChronistUnlockUI(false);
+      
+      // Show unlock notification
+      window.dispatchEvent(new CustomEvent('showNotification', { 
+        detail: { 
+          message: `🎉 Chronist's Epoch 7 unlocked! You found the easter egg!`,
+          type: 'chronist-unlock',
+          duration: 5000
+        } 
+      }));
+      
+      // Reset tap counter
+      setChronistTapCount(0);
+    }
+  };
+
   return (
     <div
       className="w-screen h-screen bg-black flex items-center justify-center relative overflow-hidden"
@@ -1937,6 +1940,9 @@ export default function Home() {
           }} 
           onEpochChange={handleEpochChange}
           currentEpoch={currentEpoch}
+          onChronistEasterEgg={handleChronistEasterEgg}
+          chronistTapCount={chronistTapCount}
+          chronistEpochUnlocked={chronistEpochUnlocked}
         />
       )}
 

@@ -7,6 +7,9 @@ interface MenuProps {
   onClose: () => void;
   onEpochChange: (epochId: number) => void;
   currentEpoch: number;
+  onChronistEasterEgg: () => void;
+  chronistTapCount: number;
+  chronistEpochUnlocked: boolean;
 }
 
 // Artist data for each epoch
@@ -87,9 +90,13 @@ const EPOCHS_1_TO_4 = [
 ];
 
 // Utility functions for countdown timer
-const isEpochUnlocked = (epoch: typeof EPOCHS[0]): boolean => {
+const isEpochUnlocked = (epoch: typeof EPOCHS[0], chronistUnlocked: boolean = false): boolean => {
   if (!epoch.locked) return true;
   if (!epoch.unlockTime) return false;
+  
+  // Special case for Chronist's epoch - can be unlocked via easter egg
+  if (epoch.id === 7 && chronistUnlocked) return true;
+  
   return Date.now() >= epoch.unlockTime;
 };
 
@@ -105,7 +112,7 @@ const getTimeUntilUnlock = (unlockTime: number): { days: number; hours: number; 
   return { days, hours, minutes, seconds };
 };
 
-export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps) {
+export default function Menu({ onClose, onEpochChange, currentEpoch, onChronistEasterEgg, chronistTapCount, chronistEpochUnlocked }: MenuProps) {
   const [profilePictures, setProfilePictures] = useState<Record<number, string>>({});
   const [countdownTimers, setCountdownTimers] = useState<Record<number, { days: number; hours: number; minutes: number; seconds: number }>>({});
   const [loadingPictures, setLoadingPictures] = useState(true);
@@ -388,7 +395,7 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                              {/* Other epochs */}
                {EPOCHS.map((epoch, index) => {
                  const artist = EPOCH_ARTISTS[epoch.id as keyof typeof EPOCH_ARTISTS];
-                 const isUnlocked = isEpochUnlocked(epoch);
+                 const isUnlocked = isEpochUnlocked(epoch, chronistEpochUnlocked);
                  const countdown = countdownTimers[epoch.id];
                  
                  return (
@@ -397,11 +404,16 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                      onClick={() => {
                        if (isUnlocked) {
                          handleEpochSelect(epoch.id);
+                       } else if (epoch.id === 7) {
+                         // Chronist easter egg - trigger on tap
+                         onChronistEasterEgg();
                        }
                      }}
                      className={`w-full text-left px-4 py-3 rounded-lg relative overflow-hidden menu-button-stagger menu-button-smooth ${
-                       !isUnlocked
+                       !isUnlocked && epoch.id !== 7
                          ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                         : !isUnlocked && epoch.id === 7
+                         ? 'bg-purple-800/50 text-purple-300 hover:bg-purple-700/50 cursor-pointer border border-purple-500/30'
                          : currentEpoch === epoch.id
                          ? 'bg-blue-600 text-white shadow-blue-500/25'
                          : 'text-gray-300 hover:bg-gray-800 hover:shadow-gray-500/25'
