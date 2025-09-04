@@ -884,15 +884,28 @@ export default function Home() {
     initializeMiniApp();
     
     // Check if this is a first-time user
-    const isFirstTime = !localStorage.getItem('farcaster-image-viewer-visited');
+    let isFirstTime = true;
+    try {
+      isFirstTime = !localStorage.getItem('farcaster-image-viewer-visited');
+    } catch (error) {
+      console.log('⚠️ localStorage not available, treating as first-time user:', error);
+      isFirstTime = true;
+    }
+    
     if (isFirstTime) {
       console.log('🎉 First-time user detected - showing tutorial');
       // Small delay to ensure everything is loaded
       setTimeout(() => {
         setShowTutorial(true);
+        
+        // Auto-dismiss tutorial after 30 seconds as fallback
+        setTimeout(() => {
+          setShowTutorial(false);
+          console.log('⏰ Tutorial auto-dismissed after 30 seconds');
+        }, 30000);
       }, 2000); // Give more time for everything to load
     }
-    
+
     // Start preloading epoch 7 images immediately when app loads
     // This happens during the mini app loading screen
     epochPreloader.preloadEpoch(7).catch(error => {
@@ -974,6 +987,20 @@ export default function Home() {
   // Tutorial state
   const [showTutorial, setShowTutorial] = useState(false)
 
+  // Escape key handler for tutorial
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showTutorial) {
+        handleTutorialComplete();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showTutorial]);
 
   const touchStartX = useRef<number | null>(null)
   const [nextImage, setNextImage] = useState<string | null>(null)
@@ -1690,8 +1717,12 @@ export default function Home() {
   // Tutorial handlers
   const handleTutorialComplete = () => {
     setShowTutorial(false);
-    localStorage.setItem('farcaster-image-viewer-visited', 'true');
-    console.log('✅ Tutorial completed - user marked as visited');
+    try {
+      localStorage.setItem('farcaster-image-viewer-visited', 'true');
+      console.log('✅ Tutorial completed - user marked as visited');
+    } catch (error) {
+      console.log('⚠️ localStorage not available, tutorial completed anyway:', error);
+    }
   };
 
   // Chronist easter egg handler
@@ -1848,7 +1879,11 @@ export default function Home() {
       {process.env.NODE_ENV === 'development' && showMenuButton && (
         <button
           onClick={() => {
-            localStorage.removeItem('farcaster-image-viewer-visited');
+            try {
+              localStorage.removeItem('farcaster-image-viewer-visited');
+            } catch (error) {
+              console.log('⚠️ localStorage not available for reset:', error);
+            }
             setShowTutorial(true);
           }}
           className="absolute bottom-4 left-4 z-10 bg-purple-500/80 text-white px-3 py-2 rounded-lg text-xs font-medium hover:bg-purple-600/80 transition-colors"
@@ -1954,7 +1989,15 @@ export default function Home() {
 
       {/* Tutorial Overlay */}
       {showTutorial && (
-        <div className="fixed inset-0 bg-black/90 z-[100] pointer-events-auto">
+        <div 
+          className="fixed inset-0 bg-black/90 z-[100] pointer-events-auto"
+          onClick={(e) => {
+            // Allow clicking outside to dismiss tutorial
+            if (e.target === e.currentTarget) {
+              handleTutorialComplete();
+            }
+          }}
+        >
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-20">
             <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-200 max-w-lg mx-4">
               <h2 className="text-3xl font-bold text-gray-900 mb-6">
