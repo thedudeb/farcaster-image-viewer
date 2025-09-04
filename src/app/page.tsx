@@ -2021,10 +2021,10 @@ export default function Home() {
             <div className="bg-gradient-to-br from-purple-900/95 to-indigo-900/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-purple-500/30 max-w-md mx-4">
               <div className="text-6xl mb-4">⏰</div>
               <h2 className="text-2xl font-bold text-white mb-4">
-                Chronist's Secret
+                Chronist&apos;s Secret
               </h2>
               <p className="text-purple-200 mb-6 leading-relaxed">
-                You've discovered something special... Keep tapping to unlock Chronist's hidden epoch!
+                You&apos;ve discovered something special... Keep tapping to unlock Chronist&apos;s hidden epoch!
               </p>
               <div className="bg-purple-800/50 rounded-lg p-4 mb-6">
                 <p className="text-sm text-purple-100">
