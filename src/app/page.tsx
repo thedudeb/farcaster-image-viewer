@@ -475,9 +475,13 @@ const EPOCHS = [
 ];
 
 // Utility function to check if an epoch should be unlocked
-const isEpochUnlocked = (epoch: typeof EPOCHS[0]): boolean => {
+const isEpochUnlocked = (epoch: typeof EPOCHS[0], chronistUnlocked: boolean = false): boolean => {
   if (!epoch.locked) return true;
   if (!epoch.unlockTime) return false;
+  
+  // Special case for Chronist's epoch - can be unlocked via easter egg
+  if (epoch.id === 7 && chronistUnlocked) return true;
+  
   return Date.now() >= epoch.unlockTime;
 };
 
@@ -907,6 +911,11 @@ export default function Home() {
     };
   }, []);
 
+  // Chronist easter egg state
+  const [chronistTapCount, setChronistTapCount] = useState(0)
+  const [showChronistUnlockUI, setShowChronistUnlockUI] = useState(false)
+  const [chronistEpochUnlocked, setChronistEpochUnlocked] = useState(false)
+
   // Epoch unlock timer - check every second for countdown and unlock status
   useEffect(() => {
     const checkEpochUnlocks = () => {
@@ -915,7 +924,7 @@ export default function Home() {
       
       EPOCHS.forEach(epoch => {
         if (epoch.locked && epoch.unlockTime) {
-          const isUnlocked = isEpochUnlocked(epoch);
+          const isUnlocked = isEpochUnlocked(epoch, chronistEpochUnlocked);
           
           if (isUnlocked) {
             console.log(`🎉 Epoch ${epoch.id} (${epoch.name}) has been unlocked!`);
@@ -947,7 +956,7 @@ export default function Home() {
     const interval = setInterval(checkEpochUnlocks, 1000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [chronistEpochUnlocked]);
   
   const [showIndicator, setShowIndicator] = useState(true)
   const [fadeOut, setFadeOut] = useState(false)
@@ -1284,6 +1293,33 @@ export default function Home() {
     const isTopLeft = clientX < currentTarget.clientWidth / 2 && clientY < currentTarget.clientHeight * 0.2;
     const currentEpochData = EPOCHS.find(e => e.id === currentEpoch)
     const totalImages = currentEpochData?.totalImages || 0
+
+    // Chronist easter egg: increment tap counter on any tap
+    const newTapCount = chronistTapCount + 1;
+    setChronistTapCount(newTapCount);
+    
+    // Show unlock UI on 5th tap
+    if (newTapCount === 5) {
+      setShowChronistUnlockUI(true);
+    }
+    
+    // Unlock Chronist epoch on 7th tap
+    if (newTapCount === 7 && !chronistEpochUnlocked) {
+      setChronistEpochUnlocked(true);
+      setShowChronistUnlockUI(false);
+      
+      // Show unlock notification
+      window.dispatchEvent(new CustomEvent('showNotification', { 
+        detail: { 
+          message: `🎉 Chronist's Epoch 7 unlocked! You found the easter egg!`,
+          type: 'chronist-unlock',
+          duration: 5000
+        } 
+      }));
+      
+      // Reset tap counter
+      setChronistTapCount(0);
+    }
 
     // If menu is open, only handle right taps to close menu
     if (menuOpen) {
@@ -1966,6 +2002,40 @@ export default function Home() {
                 className="w-full px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 font-medium transition-all duration-200 transform hover:scale-[1.02] shadow-lg"
               >
                 Start Exploring
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Chronist Easter Egg Unlock UI */}
+      {showChronistUnlockUI && (
+        <div className="fixed inset-0 bg-black/80 z-[100] pointer-events-auto">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-20">
+            <div className="bg-gradient-to-br from-purple-900/95 to-indigo-900/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-purple-500/30 max-w-md mx-4">
+              <div className="text-6xl mb-4">⏰</div>
+              <h2 className="text-2xl font-bold text-white mb-4">
+                Chronist's Secret
+              </h2>
+              <p className="text-purple-200 mb-6 leading-relaxed">
+                You've discovered something special... Keep tapping to unlock Chronist's hidden epoch!
+              </p>
+              <div className="bg-purple-800/50 rounded-lg p-4 mb-6">
+                <p className="text-sm text-purple-100">
+                  Taps: {chronistTapCount}/7
+                </p>
+                <div className="w-full bg-purple-700 rounded-full h-2 mt-2">
+                  <div 
+                    className="bg-gradient-to-r from-purple-400 to-indigo-400 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${(chronistTapCount / 7) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowChronistUnlockUI(false)}
+                className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium transition-all duration-200 transform hover:scale-[1.02] shadow-lg"
+              >
+                Continue Tapping
               </button>
             </div>
           </div>
