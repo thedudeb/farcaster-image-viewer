@@ -19,6 +19,24 @@ interface NeynarUser {
   verifications: string[];
 }
 
+interface NeynarCast {
+  hash: string;
+  text: string;
+  author: NeynarUser;
+  timestamp: string;
+  replies: { count: number };
+  reactions: { count: number };
+  recasts: { count: number };
+}
+
+interface NeynarFrameInteraction {
+  hash: string;
+  text: string;
+  author: NeynarUser;
+  timestamp: string;
+  frame_url: string;
+}
+
 export class NeynarNotifications {
   private apiKey: string;
   private baseUrl = 'https://api.neynar.com/v2';
