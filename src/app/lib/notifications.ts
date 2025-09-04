@@ -249,5 +249,4 @@ export async function sendFarcasterNotification(message: string, userId: string)
   }
 }
 
-// Export the main class for direct usage
-export { NeynarNotifications }; 
+// NeynarNotifications class is already exported above 
