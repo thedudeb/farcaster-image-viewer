@@ -246,7 +246,6 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                       ? 'bg-blue-600 text-white shadow-blue-500/25'
                       : 'text-gray-300 hover:bg-gray-800 hover:shadow-gray-500/25'
                   }`}
-                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -329,7 +328,6 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
               <button
                 onClick={() => setShowEpoch1To4Submenu(true)}
                 className="w-full text-left px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 menu-button-stagger menu-button-smooth"
-                style={{ animationDelay: '0.1s' }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -408,7 +406,6 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
                          ? 'bg-blue-600 text-white shadow-blue-500/25'
                          : 'text-gray-300 hover:bg-gray-800 hover:shadow-gray-500/25'
                      }`}
-                     style={{ animationDelay: `${index * 0.1}s` }}
                    >
 
                      <div className="relative z-10">
@@ -550,7 +547,6 @@ export default function Menu({ onClose, onEpochChange, currentEpoch }: MenuProps
             }
           }}
           className="w-full text-center px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium menu-button-stagger menu-button-smooth"
-          style={{ animationDelay: '0.5s' }}
         >
           Request an Epoch
         </button>

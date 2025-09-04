@@ -118,41 +118,25 @@ body {
 
 /* Menu slide animations */
 .menu-slide-in {
-  animation: slideInFromLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideInFromLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes slideInFromLeft {
   0% { 
-    transform: translateX(-100%) scale(0.8) rotateY(-15deg); 
-    opacity: 0; 
-    filter: blur(10px);
-  }
-  50% { 
-    transform: translateX(-20%) scale(0.95) rotateY(-5deg); 
-    opacity: 0.7; 
-    filter: blur(2px);
-  }
-  100% { 
-    transform: translateX(0) scale(1) rotateY(0deg); 
-    opacity: 1; 
-    filter: blur(0px);
-  }
-}
-
-/* Staggered button animations */
-.menu-button-stagger {
-  animation: buttonSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-@keyframes buttonSlideIn {
-  0% { 
-    transform: translateX(-30px) scale(0.9); 
+    transform: translateX(-100%) scale(0.9); 
     opacity: 0; 
   }
   100% { 
     transform: translateX(0) scale(1); 
     opacity: 1; 
   }
+}
+
+/* Unified button animations - no stagger */
+.menu-button-stagger {
+  animation: none;
+  opacity: 1;
+  transform: translateX(0) scale(1);
 }
 
 /* Toast notification animations */
