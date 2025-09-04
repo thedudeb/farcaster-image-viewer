@@ -1910,74 +1910,63 @@ export default function Home() {
         onClose={() => setCalendarOpen(false)}
       />
 
-      {/* Single Tutorial Overlay */}
+      {/* Tutorial Overlay */}
       {showTutorial && (
-        <div className="fixed inset-0 bg-black/80 z-[100] pointer-events-auto">
-          {/* Welcome Message */}
+        <div className="fixed inset-0 bg-black/90 z-[100] pointer-events-auto">
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-20">
-            <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-gray-200 max-w-md mx-4">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'var(--font-amatic-sc)' }}>
-                Welcome to the Gallery! 🎨
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-200 max-w-lg mx-4">
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                Welcome to 0ffline Viewer
               </h2>
-              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                Discover amazing digital art collections from talented artists. Here&apos;s everything you need to know!
-              </p>
+              
+              <div className="text-left space-y-4 mb-8">
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Navigate Artworks</h3>
+                    <p className="text-gray-600 text-sm">Tap left or right anywhere on the screen to browse through images</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Explore Epochs</h3>
+                    <p className="text-gray-600 text-sm">Use the menu button to switch between different art collections</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Share & Discover</h3>
+                    <p className="text-gray-600 text-sm">Share your favorite pieces and discover new artists</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Pinch to Zoom</h3>
+                    <p className="text-gray-600 text-sm">Use two fingers to zoom in and explore details</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-indigo-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Request an Epoch</h3>
+                    <p className="text-gray-600 text-sm">Want to be featured? Request an epoch in the menu</p>
+                  </div>
+                </div>
+              </div>
+              
               <button
                 onClick={handleTutorialComplete}
-                className="px-8 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 font-medium transition-all duration-200 transform hover:scale-105 shadow-lg"
+                className="w-full px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 font-medium transition-all duration-200 transform hover:scale-[1.02] shadow-lg"
               >
-                Let&apos;s Explore! 🚀
+                Start Exploring
               </button>
-            </div>
-          </div>
-
-          {/* Navigation Arrow */}
-          <div className="absolute top-1/2 left-8 transform -translate-y-1/2 z-10">
-            <div className="text-white text-center">
-              <div className="text-2xl mb-2">👆</div>
-              <div className="text-sm font-medium" style={{ fontFamily: 'var(--font-amatic-sc)' }}>
-                Tap left/right to navigate
-              </div>
-            </div>
-          </div>
-
-          {/* Menu Button Arrow */}
-          <div className="absolute top-16 left-20 z-10">
-            <div className="text-white text-center">
-              <div className="text-2xl mb-2">👈</div>
-              <div className="text-sm font-medium" style={{ fontFamily: 'var(--font-amatic-sc)' }}>
-                Menu & Epochs
-              </div>
-            </div>
-          </div>
-
-          {/* Share Button Arrow */}
-          <div className="absolute top-16 right-20 z-10">
-            <div className="text-white text-center">
-              <div className="text-2xl mb-2">👉</div>
-              <div className="text-sm font-medium" style={{ fontFamily: 'var(--font-amatic-sc)' }}>
-                Share on Farcaster
-              </div>
-            </div>
-          </div>
-
-          {/* Zoom Arrow */}
-          <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-10">
-            <div className="text-white text-center">
-              <div className="text-2xl mb-2">🤏</div>
-              <div className="text-sm font-medium" style={{ fontFamily: 'var(--font-amatic-sc)' }}>
-                Pinch to zoom
-              </div>
-            </div>
-          </div>
-
-          {/* Curation Arrow */}
-          <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 z-10">
-            <div className="text-white text-center">
-              <div className="text-2xl mb-2">💫</div>
-              <div className="text-sm font-medium" style={{ fontFamily: 'var(--font-amatic-sc)' }}>
-                Want to be featured? Request an epoch in the menu!
-              </div>
             </div>
           </div>
         </div>
