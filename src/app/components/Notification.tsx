@@ -14,8 +14,8 @@ export default function Notification({ message, duration = 6000, type, artistPro
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // For Epoch 5, 6, and 7 notices, don't auto-hide - wait for user interaction
-    if (type !== 'epoch5-notice' && type !== 'epoch6-notice' && type !== 'epoch7-notice') {
+    // For Epoch 5, 6, 7, and 8 notices, don't auto-hide - wait for user interaction
+    if (type !== 'epoch5-notice' && type !== 'epoch6-notice' && type !== 'epoch7-notice' && type !== 'epoch8-notice') {
       const timer = setTimeout(() => {
         setIsVisible(false);
         onClose?.();
@@ -27,8 +27,8 @@ export default function Notification({ message, duration = 6000, type, artistPro
 
   if (!isVisible) return null;
 
-  // Special styling for Epoch 5, 6, and 7 notices
-  if (type === 'epoch5-notice' || type === 'epoch6-notice' || type === 'epoch7-notice') {
+  // Special styling for Epoch 5, 6, 7, and 8 notices
+  if (type === 'epoch5-notice' || type === 'epoch6-notice' || type === 'epoch7-notice' || type === 'epoch8-notice') {
     return (
       <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-black/90 text-white px-6 py-4 rounded-lg shadow-lg transition-opacity duration-300 max-w-md text-center">
         <div className="mb-3">
@@ -41,7 +41,8 @@ export default function Notification({ message, duration = 6000, type, artistPro
               // Track artist profile click based on type
               const artistName = type === 'epoch5-notice' ? '@Greywash' : 
                                 type === 'epoch6-notice' ? '@dwn2earth' : 
-                                type === 'epoch7-notice' ? '@chronist' : '@unknown';
+                                type === 'epoch7-notice' ? '@chronist' : 
+                                type === 'epoch8-notice' ? '@iteration' : '@unknown';
               trackArtistProfileClick(artistName);
               
               try {
@@ -58,6 +59,7 @@ export default function Notification({ message, duration = 6000, type, artistPro
                       const fid = type === 'epoch5-notice' ? 1075107 : // Greywash: 1075107
                                   type === 'epoch6-notice' ? 288204 : // dwn2earth: 288204
                                   type === 'epoch7-notice' ? 499579 : // chronist: 499579
+                                  type === 'epoch8-notice' ? 14491 : // iteration: 14491
                                   0; // fallback
                       console.log(`Using viewProfile method with FID ${fid}`);
                       await sdk.actions.viewProfile({ fid });

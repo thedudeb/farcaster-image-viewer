@@ -472,6 +472,27 @@ const EPOCHS = [
       return `${dateStr} at 4:20 EST`;
     })()
   },
+  { 
+    id: 8, 
+    name: 'Epoch 8', 
+    totalImages: 20, 
+    locked: true, 
+    artist: 'Iteration', 
+    fid: 14491,
+    unlockTime: Date.now() + (7 * 24 * 60 * 60 * 1000), // 7 days from now
+    unlockDate: (() => {
+      const date = new Date(Date.now() + (7 * 24 * 60 * 60 * 1000));
+      const dateStr = date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        timeZone: 'America/New_York',
+        timeZoneName: 'short'
+      });
+      return `${dateStr}`;
+    })()
+  },
 ];
 
 // Utility function to check if an epoch should be unlocked
@@ -799,7 +820,7 @@ const epochPreloader = new EpochPreloader();
 export default function Home() {
   const [currentEpoch, setCurrentEpoch] = useState(7)
   const [index, setIndex] = useState<number | null>(1)
-  const [lockedEpochs, setLockedEpochs] = useState<Set<number>>(new Set([])) // Track locked epochs
+  const [lockedEpochs, setLockedEpochs] = useState<Set<number>>(new Set([8])) // Track locked epochs
   const [countdownTimers, setCountdownTimers] = useState<Record<number, { days: number; hours: number; minutes: number; seconds: number }>>({}) // Countdown timers
   
   // Progressive Enhancement & Performance Monitoring
@@ -1278,14 +1299,45 @@ export default function Home() {
     }
   }, [currentEpoch]);
 
-  // Initialize preloading for the last 3 epochs on app start
+  // Show Epoch 8 disclaimer on first load and start loading epoch
   useEffect(() => {
-    // Immediately start preloading epochs 5, 6, and 7 when the app loads
-    const lastThreeEpochs = [5, 6, 7];
+    if (currentEpoch === 8) {
+      // Start loading Epoch 8 immediately when notification appears
+      epochPreloader.preloadEpoch(8);
+      
+      // Small delay to ensure the component is fully mounted
+      const timer = setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('showNotification', { 
+          detail: {
+            message: `This epoch was created and curated by another amazing artist, @iteration`,
+            type: 'epoch8-notice',
+            artistProfile: 'https://warpcast.com/iteration'
+          } 
+        }));
+        
+        // Show Chronist tap right overlay for 9 seconds after notification
+        setShowTapRightOverlay(false); // Hide regular overlay first
+        setShowGreywashTapRight(false); // Hide Greywash overlay first
+        setShowChronistTapRight(true);
+        const tapRightTimer = setTimeout(() => {
+          setShowChronistTapRight(false);
+        }, 9000);
+        
+        return () => clearTimeout(tapRightTimer);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [currentEpoch]);
+
+  // Initialize preloading for the last 4 epochs on app start
+  useEffect(() => {
+    // Immediately start preloading epochs 5, 6, 7, and 8 when the app loads
+    const lastFourEpochs = [5, 6, 7, 8];
     
-    console.log('🚀 Initializing ULTRA preloading for last 3 epochs...');
+    console.log('🚀 Initializing ULTRA preloading for last 4 epochs...');
     
-    lastThreeEpochs.forEach(epochId => {
+    lastFourEpochs.forEach(epochId => {
       const epochData = EPOCHS.find(e => e.id === epochId);
       if (epochData && epochData.totalImages > 0) {
         // Start preloading immediately
@@ -1500,6 +1552,17 @@ export default function Home() {
           message: `This epoch was created and curated by another amazing artist, @chronist`,
           type: 'epoch7-notice',
           artistProfile: 'https://warpcast.com/chronist' // Replace with actual Farcaster profile URL
+        } 
+      }));
+    }
+    
+    // Show special notification for Epoch 8-Iteration
+    if (epochId === 8) {
+      window.dispatchEvent(new CustomEvent('showNotification', { 
+        detail: { 
+          message: `This epoch was created and curated by another amazing artist, @iteration`,
+          type: 'epoch8-notice',
+          artistProfile: 'https://warpcast.com/iteration' // Replace with actual Farcaster profile URL
         } 
       }));
     }

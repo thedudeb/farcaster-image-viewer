@@ -49,6 +49,11 @@ const EPOCH_ARTISTS = {
     username: 'chronist', 
     displayName: 'Chronist'
   },
+  8: { 
+    fid: 14491, 
+    username: 'iteration', 
+    displayName: 'Iteration'
+  },
 };
 
 // Set a fixed unlock timestamp for Chronist's epoch (same as main page)
@@ -78,6 +83,25 @@ const EPOCHS = [
         timeZoneName: 'short'
       });
       return `${dateStr} at 4:20 EST`;
+    })()
+  },
+  { 
+    id: 8, 
+    name: 'Epoch 8', 
+    totalImages: 20, 
+    locked: true,
+    unlockTime: Date.now() + (7 * 24 * 60 * 60 * 1000), // 7 days from now
+    unlockDate: (() => {
+      const date = new Date(Date.now() + (7 * 24 * 60 * 60 * 1000));
+      const dateStr = date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        timeZone: 'America/New_York',
+        timeZoneName: 'short'
+      });
+      return `${dateStr}`;
     })()
   },
 ];
