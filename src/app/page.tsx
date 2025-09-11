@@ -455,7 +455,7 @@ const EPOCHS = [
     id: 7, 
     name: 'Epoch 7', 
     totalImages: 45, 
-    locked: true, 
+    locked: false, 
     artist: 'Chronist', 
     fid: 499579,
     unlockTime: EPOCH_7_UNLOCK_TIME,
@@ -797,9 +797,9 @@ class EpochPreloader {
 const epochPreloader = new EpochPreloader();
 
 export default function Home() {
-  const [currentEpoch, setCurrentEpoch] = useState(6)
+  const [currentEpoch, setCurrentEpoch] = useState(7)
   const [index, setIndex] = useState<number | null>(1)
-  const [lockedEpochs, setLockedEpochs] = useState<Set<number>>(new Set([7])) // Track locked epochs
+  const [lockedEpochs, setLockedEpochs] = useState<Set<number>>(new Set([])) // Track locked epochs
   const [countdownTimers, setCountdownTimers] = useState<Record<number, { days: number; hours: number; minutes: number; seconds: number }>>({}) // Countdown timers
   
   // Progressive Enhancement & Performance Monitoring
@@ -1458,6 +1458,17 @@ export default function Home() {
           message: `This epoch was created and curated by another amazing artist, @dwn2earth`,
           type: 'epoch6-notice',
           artistProfile: 'https://warpcast.com/dwn2earth' // Replace with actual Farcaster profile URL
+        } 
+      }));
+    }
+    
+    // Show special notification for Epoch 7-Chronist
+    if (epochId === 7) {
+      window.dispatchEvent(new CustomEvent('showNotification', { 
+        detail: { 
+          message: `This epoch was created and curated by another amazing artist, @chronist`,
+          type: 'epoch7-notice',
+          artistProfile: 'https://warpcast.com/chronist' // Replace with actual Farcaster profile URL
         } 
       }));
     }

@@ -65,7 +65,7 @@ const EPOCHS = [
     id: 7, 
     name: 'Epoch 7', 
     totalImages: 45, 
-    locked: true,
+    locked: false,
     unlockTime: EPOCH_7_UNLOCK_TIME,
     unlockDate: (() => {
       const date = new Date(EPOCH_7_UNLOCK_TIME);
