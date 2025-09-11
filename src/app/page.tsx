@@ -1247,6 +1247,37 @@ export default function Home() {
     }
   }, [currentEpoch]);
 
+  // Show Epoch 7 disclaimer on first load and start loading epoch
+  useEffect(() => {
+    if (currentEpoch === 7) {
+      // Start loading Epoch 7 immediately when notification appears
+      epochPreloader.preloadEpoch(7);
+      
+      // Small delay to ensure the component is fully mounted
+      const timer = setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('showNotification', { 
+          detail: {
+            message: `This epoch was created and curated by another amazing artist, @chronist`,
+            type: 'epoch7-notice',
+            artistProfile: 'https://warpcast.com/chronist'
+          } 
+        }));
+        
+        // Show Chronist tap right overlay for 9 seconds after notification
+        setShowTapRightOverlay(false); // Hide regular overlay first
+        setShowGreywashTapRight(false); // Hide Greywash overlay first
+        setShowChronistTapRight(true);
+        const tapRightTimer = setTimeout(() => {
+          setShowChronistTapRight(false);
+        }, 9000);
+        
+        return () => clearTimeout(tapRightTimer);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [currentEpoch]);
+
   // Initialize preloading for the last 3 epochs on app start
   useEffect(() => {
     // Immediately start preloading epochs 5, 6, and 7 when the app loads

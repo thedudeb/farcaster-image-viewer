@@ -14,8 +14,8 @@ export default function Notification({ message, duration = 6000, type, artistPro
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // For Epoch 5 and 6 notices, don't auto-hide - wait for user interaction
-    if (type !== 'epoch5-notice' && type !== 'epoch6-notice') {
+    // For Epoch 5, 6, and 7 notices, don't auto-hide - wait for user interaction
+    if (type !== 'epoch5-notice' && type !== 'epoch6-notice' && type !== 'epoch7-notice') {
       const timer = setTimeout(() => {
         setIsVisible(false);
         onClose?.();
@@ -27,8 +27,8 @@ export default function Notification({ message, duration = 6000, type, artistPro
 
   if (!isVisible) return null;
 
-  // Special styling for Epoch 5 and 6 notices
-  if (type === 'epoch5-notice' || type === 'epoch6-notice') {
+  // Special styling for Epoch 5, 6, and 7 notices
+  if (type === 'epoch5-notice' || type === 'epoch6-notice' || type === 'epoch7-notice') {
     return (
       <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-black/90 text-white px-6 py-4 rounded-lg shadow-lg transition-opacity duration-300 max-w-md text-center">
         <div className="mb-3">
