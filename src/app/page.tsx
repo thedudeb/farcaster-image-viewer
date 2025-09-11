@@ -921,8 +921,15 @@ export default function Home() {
         
         // Auto-dismiss tutorial after 30 seconds as fallback
         setTimeout(() => {
+          console.log('⏰ Tutorial auto-dismissed after 30 seconds - forcing dismissal');
           setShowTutorial(false);
-          console.log('⏰ Tutorial auto-dismissed after 30 seconds');
+          // Also try to mark as visited in case the button didn't work
+          try {
+            localStorage.setItem('farcaster-image-viewer-visited', 'true');
+            console.log('✅ Tutorial auto-completed - user marked as visited');
+          } catch (error) {
+            console.log('⚠️ localStorage not available during auto-dismiss:', error);
+          }
         }, 30000);
       }, 2000); // Give more time for everything to load
     }
@@ -1821,6 +1828,7 @@ export default function Home() {
 
   // Tutorial handlers
   const handleTutorialComplete = () => {
+    console.log('🎯 Tutorial completion triggered');
     setShowTutorial(false);
     try {
       localStorage.setItem('farcaster-image-viewer-visited', 'true');
@@ -2099,15 +2107,34 @@ export default function Home() {
           onClick={(e) => {
             // Allow clicking outside to dismiss tutorial
             if (e.target === e.currentTarget) {
+              console.log('🎯 Tutorial dismissed by clicking outside');
               handleTutorialComplete();
             }
           }}
         >
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-20">
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-200 max-w-lg mx-4">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-200 max-w-lg mx-4 relative">
+              {/* Close button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log('🎯 Tutorial dismissed by close button');
+                  handleTutorialComplete();
+                }}
+                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                aria-label="Close tutorial"
+              >
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
                 Welcome to 0ffline Viewer
               </h2>
+              <p className="text-sm text-gray-500 mb-6">
+                Press ESC, click outside, or use the buttons below to continue
+              </p>
               
               <div className="text-left space-y-4 mb-8">
                 <div className="flex items-start space-x-3">
@@ -2151,12 +2178,29 @@ export default function Home() {
                 </div>
               </div>
               
-              <button
-                onClick={handleTutorialComplete}
-                className="w-full px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 font-medium transition-all duration-200 transform hover:scale-[1.02] shadow-lg"
-              >
-                Start Exploring
-              </button>
+              <div className="space-y-3">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log('🎯 Tutorial dismissed by Start button');
+                    handleTutorialComplete();
+                  }}
+                  className="w-full px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 font-medium transition-all duration-200 transform hover:scale-[1.02] shadow-lg"
+                >
+                  Start Exploring
+                </button>
+                
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log('🎯 Tutorial dismissed by Skip button');
+                    handleTutorialComplete();
+                  }}
+                  className="w-full px-6 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+                >
+                  Skip Tutorial
+                </button>
+              </div>
             </div>
           </div>
         </div>
