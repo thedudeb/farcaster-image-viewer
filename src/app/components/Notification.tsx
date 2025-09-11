@@ -39,7 +39,9 @@ export default function Notification({ message, duration = 6000, type, artistPro
             <button
                           onClick={async () => {
               // Track artist profile click based on type
-              const artistName = type === 'epoch5-notice' ? '@Greywash' : '@dwn2earth';
+              const artistName = type === 'epoch5-notice' ? '@Greywash' : 
+                                type === 'epoch6-notice' ? '@dwn2earth' : 
+                                type === 'epoch7-notice' ? '@chronist' : '@unknown';
               trackArtistProfileClick(artistName);
               
               try {
@@ -53,7 +55,10 @@ export default function Notification({ message, duration = 6000, type, artistPro
                     
                     // Use the official viewProfile method with FID to minimize app and show profile
                     if (sdk.actions.viewProfile) {
-                      const fid = type === 'epoch5-notice' ? 1075107 : 288204; // Greywash: 1075107, dwn2earth: 288204
+                      const fid = type === 'epoch5-notice' ? 1075107 : // Greywash: 1075107
+                                  type === 'epoch6-notice' ? 288204 : // dwn2earth: 288204
+                                  type === 'epoch7-notice' ? 499579 : // chronist: 499579
+                                  0; // fallback
                       console.log(`Using viewProfile method with FID ${fid}`);
                       await sdk.actions.viewProfile({ fid });
                       console.log('Successfully opened profile with viewProfile');
