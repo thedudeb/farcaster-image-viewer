@@ -10,6 +10,9 @@ interface MenuProps {
   onChronistEasterEgg: () => void;
   chronistTapCount: number;
   chronistEpochUnlocked: boolean;
+  onIterationEasterEgg: () => void;
+  iterationTapCount: number;
+  iterationEpochUnlocked: boolean;
 }
 
 // Artist data for each epoch
@@ -114,12 +117,15 @@ const EPOCHS_1_TO_4 = [
 ];
 
 // Utility functions for countdown timer
-const isEpochUnlocked = (epoch: typeof EPOCHS[0], chronistUnlocked: boolean = false): boolean => {
+const isEpochUnlocked = (epoch: typeof EPOCHS[0], chronistUnlocked: boolean = false, iterationUnlocked: boolean = false): boolean => {
   if (!epoch.locked) return true;
   if (!epoch.unlockTime) return false;
   
   // Special case for Chronist's epoch - can be unlocked via easter egg
   if (epoch.id === 7 && chronistUnlocked) return true;
+  
+  // Special case for Iteration's epoch - can be unlocked via easter egg
+  if (epoch.id === 8 && iterationUnlocked) return true;
   
   return Date.now() >= epoch.unlockTime;
 };
@@ -136,7 +142,7 @@ const getTimeUntilUnlock = (unlockTime: number): { days: number; hours: number; 
   return { days, hours, minutes, seconds };
 };
 
-export default function Menu({ onClose, onEpochChange, currentEpoch, onChronistEasterEgg, chronistTapCount, chronistEpochUnlocked }: MenuProps) {
+export default function Menu({ onClose, onEpochChange, currentEpoch, onChronistEasterEgg, chronistTapCount, chronistEpochUnlocked, onIterationEasterEgg, iterationTapCount, iterationEpochUnlocked }: MenuProps) {
   const [profilePictures, setProfilePictures] = useState<Record<number, string>>({});
   const [countdownTimers, setCountdownTimers] = useState<Record<number, { days: number; hours: number; minutes: number; seconds: number }>>({});
   const [loadingPictures, setLoadingPictures] = useState(true);
@@ -419,7 +425,7 @@ export default function Menu({ onClose, onEpochChange, currentEpoch, onChronistE
                              {/* Other epochs */}
                {EPOCHS.map((epoch, index) => {
                  const artist = EPOCH_ARTISTS[epoch.id as keyof typeof EPOCH_ARTISTS];
-                 const isUnlocked = isEpochUnlocked(epoch, chronistEpochUnlocked);
+                 const isUnlocked = isEpochUnlocked(epoch, chronistEpochUnlocked, iterationEpochUnlocked);
                  const countdown = countdownTimers[epoch.id];
                  
                  return (
@@ -431,13 +437,18 @@ export default function Menu({ onClose, onEpochChange, currentEpoch, onChronistE
                        } else if (epoch.id === 7) {
                          // Chronist easter egg - trigger on tap
                          onChronistEasterEgg();
+                       } else if (epoch.id === 8) {
+                         // Iteration easter egg - trigger on tap (no visual indicators)
+                         onIterationEasterEgg();
                        }
                      }}
                      className={`w-full text-left px-4 py-3 rounded-lg relative overflow-hidden menu-button-stagger menu-button-smooth ${
-                       !isUnlocked && epoch.id !== 7
+                       !isUnlocked && epoch.id !== 7 && epoch.id !== 8
                          ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
                          : !isUnlocked && epoch.id === 7
                          ? 'bg-purple-800/50 text-purple-300 hover:bg-purple-700/50 cursor-pointer border border-purple-500/30'
+                         : !isUnlocked && epoch.id === 8
+                         ? 'bg-gray-800 text-gray-500 cursor-pointer hover:bg-gray-700'
                          : currentEpoch === epoch.id
                          ? 'bg-blue-600 text-white shadow-blue-500/25'
                          : 'text-gray-300 hover:bg-gray-800 hover:shadow-gray-500/25'

@@ -174,6 +174,11 @@ export const trackCalendarArtistClick = (artistName: string, epochId: number) =>
   trackEvent('calendar_artist_click', { artistName, epochId });
 };
 
+// Track easter egg unlocks
+export const trackEasterEggUnlock = (artistName: string, epochId: number) => {
+  trackEvent('easter_egg_unlock', { artistName, epochId });
+};
+
 // Clear analytics cache (useful when switching epochs)
 export const clearAnalyticsCache = () => {
   analyticsCache.clear();

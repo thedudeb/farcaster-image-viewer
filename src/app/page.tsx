@@ -14,6 +14,7 @@ import {
   trackSessionEnd,
   trackCalendarOpen,
   trackCalendarArtistClick,
+  trackEasterEggUnlock,
   clearAnalyticsCache,
   resetSessionState
 } from './lib/analytics';
@@ -176,7 +177,7 @@ const FEATURED_ARTISTS = {
 };
 
 // Calendar component for featured artists
-const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+const Calendar = ({ isOpen, onClose, chronistEpochUnlocked, iterationEpochUnlocked }: { isOpen: boolean; onClose: () => void; chronistEpochUnlocked: boolean; iterationEpochUnlocked: boolean }) => {
   const [profilePictures, setProfilePictures] = useState<Record<number, string>>({});
   const [chronistCountdown, setChronistCountdown] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
   
@@ -242,10 +243,10 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
   useEffect(() => {
     const updateChronistCountdown = () => {
       const epoch7 = EPOCHS.find(e => e.id === 7);
-      if (epoch7?.unlockTime && !isEpochUnlocked(epoch7)) {
+      if (epoch7?.unlockTime && !isEpochUnlocked(epoch7, chronistEpochUnlocked, iterationEpochUnlocked)) {
         const countdown = getTimeUntilUnlock(epoch7.unlockTime);
         setChronistCountdown(countdown);
-      } else if (epoch7 && isEpochUnlocked(epoch7)) {
+      } else if (epoch7 && isEpochUnlocked(epoch7, chronistEpochUnlocked, iterationEpochUnlocked)) {
         setChronistCountdown(null); // Epoch is unlocked
       }
     };
@@ -258,7 +259,7 @@ const Calendar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
       
       return () => clearInterval(interval);
     }
-  }, [isOpen]);
+  }, [isOpen, chronistEpochUnlocked, iterationEpochUnlocked]);
 
   if (!isOpen) return null;
 
@@ -496,12 +497,15 @@ const EPOCHS = [
 ];
 
 // Utility function to check if an epoch should be unlocked
-const isEpochUnlocked = (epoch: typeof EPOCHS[0], chronistUnlocked: boolean = false): boolean => {
+const isEpochUnlocked = (epoch: typeof EPOCHS[0], chronistUnlocked: boolean = false, iterationUnlocked: boolean = false): boolean => {
   if (!epoch.locked) return true;
   if (!epoch.unlockTime) return false;
   
   // Special case for Chronist's epoch - can be unlocked via easter egg
   if (epoch.id === 7 && chronistUnlocked) return true;
+  
+  // Special case for Iteration's epoch - can be unlocked via easter egg
+  if (epoch.id === 8 && iterationUnlocked) return true;
   
   return Date.now() >= epoch.unlockTime;
 };
@@ -957,6 +961,11 @@ export default function Home() {
   const [showChronistUnlockUI, setShowChronistUnlockUI] = useState(false)
   const [chronistEpochUnlocked, setChronistEpochUnlocked] = useState(false)
 
+  // Iteration easter egg state
+  const [iterationTapCount, setIterationTapCount] = useState(0)
+  const [showIterationUnlockUI, setShowIterationUnlockUI] = useState(false)
+  const [iterationEpochUnlocked, setIterationEpochUnlocked] = useState(false)
+
   // Epoch unlock timer - check every second for countdown and unlock status
   useEffect(() => {
     const checkEpochUnlocks = () => {
@@ -965,7 +974,7 @@ export default function Home() {
       
       EPOCHS.forEach(epoch => {
         if (epoch.locked && epoch.unlockTime) {
-          const isUnlocked = isEpochUnlocked(epoch, chronistEpochUnlocked);
+          const isUnlocked = isEpochUnlocked(epoch, chronistEpochUnlocked, iterationEpochUnlocked);
           
           if (isUnlocked) {
             console.log(`🎉 Epoch ${epoch.id} (${epoch.name}) has been unlocked!`);
@@ -1867,6 +1876,35 @@ export default function Home() {
     }
   };
 
+  // Iteration easter egg handler
+  const handleIterationEasterEgg = () => {
+    const newTapCount = iterationTapCount + 1;
+    setIterationTapCount(newTapCount);
+    
+    console.log(`Iteration tap count: ${newTapCount}`);
+    
+    // Unlock Iteration epoch on 5th tap (no visual indicators)
+    if (newTapCount === 5 && !iterationEpochUnlocked) {
+      setIterationEpochUnlocked(true);
+      setShowIterationUnlockUI(false);
+      
+      // Show unlock notification
+      window.dispatchEvent(new CustomEvent('showNotification', { 
+        detail: { 
+          message: `🎉 Iteration's Epoch 8 unlocked! You found the easter egg!`,
+          type: 'iteration-unlock',
+          duration: 5000
+        } 
+      }));
+      
+      // Track the easter egg unlock
+      trackEasterEggUnlock('iteration', 8);
+      
+      // Reset tap counter
+      setIterationTapCount(0);
+    }
+  };
+
   return (
     <div
       className="w-screen h-screen bg-black flex items-center justify-center relative overflow-hidden"
@@ -2091,6 +2129,9 @@ export default function Home() {
           onChronistEasterEgg={handleChronistEasterEgg}
           chronistTapCount={chronistTapCount}
           chronistEpochUnlocked={chronistEpochUnlocked}
+          onIterationEasterEgg={handleIterationEasterEgg}
+          iterationTapCount={iterationTapCount}
+          iterationEpochUnlocked={iterationEpochUnlocked}
         />
       )}
 
@@ -2098,6 +2139,8 @@ export default function Home() {
       <Calendar
         isOpen={calendarOpen}
         onClose={() => setCalendarOpen(false)}
+        chronistEpochUnlocked={chronistEpochUnlocked}
+        iterationEpochUnlocked={iterationEpochUnlocked}
       />
 
       {/* Tutorial Overlay */}
