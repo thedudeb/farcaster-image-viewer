@@ -2156,7 +2156,7 @@ export default function Home() {
           }}
         >
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-20">
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-200 max-w-lg mx-4 relative">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-2xl border border-gray-200 max-w-sm mx-4 relative">
               {/* Close button */}
               <button
                 onClick={(e) => {
@@ -2164,71 +2164,38 @@ export default function Home() {
                   console.log('🎯 Tutorial dismissed by close button');
                   handleTutorialComplete();
                 }}
-                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
                 aria-label="Close tutorial"
               >
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
               
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              <h2 className="text-xl font-bold text-gray-900 mb-1">
                 Welcome to 0ffline Viewer
               </h2>
-              <p className="text-sm text-gray-500 mb-6">
+              <p className="text-xs text-gray-500 mb-3">
                 Press ESC, click outside, or use the buttons below to continue
               </p>
               
-              <div className="text-left space-y-4 mb-8">
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Navigate Artworks</h3>
-                    <p className="text-gray-600 text-sm">Tap left or right anywhere on the screen to browse through images</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Explore Epochs</h3>
-                    <p className="text-gray-600 text-sm">Use the menu button to switch between different art collections</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Share & Discover</h3>
-                    <p className="text-gray-600 text-sm">Share your favorite pieces and discover new artists</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Pinch to Zoom</h3>
-                    <p className="text-gray-600 text-sm">Use two fingers to zoom in and explore details</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-indigo-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Request an Epoch</h3>
-                    <p className="text-gray-600 text-sm">Want to be featured? Request an epoch in the menu</p>
-                  </div>
-                </div>
+              <div className="text-left mb-4">
+                <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                  <li>Tap left/right anywhere to browse</li>
+                  <li>Use the menu to switch epochs</li>
+                  <li>Pinch with two fingers to zoom</li>
+                  <li>Share your favorites from the menu</li>
+                </ul>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     console.log('🎯 Tutorial dismissed by Start button');
                     handleTutorialComplete();
                   }}
-                  className="w-full px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 font-medium transition-all duration-200 transform hover:scale-[1.02] shadow-lg"
+                  className="w-full px-4 py-2 bg-gray-900 text-white rounded-xl hover:bg-gray-800 font-medium transition-all duration-200 shadow-lg"
                 >
                   Start Exploring
                 </button>
@@ -2239,7 +2206,7 @@ export default function Home() {
                     console.log('🎯 Tutorial dismissed by Skip button');
                     handleTutorialComplete();
                   }}
-                  className="w-full px-6 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+                  className="w-full px-4 py-1 text-gray-600 hover:text-gray-800 font-medium transition-colors text-sm"
                 >
                   Skip Tutorial
                 </button>
