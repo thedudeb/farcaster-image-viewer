@@ -64,7 +64,18 @@ export default function NotificationManager() {
     setResult(null);
     
     try {
-      const payload: any = {
+      const payload: {
+        type: string;
+        title: string;
+        body: string;
+        target: string;
+        epochId?: number;
+        artistName?: string;
+        artistFid?: number;
+        feature?: string;
+        eventName?: string;
+        targetFid?: number;
+      } = {
         type: notification.type,
         title: notification.title,
         body: notification.body,
