@@ -39,17 +39,10 @@ export default function NotificationDashboard() {
   const [activeTab, setActiveTab] = useState<'send' | 'users'>('send');
   
   const [notification, setNotification] = useState({
-    type: 'custom' as 'epoch' | 'artist' | 'app_update' | 'event' | 'custom',
     title: '',
     body: '',
     target: 'all' as 'all' | 'followers',
     targetFid: '',
-    // Type-specific fields
-    epochId: '',
-    artistName: '',
-    artistFid: '',
-    feature: '',
-    eventName: '',
   });
 
   const fetchData = async () => {
@@ -90,31 +83,13 @@ export default function NotificationDashboard() {
         title: string;
         body: string;
         target: string;
-        epochId?: number;
-        artistName?: string;
-        artistFid?: number;
-        feature?: string;
-        eventName?: string;
         targetFid?: number;
       } = {
-        type: notification.type,
+        type: 'custom',
         title: notification.title,
         body: notification.body,
         target: notification.target,
       };
-
-      // Add type-specific fields
-      if (notification.type === 'epoch') {
-        payload.epochId = parseInt(notification.epochId);
-        payload.artistName = notification.artistName;
-        payload.artistFid = parseInt(notification.artistFid);
-      } else if (notification.type === 'artist') {
-        payload.artistName = notification.artistName;
-      } else if (notification.type === 'app_update') {
-        payload.feature = notification.feature;
-      } else if (notification.type === 'event') {
-        payload.eventName = notification.eventName;
-      }
 
       if (notification.target === 'followers' && notification.targetFid) {
         payload.targetFid = parseInt(notification.targetFid);
@@ -148,34 +123,8 @@ export default function NotificationDashboard() {
     }
   };
 
-  const getTypeDescription = (type: string) => {
-    switch (type) {
-      case 'epoch': return 'Notify about new epoch releases';
-      case 'artist': return 'Send artist announcements';
-      case 'app_update': return 'Announce new app features';
-      case 'event': return 'Promote special events';
-      case 'custom': return 'Send custom notifications';
-      default: return '';
-    }
-  };
-
   const isFormValid = () => {
-    if (!notification.title || !notification.body) return false;
-    
-    switch (notification.type) {
-      case 'epoch':
-        return notification.epochId && notification.artistName && notification.artistFid;
-      case 'artist':
-        return notification.artistName;
-      case 'app_update':
-        return notification.feature;
-      case 'event':
-        return notification.eventName;
-      case 'custom':
-        return true;
-      default:
-        return false;
-    }
+    return notification.title && notification.body;
   };
 
   const formatDate = (dateString: string) => {
@@ -246,98 +195,6 @@ export default function NotificationDashboard() {
       {/* Send Notifications Tab */}
       {activeTab === 'send' && (
         <div className="space-y-6">
-          {/* Notification Type */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Notification Type</label>
-            <select
-              value={notification.type}
-              onChange={(e) => setNotification(prev => ({ ...prev, type: e.target.value as 'epoch' | 'artist' | 'app_update' | 'event' | 'custom' }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="custom">Custom Notification</option>
-              <option value="epoch">Epoch Release</option>
-              <option value="artist">Artist Announcement</option>
-              <option value="app_update">App Update</option>
-              <option value="event">Special Event</option>
-            </select>
-            <p className="text-xs text-gray-500 mt-1">{getTypeDescription(notification.type)}</p>
-          </div>
-
-          {/* Type-specific fields */}
-          {notification.type === 'epoch' && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Epoch ID</label>
-                <input
-                  type="number"
-                  value={notification.epochId}
-                  onChange={(e) => setNotification(prev => ({ ...prev, epochId: e.target.value }))}
-                  placeholder="8"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Artist Name</label>
-                <input
-                  type="text"
-                  value={notification.artistName}
-                  onChange={(e) => setNotification(prev => ({ ...prev, artistName: e.target.value }))}
-                  placeholder="Iteration"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Artist FID</label>
-                <input
-                  type="number"
-                  value={notification.artistFid}
-                  onChange={(e) => setNotification(prev => ({ ...prev, artistFid: e.target.value }))}
-                  placeholder="14491"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-          )}
-
-          {notification.type === 'artist' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Artist Name</label>
-              <input
-                type="text"
-                value={notification.artistName}
-                onChange={(e) => setNotification(prev => ({ ...prev, artistName: e.target.value }))}
-                placeholder="Iteration"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          )}
-
-          {notification.type === 'app_update' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Feature Name</label>
-              <input
-                type="text"
-                value={notification.feature}
-                onChange={(e) => setNotification(prev => ({ ...prev, feature: e.target.value }))}
-                placeholder="Enhanced Notifications"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          )}
-
-          {notification.type === 'event' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Event Name</label>
-              <input
-                type="text"
-                value={notification.eventName}
-                onChange={(e) => setNotification(prev => ({ ...prev, eventName: e.target.value }))}
-                placeholder="Art Exhibition Opening"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          )}
-
           {/* Title and Body */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
@@ -346,7 +203,7 @@ export default function NotificationDashboard() {
               value={notification.title}
               onChange={(e) => setNotification(prev => ({ ...prev, title: e.target.value }))}
               placeholder="Notification title..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
               maxLength={100}
             />
           </div>
@@ -358,7 +215,7 @@ export default function NotificationDashboard() {
               onChange={(e) => setNotification(prev => ({ ...prev, body: e.target.value }))}
               placeholder="Notification message..."
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
               maxLength={500}
             />
           </div>
@@ -384,7 +241,7 @@ export default function NotificationDashboard() {
                 value={notification.targetFid}
                 onChange={(e) => setNotification(prev => ({ ...prev, targetFid: e.target.value }))}
                 placeholder="14491"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
               />
             </div>
           )}
