@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
-const TEST_FIDS = [15351, 1075107, 288204, 499579]; // @0ffline, @greywash, @dwn2earth, @chronist
+const TEST_FIDS = [15351, 1075107, 288204, 499579, 14491]; // @0ffline, @greywash, @dwn2earth, @chronist, @iteration
 
 interface NeynarUser {
   fid: number;

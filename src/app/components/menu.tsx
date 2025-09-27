@@ -56,7 +56,7 @@ const EPOCH_ARTISTS = {
     fid: 14491, 
     username: 'iteration', 
     displayName: 'Iteration'
-  },
+  }
 };
 
 // Set a fixed unlock timestamp for Chronist's epoch (same as main page)
@@ -155,26 +155,32 @@ export default function Menu({ onClose, onEpochChange, currentEpoch, onChronistE
         const fids = Object.values(EPOCH_ARTISTS).map(artist => artist.fid);
         const uniqueFids = [...new Set(fids)]; // Remove duplicates
         
-        console.log('Fetching profile pictures for FIDs:', uniqueFids);
+        console.log('🎨 Fetching profile pictures for FIDs:', uniqueFids);
+        console.log('🎨 EPOCH_ARTISTS:', EPOCH_ARTISTS);
         
         const response = await fetch('/api/artists/recent');
+        console.log('🎨 API response status:', response.status);
+        
         if (response.ok) {
           const data = await response.json();
+          console.log('🎨 API response data:', data);
+          
           const pictures: Record<number, string> = {};
           
           // Map FIDs to profile pictures
           data.artists?.forEach((artist: { fid: number; pfp: string }) => {
             pictures[artist.fid] = artist.pfp;
-            console.log(`Loaded profile picture for FID ${artist.fid}:`, artist.pfp ? 'Success' : 'No URL');
+            console.log(`🎨 Loaded profile picture for FID ${artist.fid}:`, artist.pfp ? 'Success' : 'No URL');
           });
           
-          console.log('Profile pictures loaded:', Object.keys(pictures));
+          console.log('🎨 Profile pictures loaded:', pictures);
           setProfilePictures(pictures);
         } else {
-          console.error('Failed to fetch artists:', response.status, await response.text());
+          const errorText = await response.text();
+          console.error('❌ Failed to fetch artists:', response.status, errorText);
         }
       } catch (error) {
-        console.error('Failed to fetch profile pictures:', error);
+        console.error('❌ Failed to fetch profile pictures:', error);
       } finally {
         setLoadingPictures(false);
       }
