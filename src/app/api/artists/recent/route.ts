@@ -26,7 +26,9 @@ export async function GET() {
     });
 
     if (!response.ok) {
-      console.error('Neynar fetch failed:', response.status, await response.text()); // Log failure details
+      const errorText = await response.text();
+      console.error('Neynar fetch failed:', response.status, errorText); // Log failure details
+      // Note: If you see "Subscription expired" error, the Neynar API key needs to be renewed
       return NextResponse.json({ error: 'Failed to fetch from Neynar' }, { status: 500 });
     }
 

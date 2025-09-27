@@ -142,13 +142,21 @@ const getTimeUntilUnlock = (unlockTime: number): { days: number; hours: number; 
   return { days, hours, minutes, seconds };
 };
 
+// Generate placeholder avatar URL based on FID
+const getPlaceholderAvatar = (fid: number, username: string) => {
+  const colors = ['667eea', 'f093fb', '4facfe', '43e97b', 'fa709a'];
+  const colorIndex = fid % colors.length;
+  const color = colors[colorIndex];
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=${color}&color=fff&size=72&bold=true`;
+};
+
 export default function Menu({ onClose, onEpochChange, currentEpoch, onChronistEasterEgg, chronistTapCount, chronistEpochUnlocked, onIterationEasterEgg, iterationTapCount, iterationEpochUnlocked }: MenuProps) {
   const [profilePictures, setProfilePictures] = useState<Record<number, string>>({});
   const [countdownTimers, setCountdownTimers] = useState<Record<number, { days: number; hours: number; minutes: number; seconds: number }>>({});
   const [loadingPictures, setLoadingPictures] = useState(true);
   const [showEpoch1To4Submenu, setShowEpoch1To4Submenu] = useState(false);
 
-  // Fetch profile pictures from Neynar API
+  // Fetch profile pictures from Neynar API with fallback
   useEffect(() => {
     const fetchProfilePictures = async () => {
       try {
@@ -178,9 +186,17 @@ export default function Menu({ onClose, onEpochChange, currentEpoch, onChronistE
         } else {
           const errorText = await response.text();
           console.error('❌ Failed to fetch artists:', response.status, errorText);
+          
+          // Fallback: Use placeholder images or default avatars
+          console.log('🎨 Using fallback avatars due to API error');
+          setProfilePictures({});
         }
       } catch (error) {
         console.error('❌ Failed to fetch profile pictures:', error);
+        
+        // Fallback: Use placeholder images or default avatars
+        console.log('🎨 Using fallback avatars due to network error');
+        setProfilePictures({});
       } finally {
         setLoadingPictures(false);
       }
@@ -473,10 +489,10 @@ export default function Menu({ onClose, onEpochChange, currentEpoch, onChronistE
                                {loadingPictures ? (
                                  // Loading skeleton
                                  <div className="w-9 h-9 rounded-full bg-gray-700 animate-pulse ring-2 ring-gray-600"></div>
-                               ) : profilePictures[artist.fid] ? (
-                                 // Real profile picture
+                               ) : (
+                                 // Profile picture (real or placeholder)
                                  <Image
-                                   src={profilePictures[artist.fid]}
+                                   src={profilePictures[artist.fid] || getPlaceholderAvatar(artist.fid, artist.username)}
                                    alt={`@${artist.username}`}
                                    width={36}
                                    height={36}
@@ -498,14 +514,18 @@ export default function Menu({ onClose, onEpochChange, currentEpoch, onChronistE
                                      console.log(`Image loaded successfully for ${artist.username}`);
                                    }}
                                  />
-                               ) : null}
-                               {/* Fallback avatar with initials */}
+                               )}
+                               {/* Fallback avatar with initials (only shown if image fails to load) */}
                                <div 
-                                 className={`${profilePictures[artist.fid] ? 'hidden' : 'flex'} w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 items-center justify-center text-white text-xs font-bold transition-all duration-200 ring-2 ${
-                                   epoch.locked 
-                                     ? 'ring-gray-600 opacity-60 cursor-not-allowed' 
-                                     : 'cursor-pointer hover:opacity-80 hover:scale-105 ring-gray-700 hover:ring-blue-500'
-                                 }`}
+                                 className="hidden w-9 h-9 rounded-full items-center justify-center text-white text-xs font-bold transition-all duration-200 ring-2 ring-gray-700"
+                                 style={{
+                                   background: artist.fid === 15351 ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : // 0ffline - purple gradient
+                                              artist.fid === 1075107 ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' : // greywash - pink gradient
+                                              artist.fid === 288204 ? 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' : // dwn2earth - blue gradient
+                                              artist.fid === 499579 ? 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' : // chronist - green gradient
+                                              artist.fid === 14491 ? 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' : // iteration - orange gradient
+                                              'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' // default purple
+                                 }}
                                  title={epoch.locked ? `@${artist.username} (locked)` : `View @${artist.username}'s profile`}
                                >
                                  {artist.displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
