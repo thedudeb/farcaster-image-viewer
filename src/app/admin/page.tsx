@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import NotificationManager from "../components/NotificationManager";
 
 interface UserInfo {
   fid: number;
@@ -169,7 +170,12 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Bulk Notification Sender */}
+        {/* Enhanced Notification Manager */}
+        <div className="mb-8">
+          <NotificationManager />
+        </div>
+
+        {/* Legacy Bulk Notification Sender */}
         <div className="bg-white p-6 rounded-lg shadow mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Send Notification</h2>
           <p className="text-sm text-gray-600 mb-4">
