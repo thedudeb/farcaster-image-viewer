@@ -127,7 +127,12 @@ export class FarcasterNotificationService {
    */
   async sendEpochReleaseNotification(epochId: number, artistName: string, artistFid: number): Promise<{
     success: boolean;
-    results: any;
+    results: {
+      sent: number;
+      failed: number;
+      noToken: number;
+      rateLimited: number;
+    };
     errors: string[];
   }> {
     const title = `🎨 New Epoch Available!`;
@@ -141,7 +146,12 @@ export class FarcasterNotificationService {
    */
   async sendArtistAnnouncement(artistName: string, message: string): Promise<{
     success: boolean;
-    results: any;
+    results: {
+      sent: number;
+      failed: number;
+      noToken: number;
+      rateLimited: number;
+    };
     errors: string[];
   }> {
     const title = `👤 ${artistName} Update`;
@@ -155,7 +165,12 @@ export class FarcasterNotificationService {
    */
   async sendAppUpdateNotification(feature: string, description: string): Promise<{
     success: boolean;
-    results: any;
+    results: {
+      sent: number;
+      failed: number;
+      noToken: number;
+      rateLimited: number;
+    };
     errors: string[];
   }> {
     const title = `✨ New Feature: ${feature}`;
@@ -169,7 +184,12 @@ export class FarcasterNotificationService {
    */
   async sendEventNotification(eventName: string, description: string): Promise<{
     success: boolean;
-    results: any;
+    results: {
+      sent: number;
+      failed: number;
+      noToken: number;
+      rateLimited: number;
+    };
     errors: string[];
   }> {
     const title = `🎉 ${eventName}`;

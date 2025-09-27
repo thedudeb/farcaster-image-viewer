@@ -993,7 +993,7 @@ export default function Home() {
     const interval = setInterval(checkEpochUnlocks, 1000);
     
     return () => clearInterval(interval);
-  }, [chronistEpochUnlocked]);
+  }, [chronistEpochUnlocked, iterationEpochUnlocked]);
   
   const [showIndicator, setShowIndicator] = useState(true)
   const [fadeOut, setFadeOut] = useState(false)
