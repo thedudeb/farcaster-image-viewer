@@ -24,7 +24,9 @@ export class FarcasterNotificationService {
     error?: string;
   }> {
     try {
+      console.log(`sendToUser: Sending notification to FID ${fid}`);
       const result = await sendFrameNotification({ fid, title, body });
+      console.log(`sendToUser: Result for FID ${fid}:`, result);
       
       switch (result.state) {
         case 'success':
@@ -39,6 +41,7 @@ export class FarcasterNotificationService {
           return { success: false, result: 'failed', error: 'Unknown error' };
       }
     } catch (error) {
+      console.error(`sendToUser: Error for FID ${fid}:`, error);
       return { success: false, result: 'failed', error: String(error) };
     }
   }
@@ -57,8 +60,21 @@ export class FarcasterNotificationService {
     errors: string[];
   }> {
     try {
+      console.log('sendToAllUsers: Starting notification send');
       const users = await getAllUsers();
+      console.log('sendToAllUsers: Total users:', users.length);
+      
       const usersWithNotifications = users.filter(user => user.hasNotifications);
+      console.log('sendToAllUsers: Users with notifications:', usersWithNotifications.length);
+      
+      if (usersWithNotifications.length === 0) {
+        console.log('sendToAllUsers: No users with notifications enabled');
+        return {
+          success: false,
+          results: { sent: 0, failed: 0, noToken: 0, rateLimited: 0 },
+          errors: ['No users have notifications enabled'],
+        };
+      }
       
       const results = {
         sent: 0,
@@ -69,7 +85,9 @@ export class FarcasterNotificationService {
       const errors: string[] = [];
 
       for (const user of usersWithNotifications) {
+        console.log(`sendToAllUsers: Sending to user ${user.fid}`);
         const result = await this.sendToUser(user.fid, title, body);
+        console.log(`sendToAllUsers: Result for user ${user.fid}:`, result);
         
         switch (result.result) {
           case 'sent':
@@ -88,12 +106,14 @@ export class FarcasterNotificationService {
         }
       }
 
+      console.log('sendToAllUsers: Final results:', results);
       return {
         success: results.sent > 0,
         results,
         errors,
       };
     } catch (error) {
+      console.error('sendToAllUsers: Error:', error);
       return {
         success: false,
         results: { sent: 0, failed: 0, noToken: 0, rateLimited: 0 },
