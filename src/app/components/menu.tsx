@@ -88,25 +88,12 @@ const EPOCHS = [
       return `${dateStr} at 4:20 EST`;
     })()
   },
-  { 
-    id: 8, 
-    name: 'Epoch 8', 
-    totalImages: 20, 
-    locked: true,
-    unlockTime: Date.now() + (7 * 24 * 60 * 60 * 1000), // 7 days from now
-    unlockDate: (() => {
-      const date = new Date(Date.now() + (7 * 24 * 60 * 60 * 1000));
-      const dateStr = date.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric',
-        timeZone: 'America/New_York',
-        timeZoneName: 'short'
-      });
-      return `${dateStr}`;
-    })()
-  },
+    { 
+      id: 8, 
+      name: 'Epoch 8', 
+      totalImages: 20, 
+      locked: false
+    },
 ];
 
 const EPOCHS_1_TO_4 = [

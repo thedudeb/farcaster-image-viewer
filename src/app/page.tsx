@@ -473,27 +473,14 @@ const EPOCHS = [
       return `${dateStr} at 4:20 EST`;
     })()
   },
-  { 
-    id: 8, 
-    name: 'Epoch 8', 
-    totalImages: 20, 
-    locked: true, 
-    artist: 'Iteration', 
-    fid: 14491,
-    unlockTime: Date.now() + (7 * 24 * 60 * 60 * 1000), // 7 days from now
-    unlockDate: (() => {
-      const date = new Date(Date.now() + (7 * 24 * 60 * 60 * 1000));
-      const dateStr = date.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric',
-        timeZone: 'America/New_York',
-        timeZoneName: 'short'
-      });
-      return `${dateStr}`;
-    })()
-  },
+    { 
+      id: 8, 
+      name: 'Epoch 8', 
+      totalImages: 20, 
+      locked: false, 
+      artist: 'Iteration', 
+      fid: 14491
+    },
 ];
 
 // Utility function to check if an epoch should be unlocked
@@ -822,9 +809,9 @@ class EpochPreloader {
 const epochPreloader = new EpochPreloader();
 
 export default function Home() {
-  const [currentEpoch, setCurrentEpoch] = useState(7)
+  const [currentEpoch, setCurrentEpoch] = useState(8)
   const [index, setIndex] = useState<number | null>(1)
-  const [lockedEpochs, setLockedEpochs] = useState<Set<number>>(new Set([8])) // Track locked epochs
+  const [lockedEpochs, setLockedEpochs] = useState<Set<number>>(new Set([])) // Track locked epochs
   const [countdownTimers, setCountdownTimers] = useState<Record<number, { days: number; hours: number; minutes: number; seconds: number }>>({}) // Countdown timers
   
   // Progressive Enhancement & Performance Monitoring
