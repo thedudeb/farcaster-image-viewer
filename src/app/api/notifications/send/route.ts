@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { farcasterNotifications } from '../../../lib/farcaster-notifications';
+import { FarcasterNotificationService } from '../../../lib/farcaster-notifications';
 
 const sendNotificationSchema = z.object({
   type: z.enum(['epoch', 'artist', 'app_update', 'event', 'custom']),
@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
 
     const { type, title, body, target, targetFid, epochId, artistName, artistFid, feature, eventName } = requestBody.data;
 
+    const notificationService = FarcasterNotificationService.getInstance();
     let result;
 
     switch (type) {
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
-        result = await farcasterNotifications.sendEpochReleaseNotification(epochId, artistName, artistFid);
+        result = await notificationService.sendEpochReleaseNotification(epochId, artistName, artistFid);
         break;
 
       case 'artist':
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
-        result = await farcasterNotifications.sendArtistAnnouncement(artistName, body);
+        result = await notificationService.sendArtistAnnouncement(artistName, body);
         break;
 
       case 'app_update':
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
-        result = await farcasterNotifications.sendAppUpdateNotification(feature, body);
+        result = await notificationService.sendAppUpdateNotification(feature, body);
         break;
 
       case 'event':
@@ -70,14 +71,14 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
-        result = await farcasterNotifications.sendEventNotification(eventName, body);
+        result = await notificationService.sendEventNotification(eventName, body);
         break;
 
       case 'custom':
         if (target === 'followers' && targetFid) {
-          result = await farcasterNotifications.sendToFollowers(targetFid, title, body);
+          result = await notificationService.sendToFollowers(targetFid, title, body);
         } else {
-          result = await farcasterNotifications.sendToAllUsers(title, body);
+          result = await notificationService.sendToAllUsers(title, body);
         }
         break;
 
@@ -99,7 +100,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Notification API error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to send notification' },
+      { 
+        success: false, 
+        error: 'Failed to send notification',
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }
@@ -108,7 +113,8 @@ export async function POST(request: NextRequest) {
 // GET endpoint to get notification statistics
 export async function GET() {
   try {
-    const stats = await farcasterNotifications.getNotificationStats();
+    const notificationService = FarcasterNotificationService.getInstance();
+    const stats = await notificationService.getNotificationStats();
     return NextResponse.json({
       success: true,
       data: stats,

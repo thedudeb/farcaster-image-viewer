@@ -120,6 +120,8 @@ export default function NotificationDashboard() {
         payload.targetFid = parseInt(notification.targetFid);
       }
 
+      console.log('Sending notification with payload:', payload);
+
       const response = await fetch('/api/notifications/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -127,6 +129,8 @@ export default function NotificationDashboard() {
       });
       
       const data = await response.json();
+      console.log('Notification response:', data);
+      
       setResult(data);
       
       if (data.success) {
@@ -134,7 +138,11 @@ export default function NotificationDashboard() {
         fetchData();
       }
     } catch (error) {
-      setResult({ success: false, error: 'Network error' });
+      console.error('Notification send error:', error);
+      setResult({ 
+        success: false, 
+        error: `Network error: ${error instanceof Error ? error.message : String(error)}` 
+      });
     } finally {
       setSending(false);
     }

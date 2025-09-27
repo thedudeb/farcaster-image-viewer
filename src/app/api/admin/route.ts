@@ -12,25 +12,16 @@ const bulkNotificationSchema = z.object({
 // GET /api/admin - Get analytics data
 export async function GET() {
   try {
-    console.log("Admin API: Testing Redis connection...");
-    const connectionOk = await testRedisConnection();
-    if (!connectionOk) {
-      return Response.json(
-        { success: false, error: "Redis connection failed" },
-        { status: 500 }
-      );
-    }
-    
-    // Clear problematic event data on first load
-    await clearEventData();
-    
-    console.log("Admin API: Starting to fetch analytics...");
-    const analytics = await getAnalytics();
-    console.log("Admin API: Analytics fetched successfully", analytics);
-    
     console.log("Admin API: Starting to fetch users...");
     const users = await getAllUsers();
     console.log("Admin API: Users fetched successfully, count:", users.length);
+    
+    // Get basic analytics without heavy operations
+    const analytics = {
+      totalUsers: users.length,
+      usersWithNotifications: users.filter(user => user.hasNotifications).length,
+      totalEvents: 0, // Simplified for performance
+    };
     
     return Response.json({
       success: true,
@@ -41,7 +32,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error("Admin API error details:", error);
-    console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
     return Response.json(
       { success: false, error: "Failed to fetch admin data", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
