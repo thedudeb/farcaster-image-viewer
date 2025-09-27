@@ -345,7 +345,7 @@ export default function NotificationManager() {
                   <p>No token: {result.data?.results.noToken}</p>
                   <p>Rate limited: {result.data?.results.rateLimited}</p>
                 </div>
-                {result.data?.errors.length > 0 && (
+                {result.data?.errors && result.data.errors.length > 0 && (
                   <div className="mt-2">
                     <p className="font-medium">Errors:</p>
                     <ul className="text-xs list-disc list-inside">
