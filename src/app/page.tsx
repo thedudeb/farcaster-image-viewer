@@ -177,7 +177,7 @@ const FEATURED_ARTISTS = {
 };
 
 // Calendar component for featured artists
-const Calendar = ({ isOpen, onClose, chronistEpochUnlocked, iterationEpochUnlocked }: { isOpen: boolean; onClose: () => void; chronistEpochUnlocked: boolean; iterationEpochUnlocked: boolean }) => {
+const Calendar = ({ isOpen, onClose, chronistEpochUnlocked, iterationEpochUnlocked, erikEpochUnlocked }: { isOpen: boolean; onClose: () => void; chronistEpochUnlocked: boolean; iterationEpochUnlocked: boolean; erikEpochUnlocked: boolean }) => {
   const [profilePictures, setProfilePictures] = useState<Record<number, string>>({});
   const [chronistCountdown, setChronistCountdown] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
   
@@ -243,10 +243,10 @@ const Calendar = ({ isOpen, onClose, chronistEpochUnlocked, iterationEpochUnlock
   useEffect(() => {
     const updateChronistCountdown = () => {
       const epoch7 = EPOCHS.find(e => e.id === 7);
-      if (epoch7?.unlockTime && !isEpochUnlocked(epoch7, chronistEpochUnlocked, iterationEpochUnlocked)) {
+      if (epoch7?.unlockTime && !isEpochUnlocked(epoch7, chronistEpochUnlocked, iterationEpochUnlocked, erikEpochUnlocked)) {
         const countdown = getTimeUntilUnlock(epoch7.unlockTime);
         setChronistCountdown(countdown);
-      } else if (epoch7 && isEpochUnlocked(epoch7, chronistEpochUnlocked, iterationEpochUnlocked)) {
+      } else if (epoch7 && isEpochUnlocked(epoch7, chronistEpochUnlocked, iterationEpochUnlocked, erikEpochUnlocked)) {
         setChronistCountdown(null); // Epoch is unlocked
       }
     };
@@ -259,7 +259,7 @@ const Calendar = ({ isOpen, onClose, chronistEpochUnlocked, iterationEpochUnlock
       
       return () => clearInterval(interval);
     }
-  }, [isOpen, chronistEpochUnlocked, iterationEpochUnlocked]);
+  }, [isOpen, chronistEpochUnlocked, iterationEpochUnlocked, erikEpochUnlocked]);
 
   if (!isOpen) return null;
 
@@ -481,10 +481,18 @@ const EPOCHS = [
       artist: 'Iteration', 
       fid: 14491
     },
+    { 
+      id: 9, 
+      name: 'Epoch 9', 
+      totalImages: 1, 
+      locked: true, 
+      artist: 'erik-bulckens', 
+      fid: 261245
+    },
 ];
 
 // Utility function to check if an epoch should be unlocked
-const isEpochUnlocked = (epoch: typeof EPOCHS[0], chronistUnlocked: boolean = false, iterationUnlocked: boolean = false): boolean => {
+const isEpochUnlocked = (epoch: typeof EPOCHS[0], chronistUnlocked: boolean = false, iterationUnlocked: boolean = false, erikUnlocked: boolean = false): boolean => {
   if (!epoch.locked) return true;
   if (!epoch.unlockTime) return false;
   
@@ -493,6 +501,9 @@ const isEpochUnlocked = (epoch: typeof EPOCHS[0], chronistUnlocked: boolean = fa
   
   // Special case for Iteration's epoch - can be unlocked via easter egg
   if (epoch.id === 8 && iterationUnlocked) return true;
+  
+  // Special case for Erik's epoch - can be unlocked via 5-tap easter egg
+  if (epoch.id === 9 && erikUnlocked) return true;
   
   return Date.now() >= epoch.unlockTime;
 };
@@ -953,6 +964,11 @@ export default function Home() {
   const [showIterationUnlockUI, setShowIterationUnlockUI] = useState(false)
   const [iterationEpochUnlocked, setIterationEpochUnlocked] = useState(false)
 
+  // Erik easter egg state
+  const [erikTapCount, setErikTapCount] = useState(0)
+  const [erikEpochUnlocked, setErikEpochUnlocked] = useState(false)
+
+
   // Epoch unlock timer - check every second for countdown and unlock status
   useEffect(() => {
     const checkEpochUnlocks = () => {
@@ -961,7 +977,7 @@ export default function Home() {
       
       EPOCHS.forEach(epoch => {
         if (epoch.locked && epoch.unlockTime) {
-          const isUnlocked = isEpochUnlocked(epoch, chronistEpochUnlocked, iterationEpochUnlocked);
+          const isUnlocked = isEpochUnlocked(epoch, chronistEpochUnlocked, iterationEpochUnlocked, erikEpochUnlocked);
           
           if (isUnlocked) {
             console.log(`🎉 Epoch ${epoch.id} (${epoch.name}) has been unlocked!`);
@@ -993,7 +1009,7 @@ export default function Home() {
     const interval = setInterval(checkEpochUnlocks, 1000);
     
     return () => clearInterval(interval);
-  }, [chronistEpochUnlocked, iterationEpochUnlocked]);
+  }, [chronistEpochUnlocked, iterationEpochUnlocked, erikEpochUnlocked]);
   
   const [showIndicator, setShowIndicator] = useState(true)
   const [fadeOut, setFadeOut] = useState(false)
@@ -1570,6 +1586,18 @@ export default function Home() {
       }));
     }
     
+    // Show special notification for Epoch 9-Erik
+    if (epochId === 9) {
+      window.dispatchEvent(new CustomEvent('showNotification', { 
+        detail: { 
+          message: `This epoch was created and curated by another amazing artist, @erik-bulckens`,
+          type: 'epoch9-notice',
+          artistProfile: 'https://warpcast.com/erik-bulckens' // Replace with actual Farcaster profile URL
+        } 
+      }));
+    }
+    
+    
     // Start preloading the new epoch silently in background
     epochPreloader.preloadEpoch(epochId).then(() => {
       // Hide loading state when epoch is ready
@@ -1892,6 +1920,35 @@ export default function Home() {
     }
   };
 
+  // Erik easter egg handler
+  const handleErikEasterEgg = () => {
+    const newTapCount = erikTapCount + 1;
+    setErikTapCount(newTapCount);
+    
+    console.log(`Erik tap count: ${newTapCount}`);
+    
+    // Unlock Erik epoch on 5th tap (no visual indicators)
+    if (newTapCount === 5 && !erikEpochUnlocked) {
+      setErikEpochUnlocked(true);
+      
+      // Show unlock notification
+      window.dispatchEvent(new CustomEvent('showNotification', { 
+        detail: { 
+          message: `🎉 Erik's Epoch 9 unlocked! You found the easter egg!`,
+          type: 'erik-unlock',
+          duration: 5000
+        } 
+      }));
+      
+      // Track the easter egg unlock
+      trackEasterEggUnlock('erik-bulckens', 9);
+      
+      // Reset tap counter
+      setErikTapCount(0);
+    }
+  };
+
+
   return (
     <div
       className="w-screen h-screen bg-black flex items-center justify-center relative overflow-hidden"
@@ -2119,6 +2176,9 @@ export default function Home() {
           onIterationEasterEgg={handleIterationEasterEgg}
           iterationTapCount={iterationTapCount}
           iterationEpochUnlocked={iterationEpochUnlocked}
+          onErikEasterEgg={handleErikEasterEgg}
+          erikTapCount={erikTapCount}
+          erikEpochUnlocked={erikEpochUnlocked}
         />
       )}
 
@@ -2128,6 +2188,7 @@ export default function Home() {
         onClose={() => setCalendarOpen(false)}
         chronistEpochUnlocked={chronistEpochUnlocked}
         iterationEpochUnlocked={iterationEpochUnlocked}
+        erikEpochUnlocked={erikEpochUnlocked}
       />
 
       {/* Tutorial Overlay */}
