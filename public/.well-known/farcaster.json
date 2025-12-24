@@ -1,10 +1,8 @@
 {
   "accountAssociation": {
-    "header": "eyJmaWQiOjE1MzUxLCJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4ZmRFNTVmNjg1NjM2ZTk5RTY1MTJBNzlkMDk1OWUwRTg3NDFDOTcxRCJ9",
+    "header": "eyJmaWQiOjE1MzUxLCJ0eXBlIjoiY3VzdG9teSIsImtleSI6IjB4ZmRFNTVmNjg1NjM2ZTk5RTY1MTJBNzlkMDk1OWUwRTg3NDFDOTcxRCJ9",
     "payload": "eyJkb21haW4iOiJmYXJjYXN0ZXItaW1hZ2Utdmlld2VyLnZlcmNlbC5hcHAifQ",
     "signature": "MHhhZjdmY2YxMzZlMWViOWRiMDc4OWU5NWJkMDU0MzhmZjczZWU3MmYwNmM2YmE5YmNjYThkZWJhOTExZTJjZjQ2MzdiMjM4ZTNkMjMwZGUxZTJlNjEyYzZiNDhmY2E4Yjg4MDJmZmVhNDgxMDU4YmY1MzU0ZjUxNzJmMDgwMWZjNTFj"
-  }
-}
   },
   "frame": {
     "version": "1",
@@ -29,5 +27,8 @@
     "navigation": {
       "entrypoint": "/"
     }
+  },
+  "baseBuilder": {
+    "ownerAddress": "0x706f6373B39C8C429e68cD1CF8DEFD665302FD92"
   }
 }
